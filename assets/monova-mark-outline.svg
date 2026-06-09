@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 86" aria-hidden="true">
+  <defs>
+    <linearGradient id="outlineOrange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffbd4a"/>
+      <stop offset=".45" stop-color="#ff790f"/>
+      <stop offset="1" stop-color="#ff5c00"/>
+    </linearGradient>
+    <filter id="outlineGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1 0 .28 0 0 .38 0 0 0 0 .04 0 0 0 .8 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path
+    d="M12 76V10h13l35 30 35-30h13v66H96V31L60 62 24 31v45H12Z"
+    fill="none"
+    stroke="url(#outlineOrange)"
+    stroke-linejoin="round"
+    stroke-width="5"
+    filter="url(#outlineGlow)"
+  />
+  <path
+    d="M35 38 60 59l25-21"
+    fill="none"
+    stroke="#ff9d22"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="3"
+    opacity=".76"
+  />
+</svg>

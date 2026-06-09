@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Monova | IA, software premium y automatización empresarial</title>
+    <meta
+      name="description"
+      content="Monova crea agentes de IA, automatizaciones y software premium para empresas que quieren operar con más velocidad, precisión y presencia digital."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css?v=20260601-premium-site-1" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Monova inicio">
+          <span class="brand-mark">M</span>
+          <span class="brand-name">MONOVA</span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Principal">
+          <a class="active" href="index.html">Inicio</a>
+          <a href="servicios.html">Servicios</a>
+          <a href="proyectos.html">Proyectos</a>
+          <a href="nosotros.html">Nosotros</a>
+          
+          <a href="contacto.html">Contacto</a>
+        </nav>
+
+        <a class="nav-cta" href="contacto.html">
+          Iniciar proyecto
+          <span>+</span>
+        </a>
+
+        <button class="menu-button" aria-label="Abrir menu" type="button">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </header>
+
+      <main>
+        <section class="hero" id="inicio">
+          <div class="hero-media" aria-hidden="true">
+            <video
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              poster="assets/monova-main-banner.png"
+            >
+              <source src="assets/monova-hero-banner.mp4" type="video/mp4" />
+            </video>
+          </div>
+
+          <!-- Boot sequence overlay -->
+          <div class="boot-overlay" id="bootOverlay" aria-hidden="true">
+            <canvas class="boot-field" id="bootParticleField" aria-hidden="true"></canvas>
+            <div class="boot-brand">
+              <span class="boot-m" aria-label="Monova M">
+                <canvas id="bootParticleM" aria-hidden="true"></canvas>
+              </span>
+              <span class="boot-title">MONOVA SYSTEM</span>
+            </div>
+            <div class="boot-lines" id="bootLines"></div>
+          </div>
+
+          <div class="hero-copy">
+            <p class="eyebrow">AI Software Studio · Enterprise Automation</p>
+            <h1>
+              Sistemas de IA<br>
+              <span>con estética premium</span>
+              y poder real.
+            </h1>
+            <p class="hero-text">
+              Creamos agentes inteligentes, plataformas a medida y automatizaciones para empresas que quieren operar más rápido, vender mejor y verse inolvidables.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-button" href="servicios.html">Ver soluciones IA</a>
+              <a class="ghost-button" href="contacto.html">
+                Diseñar mi sistema
+                <span aria-hidden="true">▶</span>
+              </a>
+            </div>
+            <div class="hero-proof" aria-label="Diferenciales Monova">
+              <span><strong>AI</strong> agents conectados</span>
+              <span><strong>UX</strong> de alto impacto</span>
+              <span><strong>Dev</strong> escalable y seguro</span>
+            </div>
+          </div>
+
+        </section>
+
+        <section class="innovation-lab section-panel" aria-labelledby="lab-title">
+          <div class="lab-copy">
+            <div class="lab-cat-scene" aria-hidden="true">
+              <img src="assets/monova-assistant-cat.png?v=20260602-thinking" alt="" />
+            </div>
+            <p class="section-kicker">Monova Lab</p>
+            <h2 id="lab-title">Te ayudamos a <span>automatizar</span> tu empresa con IA.</h2>
+            <p>
+              Aterrizamos tus ideas, detectamos oportunidades de automatización y te mostramos
+              qué sistema inteligente puede ayudarte a vender, operar o crecer mejor.
+            </p>
+          </div>
+          <div class="lab-console">
+            <div class="lab-console-head">
+              <div>
+                <strong>Monova</strong>
+                <small>En línea</small>
+              </div>
+              <i aria-hidden="true"></i>
+            </div>
+            <div class="lab-diagnosis" aria-live="polite">
+              <div class="lab-message lab-message--bot">
+                <p>¡Hola! Soy Monova, estoy aquí para ayudarte a sistematizar tu empresa.</p>
+                <small>¿En qué puedo apoyarte hoy?</small>
+              </div>
+            </div>
+            <div class="lab-input-row">
+              <input id="project-idea" type="text" placeholder="Escribe tu mensaje..." />
+              <button class="primary-button" type="button" data-generate-roadmap aria-label="Enviar mensaje">➢</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="about" id="nosotros">
+          <div class="about-media">
+            <img src="assets/monova-team-system-work.png?v=20260602-team" alt="Equipo Monova trabajando en sistemas inteligentes" />
+          </div>
+          <div class="about-copy">
+            <p class="eyebrow">Sobre Monova</p>
+            <h2>Tecnología con propósito. <span>Creatividad</span> sin límites.</h2>
+            <p>
+              En Monova combinamos código, diseño e inteligencia artificial para crear
+              soluciones digitales innovadoras. Somos un equipo apasionado por transformar
+              ideas en productos que generan impacto.
+            </p>
+            <div class="trust-list">
+              <div><span>↯</span><strong>Rápidos y eficientes</strong><small>Entregamos resultados ágiles y de calidad.</small></div>
+              <div><span>◇</span><strong>Seguros y confiables</strong><small>Protegemos tus datos y tu negocio.</small></div>
+              <div><span>♙</span><strong>Equipo experto</strong><small>Profesionales apasionados por la tecnología.</small></div>
+            </div>
+            <a class="outline-button" href="nosotros.html">Conocer más sobre nosotros →</a>
+          </div>
+        </section>
+
+        <section class="process-flow" aria-label="Proceso de trabajo Monova">
+          <div class="process-heading">
+            <p class="eyebrow">Método Monova</p>
+            <h2>De una idea suelta a un sistema inteligente listo para <span>crecer.</span></h2>
+          </div>
+          <div class="process-cats-stage" aria-hidden="true">
+            <img src="assets/monova-process-cats.png" alt="" />
+          </div>
+          <div class="process-steps">
+            <article>
+              <i>01</i>
+              <span>Descubrir</span>
+              <h3>Diagnóstico</h3>
+              <p>Mapeamos negocio, usuarios, datos y oportunidades reales.</p>
+            </article>
+            <article>
+              <i>02</i>
+              <span>Diseñar</span>
+              <h3>Prototipo</h3>
+              <p>Convertimos la estrategia en interfaces claras y validables.</p>
+            </article>
+            <article>
+              <i>03</i>
+              <span>Construir</span>
+              <h3>Producto</h3>
+              <p>Desarrollamos software, IA e integraciones con base escalable.</p>
+            </article>
+            <article>
+              <i>04</i>
+              <span>Escalar</span>
+              <h3>Optimizar</h3>
+              <p>Medimos, mejoramos y preparamos el sistema para crecer.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Métricas de Monova">
+          <div><i>♙</i><span>50+</span><p>Clientes satisfechos</p></div>
+          <div><i>&lt;/&gt;</i><span>120+</span><p>Proyectos realizados</p></div>
+          <div><i>↗</i><span>5+</span><p>Años de experiencia</p></div>
+          <div><i>♕</i><span>99%</span><p>Proyectos entregados</p></div>
+        </section>
+
+        <section class="tech-stack" aria-label="Tecnologías que usamos">
+          <p class="section-kicker">Tecnologías que usamos</p>
+          <div class="tech-track">
+            <div><img src="assets/tech/react.png" alt="React" /></div>
+            <div><img src="assets/tech/nextjs.png" alt="Next.js" /></div>
+            <div><img src="assets/tech/python.png" alt="Python" /></div>
+            <div><img src="assets/tech/flutter.png" alt="Flutter" /></div>
+            <div><img src="assets/tech/aws.png" alt="AWS" /></div>
+            <div><img src="assets/tech/docker.png" alt="Docker" /></div>
+            <div><img src="assets/tech/figma.png" alt="Figma" /></div>
+            <div><img src="assets/tech/tailwind.png" alt="Tailwind CSS" /></div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <div class="brand">
+            <span class="brand-mark">M</span>
+            <span class="brand-name">MONOVA</span>
+          </div>
+          <p>Código. Diseño. Inteligencia. Pasión.</p>
+        </div>
+        <div class="footer-col">
+          <h3>Enlaces</h3>
+          <a href="index.html">Inicio</a>
+          <a href="servicios.html">Servicios</a>
+          <a href="proyectos.html">Proyectos</a>
+          <a href="nosotros.html">Nosotros</a>
+          
+          <a href="contacto.html">Contacto</a>
+        </div>
+        <div class="footer-col">
+          <h3>Servicios</h3>
+          <a href="servicios.html">Desarrollo</a>
+          <a href="servicios.html">Diseño UX/UI</a>
+          <a href="servicios.html">Inteligencia Artificial</a>
+          <a href="servicios.html">Branding</a>
+          <a href="servicios.html">Consultoría</a>
+          <a href="contacto.html">Soporte</a>
+        </div>
+        <div class="footer-social">
+          <h3>Síguenos</h3>
+          <div class="social-links">
+            <a href="#" aria-label="LinkedIn">in</a>
+            <a href="#" aria-label="Instagram">◎</a>
+            <a href="#" aria-label="X">X</a>
+            <a href="#" aria-label="YouTube">▶</a>
+          </div>
+          <small>© 2026 Monova. Todos los derechos reservados.</small>
+        </div>
+      </footer>
+    </div>
+    <div class="service-modal" aria-hidden="true">
+      <div class="service-modal__backdrop" data-close-modal></div>
+      <section class="service-modal__panel" role="dialog" aria-modal="true" aria-labelledby="service-modal-title">
+        <button class="service-modal__close" type="button" aria-label="Cerrar" data-close-modal>×</button>
+        <p class="eyebrow">Servicio Monova</p>
+        <h2 id="service-modal-title"></h2>
+        <p class="service-modal__copy"></p>
+        <ul class="service-modal__list"></ul>
+        <a class="primary-button" href="contacto.html">Cotizar este servicio →</a>
+      </section>
+    </div>
+
+    <script src="script.js?v=20260529-accents"></script>
+    <script src="animations.js?v=20260601-premium-site-1"></script>
+  </body>
+</html>

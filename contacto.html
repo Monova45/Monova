@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacto | Monova</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .contact-page-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin-bottom: 54px;
+      }
+
+      /* ── Columna izquierda ── */
+      .contact-left {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 54px 48px 48px;
+        overflow: hidden;
+        min-height: 660px;
+      }
+
+      .contact-left h1 {
+        font: 900 clamp(38px, 3.8vw, 54px) / 1.08 var(--font-display);
+        max-width: 380px;
+        margin-bottom: 18px;
+      }
+
+      .contact-left > p {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.75;
+        max-width: 360px;
+        margin-bottom: 36px;
+      }
+
+      .contact-meeting {
+        margin-top: auto;
+        padding: 20px 22px;
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.025);
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0;
+      }
+
+      .contact-meeting p {
+        margin: 0 0 12px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .contact-meeting small {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 14px;
+        line-height: 1.5;
+      }
+
+      .contact-meeting a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border: 1px solid rgba(255, 121, 15, 0.5);
+        border-radius: 10px;
+        color: var(--orange-2);
+        font-size: 13px;
+        font-weight: 800;
+        background: rgba(255, 121, 15, 0.06);
+        transition: background 0.2s;
+      }
+
+      .contact-meeting a:hover {
+        background: rgba(255, 121, 15, 0.14);
+      }
+
+      .contact-cat-wrap {
+        display: none;
+      }
+
+      .contact-cat {
+        position: absolute;
+        bottom: -10px;
+        right: -10px;
+        width: 320px;
+        height: auto;
+        z-index: 3;
+        pointer-events: none;
+        border-radius: 28px;
+        -webkit-mask-image: radial-gradient(ellipse 58% 82% at 50% 52%, black 58%, rgba(0, 0, 0, 0.78) 72%, transparent 86%);
+        mask-image: radial-gradient(ellipse 58% 82% at 50% 52%, black 58%, rgba(0, 0, 0, 0.78) 60%, transparent 86%);
+        filter: saturate(0.98) contrast(1.02);
+      }
+
+      /* ── Columna derecha (panel formulario) ── */
+      .contact-right {
+        padding: 40px 44px 44px;
+        border: 1px solid var(--line-soft);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at 80% 10%, rgba(255, 121, 15, 0.1), transparent 18rem),
+          linear-gradient(160deg, rgba(18, 22, 26, 0.95), rgba(8, 12, 15, 0.98));
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+
+      .contact-right-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .contact-right-header span {
+        font-size: 20px;
+      }
+
+      .contact-right-header h2 {
+        font: 800 20px/1.1 var(--font-display);
+        margin: 0;
+      }
+
+      .contact-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .contact-form label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #c8c7c2;
+        letter-spacing: 0.3px;
+      }
+
+      .contact-form input,
+      .contact-form textarea {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 13px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font: 400 14px/1.5 var(--font-sans);
+        transition: border-color 0.18s;
+        resize: none;
+      }
+
+      .contact-form input::placeholder,
+      .contact-form textarea::placeholder {
+        color: rgba(255, 255, 255, 0.22);
+      }
+
+      .contact-form input:focus,
+      .contact-form textarea:focus {
+        outline: none;
+        border-color: rgba(255, 121, 15, 0.6);
+        background: rgba(255, 121, 15, 0.04);
+      }
+
+      .contact-submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 52px;
+        border: 0;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--orange), #ff9c2a);
+        color: white;
+        font: 800 15px/1 var(--font-sans);
+        cursor: pointer;
+        box-shadow: 0 14px 38px rgba(255, 121, 15, 0.32);
+        transition: opacity 0.18s, box-shadow 0.18s;
+        margin-top: 4px;
+      }
+
+      .contact-submit:hover {
+        opacity: 0.9;
+        box-shadow: 0 18px 48px rgba(255, 121, 15, 0.44);
+      }
+
+      @media (max-width: 1000px) {
+        .contact-page-wrap {
+          grid-template-columns: 1fr;
+        }
+
+        .contact-left {
+          min-height: auto;
+          padding: 40px 32px 280px;
+        }
+
+        .contact-cat {
+          width: 200px;
+          right: 8px;
+        }
+
+        .contact-right {
+          padding: 32px 28px 36px;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .contact-page-wrap {
+          margin-bottom: 32px;
+        }
+
+        .contact-left {
+          padding: 36px 22px 240px;
+        }
+
+        .contact-cat {
+          width: 160px;
+          right: 6px;
+          bottom: -6px;
+        }
+
+        .contact-right {
+          padding: 26px 20px 28px;
+        }
+
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></a><nav class="desktop-nav" aria-label="Principal"><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a class="active" href="contacto.html">Contacto</a></nav><a class="nav-cta" href="contacto.html">Iniciar proyecto <span>+</span></a><button class="menu-button" aria-label="Abrir menu" type="button"><span></span><span></span><span></span></button></header>
+
+      <main class="inner-page">
+        <div class="contact-page-wrap">
+
+          <!-- Columna izquierda -->
+          <div class="contact-left">
+            <h1>Hablemos de tu próximo gran proyecto</h1>
+            <p>Cuéntanos tu idea y te ayudaremos a convertirla en una solución digital inteligente y escalable.</p>
+
+            <div class="contact-meeting">
+              <p>¿Prefieres agendar una reunión?</p>
+              <small>Reserva un espacio en nuestro calendario.</small>
+              <a href="#">Agendar llamada →</a>
+            </div>
+
+            <img class="contact-cat" src="assets/monova-contact-cat-new.png?v=20260602-labcat" alt="Mascota Monova" />
+          </div>
+
+          <!-- Columna derecha -->
+          <div class="contact-right">
+            <div class="contact-right-header">
+              <span>🐾</span>
+              <h2>¿Qué quieres construir hoy?</h2>
+            </div>
+
+            <form class="contact-form" onsubmit="return false;">
+              <label>
+                Nombre
+                <input type="text" placeholder="Tu nombre" />
+              </label>
+              <label>
+                Email
+                <input type="email" placeholder="tu@email.com" />
+              </label>
+              <label>
+                Empresa <span style="color:var(--muted);font-weight:500">(opcional)</span>
+                <input type="text" placeholder="Nombre de tu empresa" />
+              </label>
+              <label>
+                ¿Cuéntanos sobre tu proyecto?
+                <textarea rows="4" placeholder="Cuéntanos tu idea, objetivos y lo que necesitas..."></textarea>
+              </label>
+              <button class="contact-submit" type="submit">Enviar mensaje ✓</button>
+            </form>
+          </div>
+
+        </div>
+      </main>
+
+      <footer class="site-footer"><div class="footer-brand"><div class="brand"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></div><p>Código. Diseño. Inteligencia. Pasión.</p></div><div class="footer-col"><h3>Enlaces</h3><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a href="contacto.html">Contacto</a></div><div class="footer-col"><h3>Servicios</h3><a href="servicios.html">Desarrollo</a><a href="servicios.html">Diseño UX/UI</a><a href="servicios.html">Inteligencia Artificial</a><a href="servicios.html">Branding</a><a href="servicios.html">Consultoría</a><a href="contacto.html">Soporte</a></div><div class="footer-social"><h3>Síguenos</h3><div class="social-links"><a href="#" aria-label="LinkedIn">in</a><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="X">X</a><a href="#" aria-label="YouTube">▶</a></div><small>© 2026 Monova. Todos los derechos reservados.</small></div></footer>
+    </div>
+    <script src="script.js"></script>
+    <script src="animations.js"></script>
+  </body>
+</html>

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Proyectos | Monova</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .projects-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.78fr) minmax(420px, 1.22fr);
+        align-items: center;
+        gap: 34px;
+        padding: 44px 8px 46px;
+      }
+
+      .projects-hero h1 {
+        font: 900 clamp(36px, 4.5vw, 58px) / 1.08 var(--font-display);
+        max-width: 600px;
+        margin-bottom: 14px;
+      }
+
+      .projects-hero p {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.7;
+        max-width: 520px;
+        margin-bottom: 0;
+      }
+
+      .projects-hero-icons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .projects-hero-icons span {
+        width: 54px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 121, 15, 0.32);
+        border-radius: 16px;
+        color: var(--orange);
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255, 121, 15, 0.18), transparent 70%),
+          rgba(255, 255, 255, 0.035);
+        font: 900 20px/1 var(--font-display);
+        box-shadow:
+          0 16px 42px rgba(0, 0, 0, 0.26),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .projects-hero-visual {
+        position: relative;
+        min-height: 330px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 121, 15, 0.18);
+        border-radius: 22px;
+        background: rgba(5, 8, 10, 0.82);
+        box-shadow:
+          0 28px 90px rgba(0, 0, 0, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .projects-hero-visual img {
+        width: 100%;
+        height: 100%;
+        min-height: 330px;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+        filter: saturate(1.04) contrast(1.02);
+      }
+
+      .projects-hero-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, rgba(3, 3, 3, 0.2), transparent 30%),
+          linear-gradient(180deg, transparent 62%, rgba(3, 3, 3, 0.46));
+      }
+
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+
+      .project-card {
+        border: 1px solid var(--line-soft);
+        border-radius: 18px;
+        overflow: hidden;
+        background: rgba(8, 12, 14, 0.9);
+        transition: border-color 0.2s, transform 0.2s;
+        cursor: pointer;
+      }
+
+      .project-card:hover {
+        border-color: rgba(255, 121, 15, 0.38);
+        transform: translateY(-4px);
+      }
+
+      .project-card-img {
+        width: 100%;
+        aspect-ratio: 16/10;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .project-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        display: block;
+      }
+
+      .project-card-img .img-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font: 900 32px/1 var(--font-display);
+        color: rgba(255,255,255,0.15);
+        letter-spacing: 2px;
+      }
+
+      .project-card-body {
+        padding: 18px 20px 20px;
+      }
+
+      .project-tag {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 121, 15, 0.1);
+        color: #ffb36a;
+        font-size: 11px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        letter-spacing: 0.3px;
+      }
+
+      .project-card h3 {
+        font: 800 18px/1.2 var(--font-display);
+        margin-bottom: 7px;
+        color: var(--text);
+      }
+
+      .project-card p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+
+      .project-link {
+        color: var(--orange);
+        font-size: 13px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: gap 0.18s;
+      }
+
+      .project-link:hover {
+        gap: 9px;
+      }
+
+      /* CTA strip */
+      .projects-cta {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 54px;
+        padding: 30px 200px 30px 36px;
+        border: 1px solid rgba(255, 121, 15, 0.22);
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 90% 50%, rgba(255, 121, 15, 0.1), transparent 22rem),
+          linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,121,15,0.04)),
+          rgba(5, 8, 10, 0.88);
+        overflow: hidden;
+      }
+
+      .projects-cta h2 {
+        font: 800 22px/1.2 var(--font-display);
+        margin: 0 0 6px;
+      }
+
+      .projects-cta p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .projects-cta a {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 26px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--orange), #ff9c2a);
+        color: white;
+        font: 800 14px/1 var(--font-sans);
+        white-space: nowrap;
+        box-shadow: 0 12px 32px rgba(255, 121, 15, 0.3);
+        transition: opacity 0.18s;
+        flex-shrink: 0;
+      }
+
+      .projects-cta a:hover {
+        opacity: 0.88;
+      }
+
+      .projects-cta-cat {
+        position: absolute;
+        right: -4px;
+        bottom: -16px;
+        height: 210px;
+        width: auto;
+        pointer-events: none;
+        filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.42));
+      }
+
+      @media (max-width: 1000px) {
+        .projects-hero {
+          grid-template-columns: 1fr;
+        }
+
+        .projects-hero-visual {
+          min-height: 300px;
+        }
+
+        .projects-hero-visual img {
+          min-height: 300px;
+        }
+
+        .projects-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .projects-cta {
+          padding: 28px 180px 28px 28px;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .projects-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .projects-cta {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 24px 24px 130px;
+        }
+
+        .projects-cta-cat {
+          right: -18px;
+          bottom: -18px;
+          height: 138px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></a><nav class="desktop-nav" aria-label="Principal"><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a class="active" href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a href="contacto.html">Contacto</a></nav><a class="nav-cta" href="contacto.html">Iniciar proyecto <span>+</span></a><button class="menu-button" aria-label="Abrir menu" type="button"><span></span><span></span><span></span></button></header>
+
+      <main class="inner-page">
+
+        <div class="projects-hero">
+          <div>
+            <h1>Proyectos que hablan por nosotros</h1>
+            <p>Soluciones reales para problemas reales.<br>Resultados que generan impacto.</p>
+            <div class="projects-hero-icons" aria-hidden="true">
+              <span>&lt;/&gt;</span>
+              <span>AI</span>
+              <span>↗</span>
+            </div>
+          </div>
+          <div class="projects-hero-visual" aria-hidden="true">
+            <img src="assets/monova-projects-hero.png?v=20260602-projects" alt="" />
+          </div>
+        </div>
+
+        <div class="projects-grid">
+
+          <div class="project-card" data-category="web app">
+            <div class="project-card-img">
+              <img src="assets/service-software.png" alt="Klinu" />
+            </div>
+            <div class="project-card-body">
+              <span class="project-tag">Web / App</span>
+              <h3>Klinu</h3>
+              <p>Plataforma de gestión de servicios de limpieza con catálogo y pedidos.</p>
+              <a class="project-link" href="#">Ver proyecto →</a>
+            </div>
+          </div>
+
+          <div class="project-card" data-category="web">
+            <div class="project-card-img">
+              <img src="assets/service-branding.png" alt="Drokex" />
+            </div>
+            <div class="project-card-body">
+              <span class="project-tag">Web / App</span>
+              <h3>Drokex</h3>
+              <p>Agencia de marketing y automatización con presencia digital premium.</p>
+              <a class="project-link" href="#">Ver proyecto →</a>
+            </div>
+          </div>
+
+          <div class="project-card" data-category="ecommerce saas">
+            <div class="project-card-img">
+              <img src="assets/service-integrations.png" alt="Marketplace" />
+            </div>
+            <div class="project-card-body">
+              <span class="project-tag">Web / App</span>
+              <h3>Marketplace</h3>
+              <p>Plataforma de múltiples vendedores con paneles y pagos integrados.</p>
+              <a class="project-link" href="#">Ver proyecto →</a>
+            </div>
+          </div>
+
+          <div class="project-card" data-category="saas">
+            <div class="project-card-img">
+              <img src="assets/service-cloud.png" alt="Dashboard" />
+            </div>
+            <div class="project-card-body">
+              <span class="project-tag">Web / App</span>
+              <h3>Dashboard</h3>
+              <p>Panel administrativo personalizado con métricas, usuarios y reportes.</p>
+              <a class="project-link" href="#">Ver proyecto →</a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="projects-cta">
+          <div>
+            <h2>¿Tienes un proyecto en mente?</h2>
+            <p>Hagámoslo realidad juntos.</p>
+          </div>
+          <a href="contacto.html">Iniciar proyecto →</a>
+          <img class="projects-cta-cat" src="assets/services-cta-cat-transparent.png?v=20260602-cta-cat" alt="Mascota Monova" />
+        </div>
+
+      </main>
+
+      <footer class="site-footer"><div class="footer-brand"><div class="brand"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></div><p>Código. Diseño. Inteligencia. Pasión.</p></div><div class="footer-col"><h3>Enlaces</h3><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a href="contacto.html">Contacto</a></div><div class="footer-col"><h3>Servicios</h3><a href="servicios.html">Desarrollo</a><a href="servicios.html">Diseño UX/UI</a><a href="servicios.html">Inteligencia Artificial</a><a href="servicios.html">Branding</a><a href="servicios.html">Consultoría</a><a href="contacto.html">Soporte</a></div><div class="footer-social"><h3>Síguenos</h3><div class="social-links"><a href="#" aria-label="LinkedIn">in</a><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="X">X</a><a href="#" aria-label="YouTube">▶</a></div><small>© 2026 Monova. Todos los derechos reservados.</small></div></footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="animations.js"></script>
+  </body>
+</html>

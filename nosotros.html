@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nosotros | Monova</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .about-hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 0;
+        min-height: 600px;
+        overflow: hidden;
+        border-radius: 28px;
+        border: 1px solid var(--line-soft);
+        background:
+          url("assets/monova-about-hero-poster.png") right center / cover no-repeat,
+          #080502;
+      }
+
+      .about-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          linear-gradient(90deg,
+            rgba(8, 5, 2, 0.96) 0%,
+            rgba(8, 5, 2, 0.82) 34%,
+            rgba(8, 5, 2, 0.36) 58%,
+            rgba(8, 5, 2, 0.06) 78%,
+            rgba(8, 5, 2, 0.02) 100%
+          ),
+          radial-gradient(circle at 76% 50%, rgba(255, 121, 15, 0.08), transparent 28rem);
+        pointer-events: none;
+      }
+
+      .about-hero-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        z-index: 0;
+        opacity: 1;
+        filter: brightness(1.2) contrast(1.05);
+      }
+
+      .about-hero-copy {
+        position: relative;
+        z-index: 2;
+        padding: 68px 54px 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .about-hero-copy h1 {
+        font: 900 clamp(46px, 5.8vw, 80px) / 1.06 var(--font-display);
+        margin-bottom: 20px;
+        max-width: 600px;
+      }
+
+      .about-hero-copy h1 em {
+        font-style: normal;
+        color: var(--orange);
+      }
+
+      .about-hero-copy > p {
+        max-width: 440px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+        margin-bottom: 36px;
+      }
+
+      .about-pillars {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 18px;
+        padding: 14px;
+        border: 1px solid rgba(255, 121, 15, 0.2);
+        border-radius: 22px;
+        background:
+          linear-gradient(90deg, rgba(0, 0, 0, 0.94), rgba(0, 0, 0, 0.82)),
+          rgba(0, 0, 0, 0.88);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+        backdrop-filter: blur(18px);
+      }
+
+      .pillar {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 154px;
+        padding: 18px;
+        border: 1px solid rgba(255, 121, 15, 0.34);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 14% 8%, rgba(255, 121, 15, 0.11), transparent 9rem),
+          linear-gradient(135deg, rgba(12, 10, 8, 0.98), rgba(3, 4, 5, 0.94));
+        box-shadow:
+          0 18px 46px rgba(0, 0, 0, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(18px);
+      }
+
+      .pillar-icon {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 121, 15, 0.32);
+        border-radius: 10px;
+        color: var(--orange);
+        background: rgba(255, 121, 15, 0.06);
+        font-size: 16px;
+        margin-bottom: 2px;
+      }
+
+      .pillar strong {
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+      }
+
+      .pillar small {
+        color: #f1ece5;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.58;
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.72);
+      }
+
+      .journey-section {
+        margin: 40px 0 28px;
+        padding: 52px 54px;
+        border: 1px solid var(--line-soft);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255, 121, 15, 0.06), transparent 20rem),
+          rgba(4, 8, 10, 0.7);
+      }
+
+      .journey-kicker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+        margin-bottom: 48px;
+        color: var(--orange);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 2.8px;
+        text-transform: uppercase;
+      }
+
+      .journey-kicker::before,
+      .journey-kicker::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 121, 15, 0.4), transparent);
+      }
+
+      .journey-timeline {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        position: relative;
+      }
+
+      .journey-timeline::before {
+        content: "";
+        position: absolute;
+        top: 21px;
+        left: calc(12.5% + 4px);
+        right: calc(12.5% + 4px);
+        height: 2px;
+        background: linear-gradient(90deg, rgba(255, 121, 15, 0.7), rgba(255, 121, 15, 0.3) 60%, rgba(255, 121, 15, 0.06));
+      }
+
+      .journey-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0 14px;
+        position: relative;
+      }
+
+      .journey-dot {
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 121, 15, 0.38);
+        background: rgba(10, 14, 16, 0.9);
+        display: grid;
+        place-items: center;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        font-size: 17px;
+      }
+
+      .journey-step:first-child .journey-dot {
+        border-color: var(--orange);
+        background: rgba(255, 121, 15, 0.14);
+        box-shadow: 0 0 24px rgba(255, 121, 15, 0.4);
+      }
+
+      .journey-year {
+        font: 900 26px/1 var(--font-display);
+        color: var(--orange);
+        margin-bottom: 6px;
+      }
+
+      .journey-label {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 7px;
+      }
+
+      .journey-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      @media (max-width: 1000px) {
+        .about-hero {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .about-hero-copy {
+          padding: 52px 32px 36px;
+        }
+
+        .about-pillars {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .journey-timeline {
+          grid-template-columns: 1fr 1fr;
+          gap: 36px;
+        }
+
+        .journey-timeline::before {
+          display: none;
+        }
+
+        .journey-section {
+          padding: 36px 28px;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .about-hero-copy {
+          padding: 40px 22px 28px;
+        }
+
+        .about-hero-copy h1 {
+          font-size: 42px;
+        }
+
+        .about-pillars {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .journey-timeline {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+
+        .journey-step {
+          flex-direction: row;
+          text-align: left;
+          gap: 18px;
+          padding: 0;
+          align-items: flex-start;
+        }
+
+        .journey-dot {
+          flex-shrink: 0;
+          margin-bottom: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></a><nav class="desktop-nav" aria-label="Principal"><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a class="active" href="nosotros.html">Nosotros</a><a href="contacto.html">Contacto</a></nav><a class="nav-cta" href="contacto.html">Iniciar proyecto <span>+</span></a><button class="menu-button" aria-label="Abrir menu" type="button"><span></span><span></span><span></span></button></header>
+
+      <main class="inner-page">
+
+        <section class="about-hero">
+          <video class="about-hero-video" autoplay muted loop playsinline preload="auto" poster="assets/monova-about-hero-poster.png" aria-hidden="true">
+            <source src="assets/monova-about-hero.mp4" type="video/mp4" />
+          </video>
+          <div class="about-hero-copy">
+            <h1>Nuestra historia<br>es el <em>código</em> de<br>nuestro futuro</h1>
+            <p>MONOVA nació de la pasión por crear tecnología con propósito. Creemos en la innovación, la creatividad y en el poder de la inteligencia artificial para transformar vidas y negocios.</p>
+
+            <div class="about-pillars">
+              <div class="pillar">
+                <div class="pillar-icon">◎</div>
+                <strong>Misión</strong>
+                <small>Construir soluciones tecnológicas inteligentes que generen impacto, valor y crecimiento sostenible.</small>
+              </div>
+              <div class="pillar">
+                <div class="pillar-icon">↗</div>
+                <strong>Visión</strong>
+                <small>Ser un referente global en innovación tecnológica, diseño y automatización inteligente.</small>
+              </div>
+              <div class="pillar">
+                <div class="pillar-icon">◇</div>
+                <strong>Valores</strong>
+                <small>Pasión, innovación, calidad, transparencia y compromiso con nuestros clientes.</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="journey-section">
+          <div class="journey-kicker">NUESTRO VIAJE</div>
+          <div class="journey-timeline">
+            <div class="journey-step">
+              <div class="journey-dot">🚀</div>
+              <div class="journey-year">2022</div>
+              <div class="journey-label">El inicio</div>
+              <div class="journey-desc">Una idea, una misión y muchas ganas de construir.</div>
+            </div>
+            <div class="journey-step">
+              <div class="journey-dot">🐾</div>
+              <div class="journey-year">2023</div>
+              <div class="journey-label">Primeros pasos</div>
+              <div class="journey-desc">Nuestros primeros clientes confiaron en nosotros.</div>
+            </div>
+            <div class="journey-step">
+              <div class="journey-dot">📈</div>
+              <div class="journey-year">2024</div>
+              <div class="journey-label">Crecimiento</div>
+              <div class="journey-desc">Nuevos proyectos, alianzas y expansión de servicios.</div>
+            </div>
+            <div class="journey-step">
+              <div class="journey-dot">✦</div>
+              <div class="journey-year">2025+</div>
+              <div class="journey-label">El futuro</div>
+              <div class="journey-desc">Seguimos innovando y escalando juntos.</div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer"><div class="footer-brand"><div class="brand"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></div><p>Código. Diseño. Inteligencia. Pasión.</p></div><div class="footer-col"><h3>Enlaces</h3><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a href="contacto.html">Contacto</a></div><div class="footer-col"><h3>Servicios</h3><a href="servicios.html">Desarrollo</a><a href="servicios.html">Diseño UX/UI</a><a href="servicios.html">Inteligencia Artificial</a><a href="servicios.html">Branding</a><a href="servicios.html">Consultoría</a><a href="contacto.html">Soporte</a></div><div class="footer-social"><h3>Síguenos</h3><div class="social-links"><a href="#" aria-label="LinkedIn">in</a><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="X">X</a><a href="#" aria-label="YouTube">▶</a></div><small>© 2026 Monova. Todos los derechos reservados.</small></div></footer>
+    </div>
+    <script src="script.js"></script>
+    <script src="animations.js"></script>
+    <script>
+      document.querySelector(".about-hero-video")?.play().catch(() => {});
+    </script>
+  </body>
+</html>
