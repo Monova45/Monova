@@ -1,4 +1,15 @@
 {
   "version": 2,
-  "framework": null
+  "framework": null,
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/diagnostico",
+      "destination": "/diagnostico.html"
+    },
+    {
+      "source": "/herramientas",
+      "destination": "/herramientas.html"
+    }
+  ]
 }

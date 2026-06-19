@@ -69,6 +69,36 @@ const serviceDetails = {
       "Piezas digitales para web, redes, presentaciones y campañas.",
       "Sistemas de marca listos para crecer con tu negocio."
     ]
+  },
+  redes: {
+    title: "Diseño de Redes",
+    copy:
+      "Diseñamos contenido visual para redes sociales con una línea gráfica coherente, piezas atractivas y mensajes pensados para captar atención y convertir.",
+    points: [
+      "Posts, historias, carruseles, reels covers y piezas promocionales.",
+      "Diseño alineado con tu identidad, campañas y objetivos comerciales.",
+      "Contenido visual listo para publicar en Instagram, Facebook, TikTok y más."
+    ]
+  },
+  corporativo: {
+    title: "Diseño Corporativo",
+    copy:
+      "Creamos piezas visuales profesionales para presentar tu marca, fortalecer tu comunicación y elevar la percepción de tu negocio en cada punto de contacto.",
+    points: [
+      "Presentaciones, brochures, portafolios, propuestas y documentos comerciales.",
+      "Material gráfico para ventas, eventos, lanzamientos y comunicación interna.",
+      "Diseños consistentes con tu marca para proyectar confianza y valor."
+    ]
+  },
+  inhouse: {
+    title: "Diseño Inhouse",
+    copy:
+      "Ponemos capacidad creativa a disposición de tu empresa para resolver necesidades de diseño recurrentes sin tener que contratar un equipo interno completo.",
+    points: [
+      "Soporte de diseño por demanda para campañas, redes, presentaciones y piezas internas.",
+      "Acompañamiento flexible según la carga visual de tu empresa.",
+      "Un flujo ágil para pedir, revisar y recibir piezas con calidad Monova."
+    ]
   }
 };
 

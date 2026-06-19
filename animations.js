@@ -377,7 +377,6 @@ const raf = requestAnimationFrame;
   window.addEventListener('beforeunload', () => cancelAnimationFrame(rafId));
 })();
 
-
 /* ── 8C. REACTIVE PANEL LIGHT ── */
 (function reactivePanelLight() {
   if (window.matchMedia('(pointer: coarse)').matches) return;
@@ -407,6 +406,47 @@ const raf = requestAnimationFrame;
       el.style.setProperty('--my', `${y.toFixed(1)}%`);
     }, { passive: true });
   });
+})();
+
+/* -- 8D. SCROLL-LIT PROCESS LINE -- */
+(function processSignal() {
+  const flow = document.querySelector('.process-flow');
+  const steps = [...document.querySelectorAll('.process-steps article')];
+  if (!flow || !steps.length) return;
+
+  const signal = document.createElement('span');
+  signal.className = 'process-signal';
+  signal.setAttribute('aria-hidden', 'true');
+  flow.appendChild(signal);
+
+  let ticking = false;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  function update() {
+    const rect = flow.getBoundingClientRect();
+    const travel = window.innerHeight + rect.height;
+    const ratio = clamp((window.innerHeight - rect.top) / Math.max(1, travel), 0, 1);
+    const eased = 1 - Math.pow(1 - ratio, 2.2);
+
+    flow.style.setProperty('--process-ratio', eased.toFixed(3));
+    flow.style.setProperty('--process-progress', `${Math.round(eased * 100)}%`);
+
+    const activeCount = Math.max(1, Math.ceil(eased * steps.length));
+    steps.forEach((step, index) => {
+      step.classList.toggle('is-lit', index < activeCount);
+    });
+    ticking = false;
+  }
+
+  function requestUpdate() {
+    if (ticking) return;
+    ticking = true;
+    raf(update);
+  }
+
+  update();
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate, { passive: true });
 })();
 
 

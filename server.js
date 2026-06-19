@@ -27,6 +27,9 @@ await loadEnv();
 
 const port = Number(process.env.PORT || 8000);
 const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const imageModel = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
+const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "57XXXXXXXXXX";
+const diagnosticRateLimit = new Map();
 
 const monovaKnowledge = `
 MONOVA es un estudio digital que combina software, diseño, branding e inteligencia artificial.
@@ -81,7 +84,7 @@ function readBody(req) {
     let body = "";
     req.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 12_000) {
+      if (body.length > 24_000) {
         reject(new Error("Request too large"));
         req.destroy();
       }
@@ -129,6 +132,253 @@ function cleanSpanishText(value) {
     .replace(/\bespanol\b/gi, "español")
     .replace(/\bgenericas\b/gi, "genéricas")
     .replace(/\bsolución Monova\b/g, "Solución Monova");
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 45_000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function clampScore(value, min = 0, max = 100) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return min;
+  return Math.max(min, Math.min(max, Math.round(number)));
+}
+
+function cleanArray(value, fallback = []) {
+  const source = Array.isArray(value) ? value : fallback;
+  return source
+    .map((item) => cleanSpanishText(String(item || "").trim()))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function sanitizeDiagnosticLead(payload) {
+  return {
+    nombre: cleanSpanishText(String(payload.nombre || "").trim().slice(0, 90)),
+    whatsapp: String(payload.whatsapp || "").trim().slice(0, 40),
+    tipoNegocio: cleanSpanishText(String(payload.tipoNegocio || "").trim().slice(0, 120)),
+    url: String(payload.url || "").trim().slice(0, 220),
+    descripcion: cleanSpanishText(String(payload.descripcion || "").trim().slice(0, 900)),
+    objetivo: cleanSpanishText(String(payload.objetivo || "").trim().slice(0, 80))
+  };
+}
+
+function enforceDiagnosticRateLimit(req) {
+  const now = Date.now();
+  const key = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "local";
+  const windowMs = 10 * 60 * 1000;
+  const current = diagnosticRateLimit.get(key) || { count: 0, resetAt: now + windowMs };
+
+  if (current.resetAt <= now) {
+    diagnosticRateLimit.set(key, { count: 1, resetAt: now + windowMs });
+    return;
+  }
+
+  if (current.count >= 6) {
+    const error = new Error("Too many diagnostic requests");
+    error.status = 429;
+    throw error;
+  }
+
+  current.count += 1;
+  diagnosticRateLimit.set(key, current);
+}
+
+function normalizeDiagnosticVisual(data) {
+  const diagnostic = data.diagnostico || {};
+  const propuesta = data.propuesta || {};
+
+  return {
+    diagnostico: {
+      diseno: clampScore(diagnostic.diseno, 60, 95),
+      marketing: clampScore(diagnostic.marketing, 50, 90),
+      automatizacion: clampScore(diagnostic.automatizacion, 10, 75),
+      experienciaDigital: clampScore(diagnostic.experienciaDigital, 50, 90),
+      resumen: cleanSpanishText(diagnostic.resumen || "Tu negocio tiene oportunidades para mejorar su presencia digital, automatizar la atención inicial y convertir más visitantes en clientes."),
+      problemasDetectados: cleanArray(diagnostic.problemasDetectados, [
+        "La propuesta digital puede ser más clara y orientada a conversión.",
+        "Hay procesos comerciales que podrían automatizarse.",
+        "La presencia visual puede comunicar más confianza y diferenciación."
+      ]),
+      recomendaciones: cleanArray(diagnostic.recomendaciones, [
+        "Crear una experiencia digital enfocada en capturar leads.",
+        "Automatizar la primera respuesta comercial por WhatsApp.",
+        "Mejorar el sistema visual de marca para redes y web."
+      ]),
+      serviciosSugeridos: cleanArray(diagnostic.serviciosSugeridos, [
+        "Landing Page",
+        "Chatbot IA",
+        "Automatización WhatsApp",
+        "Diseño de Redes",
+        "Campañas Digitales"
+      ])
+    },
+    propuesta: {
+      concepto: cleanSpanishText(propuesta.concepto || "Una presencia digital premium, clara y orientada a convertir visitantes en clientes."),
+      estiloVisual: cleanSpanishText(propuesta.estiloVisual || "Futurista, oscuro, elegante, con acentos naranja Monova y componentes tipo glass."),
+      estructuraRecomendada: cleanArray(propuesta.estructuraRecomendada, [
+        "Hero con promesa clara y CTA a WhatsApp.",
+        "Bloques de servicios o productos principales.",
+        "Prueba social, beneficios y proceso de atención.",
+        "Formulario o chatbot para capturar leads."
+      ]),
+      copyHero: cleanSpanishText(propuesta.copyHero || "Impulsa tu negocio con una presencia digital que vende, automatiza y se ve profesional."),
+      colores: cleanArray(propuesta.colores, ["#050505", "#ff790f", "#f5f5f0", "#1a1a1a"]),
+      funcionalidades: cleanArray(propuesta.funcionalidades, [
+        "Landing de conversión",
+        "Chatbot IA",
+        "Botón de WhatsApp inteligente",
+        "Panel de leads",
+        "Integración con redes"
+      ])
+    },
+    imagePrompt: cleanSpanishText(String(data.imagePrompt || "").trim())
+  };
+}
+
+async function createDiagnosticVisual(lead) {
+  if (!process.env.OPENAI_API_KEY) {
+    const error = new Error("Missing OPENAI_API_KEY");
+    error.status = 503;
+    throw error;
+  }
+
+  const diagnosticPrompt = `
+Actúa como consultor senior de Monova, estudio premium de software, inteligencia artificial, automatización y diseño.
+Analiza el negocio del usuario y devuelve un diagnóstico útil, comercial y realista.
+
+Datos:
+- Nombre: ${lead.nombre}
+- WhatsApp: ${lead.whatsapp}
+- Tipo de negocio: ${lead.tipoNegocio}
+- Web o Instagram: ${lead.url || "No indicado"}
+- Descripción: ${lead.descripcion}
+- Objetivo principal: ${lead.objetivo}
+
+Reglas:
+- No inventes cifras, clientes, garantías ni auditorías reales que no hiciste.
+- Usa español profesional, claro y accionable.
+- Las puntuaciones deben ser razonables: diseño 60-95, marketing 50-90, automatización 10-75, experiencia digital 50-90.
+- Recomienda servicios de Monova relacionados con landing pages, IA, automatización, UX/UI, diseño de redes, campañas digitales o software a medida.
+- Crea además una propuesta visual conceptual y un prompt de imagen para generar un mockup premium de la nueva presencia digital del negocio.
+`;
+
+  const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      input: [
+        {
+          role: "developer",
+          content:
+            "Responde solo con JSON válido según el schema. El imagePrompt debe describir un mockup conceptual premium estilo Monova: fondo oscuro futurista, naranja glow, UI web/app, tarjetas glass, elementos del negocio del usuario, sin texto ilegible ni logos de marcas reales."
+        },
+        { role: "user", content: diagnosticPrompt }
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "diagnostico_visual_monova",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              diagnostico: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  diseno: { type: "number" },
+                  marketing: { type: "number" },
+                  automatizacion: { type: "number" },
+                  experienciaDigital: { type: "number" },
+                  resumen: { type: "string" },
+                  problemasDetectados: { type: "array", minItems: 3, maxItems: 5, items: { type: "string" } },
+                  recomendaciones: { type: "array", minItems: 3, maxItems: 5, items: { type: "string" } },
+                  serviciosSugeridos: { type: "array", minItems: 3, maxItems: 6, items: { type: "string" } }
+                },
+                required: ["diseno", "marketing", "automatizacion", "experienciaDigital", "resumen", "problemasDetectados", "recomendaciones", "serviciosSugeridos"]
+              },
+              propuesta: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  concepto: { type: "string" },
+                  estiloVisual: { type: "string" },
+                  estructuraRecomendada: { type: "array", minItems: 4, maxItems: 6, items: { type: "string" } },
+                  copyHero: { type: "string" },
+                  colores: { type: "array", minItems: 4, maxItems: 6, items: { type: "string" } },
+                  funcionalidades: { type: "array", minItems: 3, maxItems: 6, items: { type: "string" } }
+                },
+                required: ["concepto", "estiloVisual", "estructuraRecomendada", "copyHero", "colores", "funcionalidades"]
+              },
+              imagePrompt: { type: "string" }
+            },
+            required: ["diagnostico", "propuesta", "imagePrompt"]
+          }
+        }
+      },
+      max_output_tokens: 1500,
+      store: false
+    })
+  }, 45_000);
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(data.error?.message || "OpenAI diagnostic request failed");
+    error.status = response.status;
+    throw error;
+  }
+
+  const parsed = JSON.parse(extractResponseText(data));
+  const normalized = normalizeDiagnosticVisual(parsed);
+  normalized.imagePrompt =
+    normalized.imagePrompt ||
+    `Premium conceptual website mockup for a ${lead.tipoNegocio} business, dark futuristic Monova style, orange glow, glass cards, conversion-focused hero, AI automation visual elements, high-end digital product presentation.`;
+
+  return normalized;
+}
+
+async function generateDiagnosticMockup(imagePrompt) {
+  const response = await fetchWithTimeout("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: imageModel,
+      prompt: imagePrompt,
+      size: "1536x1024"
+    })
+  }, 120_000);
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(data.error?.message || "OpenAI image request failed");
+    error.status = response.status;
+    throw error;
+  }
+
+  const image = data.data?.[0] || {};
+  if (image.b64_json) return `data:image/png;base64,${image.b64_json}`;
+  if (image.url) return image.url;
+
+  const error = new Error("OpenAI image response had no image");
+  error.status = 502;
+  throw error;
 }
 
 async function createRoadmap(idea) {
@@ -271,7 +521,14 @@ async function createChatReply(messages) {
 
 async function serveStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  const requested = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
+  const routes = {
+    "/diagnostico": "/diagnostico.html",
+    "/diagnostico/": "/diagnostico.html",
+    "/herramientas": "/herramientas.html",
+    "/herramientas/": "/herramientas.html"
+  };
+  const requestedPath = routes[url.pathname] || (url.pathname === "/" ? "/index.html" : url.pathname);
+  const requested = decodeURIComponent(requestedPath);
   const filePath = path.normalize(path.join(root, requested));
 
   if (!filePath.startsWith(root) || path.basename(filePath).startsWith(".env")) {
@@ -344,6 +601,11 @@ async function serveStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   try {
+    if (req.method === "GET" && req.url === "/api/public-config") {
+      sendJson(res, 200, { whatsappNumber });
+      return;
+    }
+
     if (req.method === "POST" && req.url === "/api/roadmap") {
       const body = await readBody(req);
       const { idea } = JSON.parse(body || "{}");
@@ -356,6 +618,41 @@ const server = createServer(async (req, res) => {
 
       const cards = await createRoadmap(cleanIdea);
       sendJson(res, 200, { cards });
+      return;
+    }
+
+    if (req.method === "POST" && req.url === "/api/diagnostico-visual") {
+      enforceDiagnosticRateLimit(req);
+
+      const body = await readBody(req);
+      const payload = JSON.parse(body || "{}");
+      const lead = sanitizeDiagnosticLead(payload);
+
+      if (!lead.nombre || !lead.whatsapp || !lead.tipoNegocio || !lead.descripcion || !lead.objetivo) {
+        sendJson(res, 400, { error: "Completa nombre, WhatsApp, tipo de negocio, descripción y objetivo principal." });
+        return;
+      }
+
+      const result = await createDiagnosticVisual(lead);
+      const mockupImageUrl = await generateDiagnosticMockup(result.imagePrompt);
+
+      const supabaseReadyLead = {
+        lead,
+        diagnostico: result.diagnostico,
+        propuesta: result.propuesta,
+        imagePrompt: result.imagePrompt,
+        mockupImageUrl,
+        fecha: new Date().toISOString()
+      };
+
+      // Futuro Supabase:
+      // await supabase.from("diagnosticos_ia").insert(supabaseReadyLead);
+      console.log("Monova diagnostic visual lead", {
+        ...supabaseReadyLead,
+        mockupImageUrl: `${mockupImageUrl.slice(0, 120)}...`
+      });
+
+      sendJson(res, 200, { ...result, mockupImageUrl });
       return;
     }
 
@@ -381,8 +678,14 @@ const server = createServer(async (req, res) => {
 
     await serveStatic(req, res);
   } catch (error) {
+    console.error(error);
     sendJson(res, error.status || 500, {
-      error: error.status === 503 ? "AI is not configured yet." : "No pudimos generar la ruta ahora."
+      error:
+        error.status === 429
+          ? "Recibimos muchas solicitudes seguidas. Intenta nuevamente en unos minutos."
+          : error.status === 503
+            ? "La IA todavía no está configurada. Agrega OPENAI_API_KEY en el servidor."
+            : "No pudimos generar el diagnóstico ahora. Intenta de nuevo en unos minutos."
     });
   }
 });

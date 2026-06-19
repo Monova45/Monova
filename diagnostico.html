@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diagnóstico IA | Monova</title>
+    <meta
+      name="description"
+      content="Diagnostica tu negocio con Monova IA y descubre oportunidades para vender más, automatizar procesos y mejorar tu presencia digital."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Monova inicio"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></a>
+        <nav class="desktop-nav" aria-label="Principal">
+          <a href="index.html">Inicio</a>
+          <a href="servicios.html">Servicios</a>
+          <a href="proyectos.html">Proyectos</a>
+          <a href="nosotros.html">Nosotros</a>
+          <a class="active" href="/diagnostico">Diagnóstico IA</a><a href="/herramientas">Herramientas IA</a>
+          <a href="contacto.html">Contacto</a>
+        </nav>
+        <a class="nav-cta" href="contacto.html">Iniciar proyecto <span>+</span></a>
+        <button class="menu-button" aria-label="Abrir menu" type="button"><span></span><span></span><span></span></button>
+      </header>
+
+      <main class="diagnostic-page">
+        <section class="diagnostic-hero">
+          <div class="diagnostic-hero__fx" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+          <div class="diagnostic-hero__copy">
+            <p class="eyebrow diagnostic-eyebrow"><span>✧</span> Diagnóstico IA</p>
+            <h1>Descubre qué está frenando tu negocio <span>digital</span></h1>
+            <p>
+              Nuestra IA analiza tu presencia digital y te entrega un diagnóstico personalizado con oportunidades reales para vender más, automatizar procesos y escalar tu marca.
+            </p>
+            <div class="diagnostic-benefits" aria-label="Beneficios del diagnóstico">
+              <article>
+                <i>AI</i>
+                <h2>Inteligencia Artificial</h2>
+                <p>Análisis avanzado de tu negocio y competencia.</p>
+              </article>
+              <article>
+                <i>↗</i>
+                <h2>Resultados Reales</h2>
+                <p>Recomendaciones prácticas que generan impacto.</p>
+              </article>
+              <article>
+                <i>⚡</i>
+                <h2>Acciones Claras</h2>
+                <p>Un plan personalizado para hacer crecer tu marca.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="diagnostic-tool section-panel" id="diagnostic-tool">
+          <form class="diagnostic-form" id="diagnosticForm">
+            <div class="diagnostic-form__head">
+              <p class="section-kicker">Entrada de datos</p>
+              <h2>1. Cuéntanos sobre tu negocio</h2>
+            </div>
+
+            <div class="diagnostic-field-grid">
+              <label>
+                Nombre
+                <input name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" required />
+              </label>
+              <label>
+                WhatsApp
+                <input name="whatsapp" type="tel" autocomplete="tel" placeholder="+57 300 000 0000" required />
+              </label>
+            </div>
+
+            <label>
+              Tipo de negocio
+              <input name="tipoNegocio" type="text" placeholder="Ej: restaurante, clínica, tienda, servicios..." required />
+            </label>
+
+            <label>
+              Página web o Instagram
+              <input name="url" type="text" placeholder="https://... o @tuinstagram" />
+            </label>
+
+            <label>
+              Descripción breve del negocio
+              <textarea name="descripcion" rows="4" placeholder="Cuéntanos qué vendes, a quién ayudas y cómo llegan hoy tus clientes." required></textarea>
+            </label>
+
+            <fieldset class="diagnostic-options">
+              <legend>Objetivo principal</legend>
+              <label><input type="radio" name="objetivo" value="Vender más" required /> <span>Vender más</span></label>
+              <label><input type="radio" name="objetivo" value="Mejorar imagen" /> <span>Mejorar imagen</span></label>
+              <label><input type="radio" name="objetivo" value="Automatizar atención" /> <span>Automatizar atención</span></label>
+              <label><input type="radio" name="objetivo" value="Crear página web" /> <span>Crear página web</span></label>
+              <label><input type="radio" name="objetivo" value="Mejorar redes sociales" /> <span>Mejorar redes sociales</span></label>
+              <label><input type="radio" name="objetivo" value="Otro" /> <span>Otro</span></label>
+            </fieldset>
+
+            <button class="primary-button diagnostic-submit" type="submit">Analizar mi negocio</button>
+          </form>
+
+          <aside class="diagnostic-guide" aria-label="Cómo funciona">
+            <h2>¿Cómo funciona?</h2>
+            <ol>
+              <li><span>1</span><div><strong>Nos cuentas sobre tu negocio</strong><small>Completa el formulario con tus datos.</small></div></li>
+              <li><span>2</span><div><strong>IA analiza tu presencia digital</strong><small>Revisamos tu web, redes y objetivos.</small></div></li>
+              <li><span>3</span><div><strong>Recibes tu diagnóstico</strong><small>Obtén resultados y recomendaciones personalizadas.</small></div></li>
+            </ol>
+            <div class="diagnostic-secure">
+              <span>▣</span>
+              <div>
+                <strong>Tu información está segura</strong>
+                <small>No compartimos tus datos con terceros.</small>
+              </div>
+            </div>
+          </aside>
+
+          <aside class="diagnostic-result" id="diagnosticResult" aria-live="polite">
+            <div class="diagnostic-result__empty">
+              <span>IA</span>
+              <h2>2. Tu diagnóstico + propuesta visual</h2>
+              <p>Monova IA evaluará tu presencia digital y generará una propuesta conceptual con mockup visual.</p>
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      <footer class="site-footer"><div class="footer-brand"><div class="brand"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></div><p>Código. Diseño. Inteligencia. Pasión.</p></div><div class="footer-col"><h3>Enlaces</h3><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a href="/diagnostico">Diagnóstico IA</a><a href="/herramientas">Herramientas IA</a><a href="contacto.html">Contacto</a></div><div class="footer-col"><h3>Servicios</h3><a href="servicios.html">Landing Page</a><a href="servicios.html">Chatbot IA</a><a href="servicios.html">Automatización WhatsApp</a><a href="servicios.html">Diseño de Redes</a><a href="servicios.html">Campañas Digitales</a></div><div class="footer-social"><h3>Síguenos</h3><div class="social-links"><a href="#" aria-label="LinkedIn">in</a><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="X">X</a><a href="#" aria-label="YouTube">▶</a></div><small>© 2026 Monova. Todos los derechos reservados.</small></div></footer>
+    </div>
+
+    <script src="script.js?v=20260611-diagnostic-nav"></script>
+    <script src="diagnostico.js?v=20260611-mega-wow"></script>
+  </body>
+</html>

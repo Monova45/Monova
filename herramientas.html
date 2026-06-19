@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Herramientas IA | Monova</title>
+    <meta
+      name="description"
+      content="Explora herramientas interactivas de Monova para diseñar tu sistema ideal, auditar tu WhatsApp comercial y cotizar un proyecto digital."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Monova inicio"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></a>
+        <nav class="desktop-nav" aria-label="Principal">
+          <a href="index.html">Inicio</a>
+          <a href="servicios.html">Servicios</a>
+          <a href="proyectos.html">Proyectos</a>
+          <a href="nosotros.html">Nosotros</a>
+          <a href="/diagnostico">Diagnóstico IA</a>
+          <a class="active" href="/herramientas">Herramientas IA</a>
+          <a href="contacto.html">Contacto</a>
+        </nav>
+        <a class="nav-cta" href="contacto.html">Iniciar proyecto <span>+</span></a>
+        <button class="menu-button" aria-label="Abrir menu" type="button"><span></span><span></span><span></span></button>
+      </header>
+
+      <main class="tools-page">
+        <section class="tools-hero">
+          <canvas class="tools-hero__canvas" id="toolsHeroCanvas" aria-hidden="true"></canvas>
+          <div class="tools-hero__copy">
+            <p class="eyebrow tools-lab-eyebrow"><span>M</span> Monova IA Lab</p>
+            <h1>Convierte tu negocio en un <span>sistema inteligente.</span></h1>
+            <p>
+              Analizamos tu WhatsApp, tu web y tus procesos para crear una arquitectura IA lista para vender, responder y automatizar.
+            </p>
+            <div class="tools-hero__actions" aria-label="Acciones principales">
+              <a class="primary-button" href="#toolsSuite">Abrir laboratorio <span>-></span></a>
+              <a class="secondary-button" href="/diagnostico">Hacer diagnostico IA</a>
+            </div>
+            <div class="tools-hero__stats" aria-label="Herramientas disponibles">
+              <span><strong>3</strong> herramientas activas</span>
+              <span><strong>6</strong> modulos conectables</span>
+              <span><strong>15 min</strong> para tener claridad</span>
+            </div>
+          </div>
+          <div class="tools-hero__system" aria-label="Sistema visual Monova">
+            <div class="tools-system-card">
+              <div>
+                <span>Estado del sistema</span>
+                <strong>Listo para mapear</strong>
+              </div>
+              <small>IA comercial + automatizacion + datos</small>
+            </div>
+            <div class="tools-map-labels" aria-hidden="true">
+              <article class="tools-map-label tools-map-label--crm"><strong>CRM</strong><span>Clientes y gestion</span></article>
+              <article class="tools-map-label tools-map-label--data"><strong>DATA</strong><span>Datos y analiticas</span></article>
+              <article class="tools-map-label tools-map-label--ia"><strong>IA</strong><span>Inteligencia artificial</span></article>
+              <article class="tools-map-label tools-map-label--ads"><strong>ADS</strong><span>Campanas y anuncios</span></article>
+              <article class="tools-map-label tools-map-label--wa"><strong>WA</strong><span>WhatsApp comercial</span></article>
+              <article class="tools-map-label tools-map-label--web"><strong>WEB</strong><span>Sitio web y embudos</span></article>
+            </div>
+          </div>
+          <div class="tools-hero__cards" aria-label="Resumen de herramientas">
+            <article>
+              <strong>01</strong>
+              <span>Sistema ideal</span>
+              <small>Mapa de modulos y flujo comercial.</small>
+              <b aria-hidden="true">-></b>
+            </article>
+            <article>
+              <strong>02</strong>
+              <span>WhatsApp comercial</span>
+              <small>Fugas, tiempos muertos y seguimiento.</small>
+              <b aria-hidden="true">-></b>
+            </article>
+            <article>
+              <strong>03</strong>
+              <span>Cotizador IA</span>
+              <small>Alcance inicial por fases.</small>
+              <b aria-hidden="true">-></b>
+            </article>
+          </div>
+          <div class="tools-hero__brandline" aria-label="Monova">
+            <div><strong>M</strong><span>MONOVA<br />Inteligencia, creatividad y evolucion.</span></div>
+            <span>CODIGO</span>
+            <span>DISENO</span>
+            <span>IA</span>
+            <p>La IA no reemplaza. <strong>Transforma.</strong></p>
+          </div>
+        </section>
+
+        <section class="tools-suite section-panel" id="toolsSuite" aria-label="Herramientas interactivas Monova">
+          <div class="tools-tabs" role="tablist" aria-label="Elegir herramienta">
+            <button class="is-active" type="button" data-tool-tab="system">Constructor de Sistema</button>
+            <button type="button" data-tool-tab="whatsapp">Auditor WhatsApp</button>
+            <button type="button" data-tool-tab="quote">Cotizador Inteligente</button>
+          </div>
+
+          <div class="tools-workbench">
+            <div class="tool-panel is-active" data-tool-panel="system">
+              <div class="tool-panel__head">
+                <span>01</span>
+                <div>
+                  <h2>Constructor de Sistema Ideal</h2>
+                  <p>Elige los módulos que tu negocio necesita y mira cómo Monova los conectaría.</p>
+                </div>
+              </div>
+              <form class="tool-form" data-tool-form="system">
+                <label>
+                  Tipo de negocio
+                  <input name="business" type="text" placeholder="Ej: clínica estética, restaurante, ecommerce..." required />
+                </label>
+                <fieldset class="tool-chip-grid">
+                  <legend>Módulos que quieres conectar</legend>
+                  <label><input type="checkbox" name="modules" value="WhatsApp IA" checked /> <span>WhatsApp IA</span></label>
+                  <label><input type="checkbox" name="modules" value="CRM" /> <span>CRM</span></label>
+                  <label><input type="checkbox" name="modules" value="Agenda" /> <span>Agenda</span></label>
+                  <label><input type="checkbox" name="modules" value="Pagos" /> <span>Pagos</span></label>
+                  <label><input type="checkbox" name="modules" value="Inventario" /> <span>Inventario</span></label>
+                  <label><input type="checkbox" name="modules" value="Dashboard" /> <span>Dashboard</span></label>
+                </fieldset>
+                <button class="primary-button" type="submit">Diseñar mi sistema</button>
+              </form>
+            </div>
+
+            <div class="tool-panel" data-tool-panel="whatsapp">
+              <div class="tool-panel__head">
+                <span>02</span>
+                <div>
+                  <h2>Auditor de WhatsApp Comercial</h2>
+                  <p>Detecta fugas de atención, tiempos muertos y oportunidades de automatización.</p>
+                </div>
+              </div>
+              <form class="tool-form" data-tool-form="whatsapp">
+                <label>
+                  ¿Cuántos mensajes recibes al día?
+                  <input name="messages" type="number" min="1" max="1000" value="35" required />
+                </label>
+                <label>
+                  ¿Cuánto tardas en responder?
+                  <select name="responseTime">
+                    <option value="5">Menos de 5 minutos</option>
+                    <option value="20">Entre 10 y 30 minutos</option>
+                    <option value="60">Más de 1 hora</option>
+                    <option value="180">Varias horas</option>
+                  </select>
+                </label>
+                <fieldset class="tool-chip-grid">
+                  <legend>Problemas actuales</legend>
+                  <label><input type="checkbox" name="issues" value="Cotizaciones manuales" checked /> <span>Cotizaciones manuales</span></label>
+                  <label><input type="checkbox" name="issues" value="Leads sin seguimiento" /> <span>Leads sin seguimiento</span></label>
+                  <label><input type="checkbox" name="issues" value="Preguntas repetidas" /> <span>Preguntas repetidas</span></label>
+                  <label><input type="checkbox" name="issues" value="Agenda desordenada" /> <span>Agenda desordenada</span></label>
+                </fieldset>
+                <button class="primary-button" type="submit">Auditar mi WhatsApp</button>
+              </form>
+            </div>
+
+            <div class="tool-panel" data-tool-panel="quote">
+              <div class="tool-panel__head">
+                <span>03</span>
+                <div>
+                  <h2>Cotizador Inteligente Monova</h2>
+                  <p>Arma un alcance visual por fases para saber qué tan grande es tu proyecto.</p>
+                </div>
+              </div>
+              <form class="tool-form" data-tool-form="quote">
+                <label>
+                  ¿Qué quieres construir?
+                  <select name="project">
+                    <option value="Landing Page">Landing Page</option>
+                    <option value="Chatbot IA">Chatbot IA</option>
+                    <option value="Automatización WhatsApp">Automatización WhatsApp</option>
+                    <option value="Ecommerce">Ecommerce</option>
+                    <option value="Software a medida">Software a medida</option>
+                    <option value="Branding Digital">Branding Digital</option>
+                  </select>
+                </label>
+                <fieldset class="tool-chip-grid">
+                  <legend>Necesidades incluidas</legend>
+                  <label><input type="checkbox" name="scope" value="Diseño UX/UI" checked /> <span>Diseño UX/UI</span></label>
+                  <label><input type="checkbox" name="scope" value="Desarrollo" checked /> <span>Desarrollo</span></label>
+                  <label><input type="checkbox" name="scope" value="IA" /> <span>IA</span></label>
+                  <label><input type="checkbox" name="scope" value="Automatización" /> <span>Automatización</span></label>
+                  <label><input type="checkbox" name="scope" value="Integraciones" /> <span>Integraciones</span></label>
+                  <label><input type="checkbox" name="scope" value="Contenido" /> <span>Contenido</span></label>
+                </fieldset>
+                <button class="primary-button" type="submit">Calcular alcance</button>
+              </form>
+            </div>
+
+            <aside class="tools-console" aria-live="polite">
+              <div class="tools-console__top">
+                <span></span>
+                <strong id="toolsConsoleTitle">Sistema Monova listo</strong>
+              </div>
+              <div class="tools-visual" id="toolsVisual">
+                <div class="tools-node is-hot">Cliente</div>
+                <div class="tools-node">WhatsApp</div>
+                <div class="tools-node is-hot">IA</div>
+                <div class="tools-node">CRM</div>
+                <div class="tools-node">Dashboard</div>
+              </div>
+              <div class="tools-output" id="toolsOutput">
+                <p>Selecciona una herramienta y genera una simulación. Aquí verás tu sistema, auditoría o alcance en formato visual.</p>
+              </div>
+              <a class="primary-button tools-whatsapp" id="toolsWhatsapp" href="https://wa.me/57XXXXXXXXXX?text=Hola%20Monova%2C%20quiero%20hablar%20sobre%20las%20herramientas%20IA." target="_blank" rel="noopener">Quiero este plan</a>
+            </aside>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer"><div class="footer-brand"><div class="brand"><span class="brand-mark">M</span><span class="brand-name">MONOVA</span></div><p>Código. Diseño. Inteligencia. Pasión.</p></div><div class="footer-col"><h3>Enlaces</h3><a href="index.html">Inicio</a><a href="servicios.html">Servicios</a><a href="proyectos.html">Proyectos</a><a href="nosotros.html">Nosotros</a><a href="/diagnostico">Diagnóstico IA</a><a href="/herramientas">Herramientas IA</a><a href="contacto.html">Contacto</a></div><div class="footer-col"><h3>Herramientas</h3><a href="/herramientas">Sistema Ideal</a><a href="/herramientas">Auditor WhatsApp</a><a href="/herramientas">Cotizador IA</a><a href="/diagnostico">Diagnóstico Visual</a></div><div class="footer-social"><h3>Síguenos</h3><div class="social-links"><a href="#" aria-label="LinkedIn">in</a><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="X">X</a><a href="#" aria-label="YouTube">▶</a></div><small>© 2026 Monova. Todos los derechos reservados.</small></div></footer>
+    </div>
+
+    <script src="script.js?v=20260611-tools-nav"></script>
+    <script src="herramientas.js?v=20260611-1"></script>
+  </body>
+</html>
