@@ -2101,36 +2101,16 @@ textarea:focus {
   padding: 92px 54px 78px;
   overflow: hidden;
   border-radius: 0 0 30px 30px;
-  background:
-    radial-gradient(circle at 73% 55%, rgba(255, 121, 15, 0.26), transparent 18rem),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.82) 30%, rgba(0, 0, 0, 0.18) 58%, rgba(0, 0, 0, 0.02) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.82)),
-    url("assets/diagnostico-ia-banner.png") 62% center / cover no-repeat,
-    #030303;
-  box-shadow: inset 0 -80px 120px rgba(0, 0, 0, 0.92), 0 40px 120px rgba(255, 121, 15, 0.08);
+  background: url("assets/diagnostico-ia-banner.png") 62% center / cover no-repeat #030303;
+  box-shadow: 0 40px 120px rgba(255, 121, 15, 0.08);
 }
 
 .diagnostic-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 18% 30%, rgba(255, 121, 15, 0.14), transparent 18rem),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.66), transparent 66%);
+  content: none;
 }
 
 .diagnostic-hero::after {
-  content: "";
-  position: absolute;
-  inset: -30% -12%;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(110deg, transparent 0 42%, rgba(255, 121, 15, 0.42) 47%, rgba(255, 178, 83, 0.26) 50%, transparent 56% 100%);
-  filter: blur(0.5px);
-  opacity: 0.82;
-  transform: translateX(-70%);
-  animation: diagnostic-scan 7s ease-in-out infinite;
+  content: none;
 }
 
 .diagnostic-hero__fx {
@@ -3171,34 +3151,20 @@ textarea:focus {
 
 .tools-hero {
   position: relative;
-  min-height: 820px;
-  display: grid;
-  grid-template-columns: minmax(500px, 0.72fr) minmax(520px, 1fr);
-  align-items: start;
-  gap: 28px;
+  min-height: clamp(360px, 47.5vw, 820px);
+  display: flex;
+  align-items: center;
   margin-bottom: 28px;
-  padding: 36px;
+  padding: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 121, 15, 0.22);
   border-radius: 22px;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.72) 35%, rgba(0, 0, 0, 0.14) 66%, rgba(0, 0, 0, 0.28) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.88)),
-    url("assets/monova-tools-ai-lab-hero.png") center / cover no-repeat,
-    #030303;
-  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.88), 0 34px 110px rgba(0, 0, 0, 0.46), 0 0 70px rgba(255, 121, 15, 0.08);
+  background: url("assets/monova-tools-ai-lab-hero.png") center / cover no-repeat #030303;
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.46), 0 0 70px rgba(255, 121, 15, 0.08);
 }
 
 .tools-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(255, 121, 15, 0.08), transparent 26%),
-    radial-gradient(circle at 62% 58%, rgba(255, 121, 15, 0.22), transparent 18rem);
-  mix-blend-mode: screen;
-  opacity: 0.72;
+  content: none;
 }
 
 .tools-hero__canvas {
@@ -3214,8 +3180,8 @@ textarea:focus {
 .tools-hero__copy {
   position: relative;
   z-index: 2;
-  max-width: 680px;
-  padding-top: 10px;
+  max-width: 650px;
+  padding: clamp(30px, 4vw, 58px);
 }
 
 .tools-hero h1 {
@@ -4086,7 +4052,7 @@ footer {
   }
 
   .tools-hero {
-    background-position: 64% center;
+    background-position: center;
   }
 
   .tools-hero__system {
@@ -4139,13 +4105,15 @@ footer {
 
 @media (max-width: 680px) {
   .tools-hero {
-    min-height: auto;
-    padding: 34px 18px 26px;
+    min-height: clamp(280px, 60vw, 420px);
+    padding: 0;
     gap: 28px;
-    background:
-      linear-gradient(180deg, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.8) 42%, rgba(0, 0, 0, 0.94) 100%),
-      url("assets/monova-tools-ai-lab-hero.png") 63% top / auto 44% no-repeat,
-      #030303;
+    background: url("assets/monova-tools-ai-lab-hero.png") center / cover no-repeat #030303;
+  }
+
+  .tools-hero__copy {
+    max-width: 330px;
+    padding: 24px 18px;
   }
 
   .tools-hero h1 {
@@ -4256,10 +4224,7 @@ footer {
   .diagnostic-hero {
     min-height: 720px;
     padding: 42px 18px 34px;
-    background:
-      linear-gradient(180deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.94) 100%),
-      url("assets/diagnostico-ia-banner.png") 61% top / auto 52% no-repeat,
-      #030303;
+    background: url("assets/diagnostico-ia-banner.png") 61% top / auto 52% no-repeat #030303;
     align-items: end;
   }
 
@@ -5869,6 +5834,7 @@ body.cursor-ready { cursor: none; }
   .hero-media video {
     opacity: 0.62;
   }
+
 }
 
 @media (max-width: 680px) {

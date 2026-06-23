@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 86" aria-hidden="true">
+  <defs>
+    <linearGradient id="monovaOrange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb02f"/>
+      <stop offset=".45" stop-color="#ff790f"/>
+      <stop offset="1" stop-color="#ff5c00"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1 0 .32 0 0 .42 0 0 0 0 .05 0 0 0 .75 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path filter="url(#glow)" fill="url(#monovaOrange)" d="M9 8h14l37 30L97 8h14v70H97V28L60 58 23 28v50H9V8z"/>
+  <path fill="#06090b" d="M36 36 60 55l24-19v13L60 68 36 49V36z"/>
+</svg>
