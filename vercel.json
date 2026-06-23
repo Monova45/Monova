@@ -1,15 +1,4 @@
 {
   "version": 2,
-  "framework": null,
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/diagnostico",
-      "destination": "/diagnostico.html"
-    },
-    {
-      "source": "/herramientas",
-      "destination": "/herramientas.html"
-    }
-  ]
+  "framework": "nextjs"
 }
