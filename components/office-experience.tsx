@@ -8,33 +8,21 @@ import {
   BrainCircuit,
   BriefcaseBusiness,
   Cloud,
-  Code2,
+  FolderKanban,
   Home,
+  LayoutGrid,
   Link2,
-  LineChart,
   Mail,
   Megaphone,
-  MoreVertical,
   Palette,
   Send,
-  Target,
-  Trophy,
+  Sparkles,
   Users,
   X
 } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
 const hotspots = [
-  {
-    id: "ia",
-    serviceKey: "ia",
-    title: "IA",
-    description: "Automatizaciones, agentes inteligentes y análisis de datos.",
-    icon: BrainCircuit,
-    position: "left-[9%] top-[55%]",
-    desktopPosition: "left-[34%] top-[52%]",
-    mobilePosition: "IA"
-  },
   {
     id: "ux",
     serviceKey: "ux",
@@ -70,7 +58,7 @@ const hotspots = [
     serviceKey: "branding",
     title: "Branding",
     description: "Identidad, estrategia y contenido que posiciona tu marca.",
-    icon: Trophy,
+    icon: Sparkles,
     position: "right-[4%] top-[62%]",
     desktopPosition: "right-[6%] top-[60%]",
     mobilePosition: "Marca"
@@ -201,6 +189,18 @@ const serviceDetails = {
 
 type ServiceKey = keyof typeof serviceDetails;
 
+const monovaWhatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573214198831";
+
+function getServiceWhatsappLink(serviceTitle: string) {
+  const message = `Hola Monova, quiero cotizar el servicio de ${serviceTitle}.`;
+  return `https://wa.me/${monovaWhatsappNumber}?text=${encodeURIComponent(message)}`;
+}
+
+function getProjectWhatsappLink() {
+  const message = "Hola Monova, quiero un proyecto así para mi empresa.";
+  return `https://wa.me/${monovaWhatsappNumber}?text=${encodeURIComponent(message)}`;
+}
+
 const servicePills = [
   "Software a medida",
   "UX/UI premium",
@@ -218,10 +218,10 @@ const heroMetrics = [
 
 const railItems = [
   { label: "Inicio", icon: Home, action: "inicio", active: true },
-  { label: "Servicios", icon: BrainCircuit, action: "servicios" },
-  { label: "Proyectos", icon: LineChart, action: "proyectos" },
+  { label: "Servicios", icon: LayoutGrid, action: "servicios" },
+  { label: "Proyectos", icon: FolderKanban, action: "proyectos" },
   { label: "Nosotros", icon: Users, action: "nosotros" },
-  { label: "Diagnóstico IA", icon: Target, action: "diagnostico" },
+  { label: "Diagnóstico IA", icon: BrainCircuit, action: "diagnostico" },
   { label: "Contacto", icon: Mail, action: "contacto" }
 ];
 
@@ -235,28 +235,32 @@ const railPanels = {
     stats: ["Web/App", "SaaS", "Automatización"],
     items: [
       {
-        title: "Klinu",
+        title: "Kliniu",
         meta: "Web / App",
-        image: "/assets/service-software.png",
-        text: "Plataforma de gestión de servicios de limpieza con catálogo y pedidos."
+        image: "/assets/project-kliniu.png",
+        href: "https://kliniu.vercel.app",
+        text: "Plataforma digital para gestionar servicios de limpieza con experiencia clara y comercial."
       },
       {
         title: "Drokex",
-        meta: "Web / App",
-        image: "/assets/service-branding.png",
-        text: "Agencia de marketing y automatización con presencia digital premium."
+        meta: "Marketplace B2B",
+        image: "/assets/project-drokex.png",
+        href: "https://drokex.com",
+        text: "Catálogo digital para conectar empresas de LATAM con compradores internacionales."
       },
       {
-        title: "Marketplace",
-        meta: "Ecommerce / SaaS",
-        image: "/assets/service-integrations.png",
-        text: "Plataforma de múltiples vendedores con paneles y pagos integrados."
+        title: "Unipars Tech",
+        meta: "Industrial / Web",
+        image: "/assets/project-unipars.png",
+        href: "https://unipars-tech.vercel.app",
+        text: "Sitio tecnológico para presentar soluciones, líneas de negocio y presencia industrial."
       },
       {
-        title: "Dashboard",
-        meta: "SaaS",
-        image: "/assets/service-cloud.png",
-        text: "Panel administrativo personalizado con métricas, usuarios y reportes."
+        title: "4U Studio Academy",
+        meta: "Academia / Web",
+        image: "/assets/project-4ustudio.png",
+        href: "https://4ustudioacademy.com",
+        text: "Academia musical con experiencia de marca, lecciones, planes y captación de estudiantes."
       }
     ]
   },
@@ -290,7 +294,7 @@ const railPanels = {
     eyebrow: "Diagnóstico IA",
     title: "Descubre qué está frenando tu negocio digital",
     copy:
-      "Cuéntanos sobre tu negocio y Monova IA analiza oportunidades para vender más, mejorar imagen, automatizar atención o crear una presencia digital más fuerte.",
+      "Pasa el link de tu web y Monova IA detecta qué está fallando, qué podrías mejorar y cómo se vería una versión más clara, moderna y lista para convertir.",
     cta: "Abrir diagnóstico",
     image: "/assets/diagnostico-ia-banner.png",
     stats: ["Datos", "Análisis", "Propuesta"],
@@ -325,6 +329,40 @@ const railPanels = {
 };
 
 type RailPanelKey = keyof typeof railPanels;
+
+type DiagnosticResult = {
+  auditedUrl?: string;
+  mockupImageUrl?: string;
+  diagnostico: {
+    diseno: number;
+    marketing: number;
+    automatizacion: number;
+    experienciaDigital: number;
+    resumen: string;
+    problemasDetectados: string[];
+    recomendaciones: string[];
+    serviciosSugeridos: string[];
+  };
+  propuesta: {
+    concepto: string;
+    estiloVisual: string;
+    estructuraRecomendada: string[];
+    copyHero: string;
+    colores: string[];
+    funcionalidades: string[];
+  };
+};
+
+type ChatMessage = {
+  role: "bot" | "user";
+  text: string;
+};
+
+const chatSuggestions = [
+  "Quiero vender más por mi web",
+  "Necesito automatizar WhatsApp",
+  "Quiero una plataforma para mi negocio"
+];
 
 const bootLines = [
   "> MONOVA_OS v2.6  LOADING ...",
@@ -565,13 +603,15 @@ function BootOverlay({ onEnter }: { onEnter: () => void }) {
 }
 
 function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
       text: "¡Hola! Soy Monova, estoy aquí para ayudarte a sistematizar tu empresa. ¿En qué puedo apoyarte hoy?"
     }
   ]);
   const [input, setInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -586,20 +626,60 @@ function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
 
   if (!isOpen) return null;
 
-  const submitMessage = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = input.trim();
+  const sendChatMessage = async (value: string) => {
     if (!value) return;
 
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: value },
-      {
-        role: "bot",
-        text: "Me encanta. Cuéntame un poco más sobre tu proyecto, tu objetivo principal y qué proceso quieres mejorar para proponerte una ruta clara."
-      }
-    ]);
+    const nextMessages: ChatMessage[] = [...messages, { role: "user", text: value }];
+    setMessages(nextMessages);
     setInput("");
+    setChatLoading(true);
+    setChatError("");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: nextMessages.map((message) => ({
+            role: message.role === "user" ? "user" : "assistant",
+            content: message.text
+          }))
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) throw new Error(data.error || "No pudimos responder ahora.");
+
+      setMessages((current) => [
+        ...current,
+        {
+          role: "bot",
+          text:
+            data.answer ||
+            "Puedo ayudarte a aterrizarlo. Cuéntame qué vendes, qué proceso te quita más tiempo y qué quieres mejorar primero."
+        }
+      ]);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No pudimos responder ahora. Intenta de nuevo.";
+      setChatError(message);
+      setMessages((current) => [
+        ...current,
+        {
+          role: "bot",
+          text: "No pude conectar con la IA en este momento, pero puedo seguir orientándote si me cuentas qué vendes y qué quieres mejorar."
+        }
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const submitMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void sendChatMessage(input.trim());
   };
 
   return (
@@ -613,7 +693,7 @@ function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
         role="dialog"
         aria-modal="true"
         aria-label="Chat Monova"
-        className="relative grid w-full max-w-7xl overflow-hidden rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_18%_50%,rgba(255,121,15,0.13),transparent_20rem),radial-gradient(circle_at_82%_18%,rgba(105,200,255,0.09),transparent_20rem),linear-gradient(135deg,#050709_0%,#020303_54%,#070402_100%)] p-5 shadow-[0_35px_120px_rgba(0,0,0,0.72)] md:grid-cols-[1.05fr_1.2fr] md:gap-8 md:p-8"
+        className="relative grid w-full max-w-7xl overflow-hidden rounded-[34px] border border-white/10 bg-[radial-gradient(circle_at_18%_50%,rgba(255,121,15,0.18),transparent_22rem),radial-gradient(circle_at_82%_18%,rgba(105,200,255,0.12),transparent_22rem),linear-gradient(135deg,#050709_0%,#020303_54%,#070402_100%)] p-5 shadow-[0_35px_120px_rgba(0,0,0,0.72)] md:grid-cols-[0.98fr_1.22fr] md:gap-8 md:p-8"
         initial={{ opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.28 }}
@@ -628,16 +708,21 @@ function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
           <X size={18} />
         </button>
 
-        <div className="relative hidden min-h-[520px] items-center overflow-hidden rounded-[28px] border border-white/[0.06] bg-white/[0.025] md:grid md:grid-cols-[0.86fr_1fr] md:gap-10 md:px-7">
+        <div className="relative hidden min-h-[560px] items-center overflow-hidden rounded-[28px] border border-white/[0.08] bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015))] md:grid md:grid-cols-[0.82fr_1fr] md:gap-10 md:px-7">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:48px_48px] opacity-40" />
-          <div className="absolute bottom-12 left-16 h-56 w-56 rounded-full bg-monova-orange/12 blur-3xl" />
-          <img
-            src="/assets/monova-assistant-cat.png"
-            alt="Monova asistente"
-            className="relative z-10 mx-auto max-h-[390px] w-auto drop-shadow-[0_24px_80px_rgba(255,121,15,0.28)]"
-          />
+          <div className="absolute bottom-12 left-16 h-60 w-60 rounded-full bg-monova-orange/18 blur-3xl" />
+          <div className="absolute right-10 top-10 h-48 w-48 rounded-full bg-monova-cyan/10 blur-3xl" />
+          <div className="relative z-10 flex min-h-[470px] items-end justify-center pb-8">
+            <span className="absolute bottom-6 left-1/2 h-8 w-44 -translate-x-1/2 rounded-full bg-black/65 blur-md" />
+            <span className="absolute bottom-8 left-1/2 h-px w-48 -translate-x-1/2 bg-gradient-to-r from-transparent via-monova-orange/35 to-transparent" />
+            <img
+              src="/assets/monova-assistant-cat.png"
+              alt="Monova asistente"
+              className="relative z-10 max-h-[405px] w-auto translate-y-2 drop-shadow-[0_24px_80px_rgba(255,121,15,0.28)]"
+            />
+          </div>
           <div className="relative z-10 max-w-[330px]">
-            <p className="mb-7 text-center font-display text-xs font-black uppercase tracking-[0.32em] text-monova-orange">
+            <p className="mb-7 font-display text-xs font-black uppercase tracking-[0.32em] text-monova-orange">
               Monova Lab
             </p>
             <h2 className="font-display text-[2.7rem] font-black leading-[1.06] tracking-[-0.045em]">
@@ -646,26 +731,40 @@ function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
             <p className="mt-7 text-[15px] font-semibold leading-8 text-white/62">
               Aterrizamos tus ideas, detectamos oportunidades y te mostramos qué sistema inteligente puede ayudarte a vender, operar o crecer mejor.
             </p>
+            <div className="mt-7 grid gap-2">
+              {["Diagnóstico comercial", "Ruta de producto", "Automatización IA"].map((item) => (
+                <span
+                  key={item}
+                  className="rounded-2xl border border-white/10 bg-black/24 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/58"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="relative min-h-[520px] overflow-hidden rounded-[28px] border border-monova-orange/28 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.01)),#020202] p-5 shadow-[0_0_55px_rgba(255,121,15,0.22)] md:p-7">
+        <div className="relative min-h-[560px] overflow-hidden rounded-[28px] border border-monova-orange/30 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01)),#020202] p-5 shadow-[0_0_70px_rgba(255,121,15,0.22)] md:p-7">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
           <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-monova-orange/12 blur-3xl" />
           <div className="relative flex items-center justify-between border-b border-white/10 pb-5">
             <div className="flex items-center gap-4">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-monova-orange/30 bg-monova-orange/15 shadow-orange">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl border border-monova-orange/30 bg-monova-orange/15 shadow-orange">
                 <span className="h-4 w-4 rounded-full bg-monova-orange" />
               </span>
               <div>
                 <h3 className="font-display text-2xl font-black">Monova</h3>
-                <p className="text-sm font-black text-emerald-400">En línea ahora</p>
+                <p className="text-sm font-black text-emerald-400">
+                  {chatLoading ? "Pensando una ruta..." : "En línea ahora"}
+                </p>
               </div>
             </div>
-            <MoreVertical className="text-white/62" size={24} />
+            <span className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/48 sm:inline-flex">
+              Asistente IA
+            </span>
           </div>
 
-          <div className="relative flex h-[330px] flex-col gap-4 overflow-y-auto py-6 pr-2">
+          <div className="relative flex h-[330px] flex-col gap-4 overflow-y-auto py-6 pr-2 md:h-[360px]">
             {messages.map((message, index) => (
               <div
                 key={`${message.role}-${index}`}
@@ -679,31 +778,64 @@ function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
                   />
                 ) : null}
                 <p
-                  className={`max-w-[78%] rounded-2xl border px-4 py-3 text-sm font-semibold leading-6 shadow-2xl shadow-black/20 ${
+                  className={`max-w-[82%] rounded-2xl border px-4 py-3 text-sm font-semibold leading-6 shadow-2xl shadow-black/20 ${
                     message.role === "user"
-                      ? "border-monova-orange/40 bg-monova-orange/14 text-white"
-                      : "border-white/12 bg-white/[0.055] text-white/80"
+                      ? "border-monova-orange/45 bg-monova-orange/16 text-white"
+                      : "border-white/14 bg-white/[0.065] text-white/82"
                   }`}
                 >
                   {message.text}
                 </p>
               </div>
             ))}
+            {chatLoading ? (
+              <div className="flex gap-3">
+                <img
+                  src="/assets/monova-assistant-cat.png"
+                  alt=""
+                  className="mt-1 h-12 w-12 rounded-full border border-monova-orange/35 bg-black object-cover shadow-orange"
+                />
+                <p className="rounded-2xl border border-white/14 bg-white/[0.065] px-4 py-3 text-sm font-semibold leading-6 text-white/72">
+                  Analizando tu idea...
+                </p>
+              </div>
+            ) : null}
           </div>
+
+          <div className="mb-3 flex flex-wrap gap-2">
+            {chatSuggestions.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => void sendChatMessage(suggestion)}
+                disabled={chatLoading}
+                className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-white/50 transition hover:border-monova-orange/40 hover:text-monova-orange"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+          {chatError ? (
+            <p className="mb-3 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-100">
+              {chatError}
+            </p>
+          ) : null}
 
           <form
             onSubmit={submitMessage}
-            className="relative flex items-center gap-3 rounded-2xl border border-monova-orange/45 bg-black/70 p-2 shadow-[0_0_38px_rgba(255,121,15,0.18)]"
+            className="relative flex items-center gap-3 rounded-2xl border border-monova-orange/45 bg-black/76 p-2 shadow-[0_0_38px_rgba(255,121,15,0.18)]"
           >
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
+              disabled={chatLoading}
               placeholder="Escribe tu mensaje..."
               className="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm font-bold text-white outline-none placeholder:text-white/42"
             />
             <button
               type="submit"
               aria-label="Enviar mensaje"
+              disabled={chatLoading}
               className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-monova-orange text-black transition hover:scale-[1.03]"
             >
               <Send size={18} />
@@ -800,7 +932,9 @@ function ServiceModal({
           </ul>
           <a
             className="mt-7 inline-flex rounded-full bg-monova-orange px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-black transition hover:scale-[1.02]"
-            href="contacto.html"
+            href={getServiceWhatsappLink(service.title)}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Cotizar este servicio
           </a>
@@ -821,6 +955,9 @@ function RailPanelModal({
 }) {
   const panel = panelKey ? railPanels[panelKey] : null;
   const [panelFormSent, setPanelFormSent] = useState(false);
+  const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
+  const [diagnosticError, setDiagnosticError] = useState("");
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
 
   useEffect(() => {
     if (!panel) return;
@@ -835,7 +972,184 @@ function RailPanelModal({
 
   useEffect(() => {
     setPanelFormSent(false);
+    setDiagnosticResult(null);
+    setDiagnosticError("");
+    setDiagnosticLoading(false);
   }, [panelKey]);
+
+  const submitDiagnostic = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    setDiagnosticLoading(true);
+    setDiagnosticError("");
+
+    try {
+      const response = await fetch("/api/diagnostico-visual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: formData.get("nombre"),
+          whatsapp: formData.get("whatsapp"),
+          tipoNegocio: formData.get("tipoNegocio"),
+          url: formData.get("url"),
+          descripcion: formData.get("descripcion"),
+          objetivo: formData.get("objetivo")
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "No pudimos generar el diagnóstico ahora.");
+      }
+
+      setDiagnosticResult(data as DiagnosticResult);
+      setPanelFormSent(true);
+    } catch (error) {
+      setDiagnosticError(
+        error instanceof Error
+          ? error.message
+          : "No pudimos generar el diagnóstico ahora. Intenta de nuevo."
+      );
+    } finally {
+      setDiagnosticLoading(false);
+    }
+  };
+
+  const openMockupPreview = () => {
+    if (!diagnosticResult?.mockupImageUrl) return;
+
+    const previewWindow = window.open("", "_blank");
+    if (!previewWindow) {
+      setDiagnosticError("No pudimos abrir la previsualización. Revisa si el navegador bloqueó la pestaña.");
+      return;
+    }
+
+    const doc = previewWindow.document;
+    doc.title = "Previsualización de home - Monova";
+    doc.body.innerHTML = "";
+
+    const style = doc.createElement("style");
+    style.textContent = `
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(255, 121, 15, 0.28), transparent 28rem),
+          radial-gradient(circle at 86% 14%, rgba(105, 200, 255, 0.14), transparent 24rem),
+          linear-gradient(145deg, #05070a 0%, #020202 100%);
+        color: white;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        padding: 28px;
+      }
+      .shell { max-width: 1320px; margin: 0 auto; }
+      .topbar {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 22px;
+      }
+      .eyebrow {
+        color: #ff790f;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+      h1 {
+        max-width: 820px;
+        margin: 10px 0 0;
+        font-size: clamp(34px, 5vw, 74px);
+        line-height: 0.95;
+        letter-spacing: -0.035em;
+      }
+      .summary {
+        max-width: 560px;
+        margin: 12px 0 0;
+        color: rgba(255,255,255,0.66);
+        font-size: 15px;
+        line-height: 1.7;
+        font-weight: 700;
+      }
+      .badge {
+        border: 1px solid rgba(255, 121, 15, 0.4);
+        border-radius: 999px;
+        padding: 12px 16px;
+        color: #ff790f;
+        background: rgba(255, 121, 15, 0.08);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .frame {
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 30px;
+        background: rgba(0,0,0,0.56);
+        box-shadow: 0 34px 120px rgba(0,0,0,0.64), 0 0 80px rgba(255, 121, 15, 0.18);
+      }
+      .browser {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 14px 18px;
+        background: rgba(255,255,255,0.04);
+      }
+      .dot { width: 10px; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.24); }
+      .url {
+        margin-left: 10px;
+        height: 26px;
+        flex: 1;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+      }
+      img { display: block; width: 100%; height: auto; }
+      @media (max-width: 760px) {
+        body { padding: 16px; }
+        .topbar { display: block; }
+        .badge { display: inline-flex; margin-top: 18px; }
+      }
+    `;
+    doc.head.appendChild(style);
+
+    const shell = doc.createElement("main");
+    shell.className = "shell";
+
+    const topbar = doc.createElement("section");
+    topbar.className = "topbar";
+
+    const copy = doc.createElement("div");
+    const eyebrow = doc.createElement("p");
+    eyebrow.className = "eyebrow";
+    eyebrow.textContent = "Previsualización Monova IA";
+    const title = doc.createElement("h1");
+    title.textContent = "Así podría verse tu home mejorada";
+    const summary = doc.createElement("p");
+    summary.className = "summary";
+    summary.textContent = diagnosticResult.propuesta.concepto;
+    copy.append(eyebrow, title, summary);
+
+    const badge = doc.createElement("span");
+    badge.className = "badge";
+    badge.textContent = "Mockup generado";
+    topbar.append(copy, badge);
+
+    const frame = doc.createElement("section");
+    frame.className = "frame";
+    const browser = doc.createElement("div");
+    browser.className = "browser";
+    browser.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url"></span>';
+    const image = doc.createElement("img");
+    image.src = diagnosticResult.mockupImageUrl;
+    image.alt = "Mockup de home mejorada";
+    frame.append(browser, image);
+    shell.append(topbar, frame);
+    doc.body.appendChild(shell);
+  };
 
   if (!panel) return null;
 
@@ -898,8 +1212,11 @@ function RailPanelModal({
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {projectPanel.items.map((item) => (
-              <article
+              <a
                 key={item.title}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group grid overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-monova-orange/35 hover:bg-white/[0.06] sm:grid-cols-[180px_minmax(0,1fr)]"
               >
                 <div className="relative min-h-[160px] overflow-hidden bg-black">
@@ -922,20 +1239,18 @@ function RailPanelModal({
                     Ver caso
                   </span>
                 </div>
-              </article>
+              </a>
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onContact();
-            }}
+          <a
+            href={getProjectWhatsappLink()}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-8 inline-flex rounded-full bg-monova-orange px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-black transition hover:scale-[1.02]"
           >
             {projectPanel.cta}
-          </button>
+          </a>
         </motion.section>
       </motion.div>
     );
@@ -1057,6 +1372,14 @@ function RailPanelModal({
   if (panelKey === "diagnostico" || panelKey === "contacto") {
     const formPanel = railPanels[panelKey];
     const isDiagnostic = panelKey === "diagnostico";
+    const diagnosticScores = diagnosticResult
+      ? [
+          { label: "Diseño", value: diagnosticResult.diagnostico.diseno },
+          { label: "Marketing", value: diagnosticResult.diagnostico.marketing },
+          { label: "Automatización", value: diagnosticResult.diagnostico.automatizacion },
+          { label: "Experiencia", value: diagnosticResult.diagnostico.experienciaDigital }
+        ]
+      : [];
 
     return (
       <motion.div
@@ -1088,30 +1411,96 @@ function RailPanelModal({
             <div className="absolute inset-0 bg-[linear-gradient(rgba(105,200,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,121,15,0.055)_1px,transparent_1px)] bg-[size:46px_46px] opacity-45" />
             <div className="absolute -left-20 top-16 h-64 w-64 rounded-full bg-monova-cyan/14 blur-3xl" />
             <div className="absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-monova-orange/20 blur-3xl" />
-            <div className="relative min-h-[360px] overflow-hidden rounded-[24px] border border-white/10">
-              <img
-                src={formPanel.image}
-                alt={formPanel.title}
-                className={`h-full min-h-[360px] w-full object-cover opacity-82 saturate-[1.18] contrast-[1.08] brightness-[1.1] ${
-                  isDiagnostic ? "scale-[1.12] object-[88%_center]" : "object-center"
-                }`}
-              />
-              {isDiagnostic ? (
-                <div className="absolute inset-y-0 left-0 w-[46%] bg-gradient-to-r from-black via-black/90 to-transparent" />
-              ) : null}
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.16)_0%,rgba(0,0,0,0.22)_42%,rgba(0,0,0,0.76)_100%)]" />
-            </div>
 
-            <div className="relative -mt-20 rounded-3xl border border-white/12 bg-black/62 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
-              <p className="font-display text-[10px] font-black uppercase tracking-[0.24em] text-monova-cyan">
-                {isDiagnostic ? "Monova IA" : "Monova contacto"}
-              </p>
-              <p className="mt-2 text-sm font-semibold leading-6 text-white/70">
-                {isDiagnostic
-                  ? "Completa el diagnóstico y revisamos oportunidades para mejorar tu presencia digital."
-                  : "Cuéntanos tu idea y te respondemos con el siguiente paso recomendado."}
-              </p>
-            </div>
+            {isDiagnostic && diagnosticResult ? (
+              <div className="relative overflow-hidden rounded-[24px] border border-monova-orange/25 bg-black/72 shadow-orange">
+                <div className="flex items-start justify-between gap-4 border-b border-white/10 p-4">
+                  <div>
+                    <p className="font-display text-[10px] font-black uppercase tracking-[0.24em] text-monova-orange">
+                      Previsualiza cómo se vería tu home
+                    </p>
+                    <p className="mt-2 text-xs font-semibold leading-5 text-white/58">
+                      Mockup generado con base en el análisis de tu web actual.
+                    </p>
+                  </div>
+                  {diagnosticResult.mockupImageUrl ? (
+                    <button
+                      type="button"
+                      onClick={openMockupPreview}
+                      className="shrink-0 rounded-full border border-monova-orange/40 bg-monova-orange/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-monova-orange transition hover:bg-monova-orange hover:text-black"
+                    >
+                      Abrir grande
+                    </button>
+                  ) : null}
+                </div>
+                {diagnosticResult.mockupImageUrl ? (
+                  <img
+                    src={diagnosticResult.mockupImageUrl}
+                    alt="Previsualización de home mejorada"
+                    className="h-[620px] w-full object-cover object-top"
+                  />
+                ) : (
+                  <div className="relative h-[620px] overflow-hidden bg-[radial-gradient(circle_at_72%_18%,rgba(255,121,15,0.3),transparent_15rem),linear-gradient(135deg,#050505,#111827)] p-5">
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:38px_38px] opacity-50" />
+                    <div className="relative h-full rounded-2xl border border-white/10 bg-black/45 p-4 shadow-2xl">
+                      <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-4">
+                        <span className="h-3 w-28 rounded-full bg-white/20" />
+                        <div className="flex gap-2">
+                          <span className="h-2 w-10 rounded-full bg-white/14" />
+                          <span className="h-2 w-10 rounded-full bg-white/14" />
+                          <span className="h-2 w-10 rounded-full bg-monova-orange" />
+                        </div>
+                      </div>
+                      <div className="grid h-[250px] grid-cols-[1fr_0.85fr] gap-5">
+                        <div className="flex flex-col justify-center">
+                          <span className="mb-4 h-2 w-20 rounded-full bg-monova-orange" />
+                          <p className="font-display text-3xl font-black leading-tight text-white">
+                            {diagnosticResult.propuesta.copyHero}
+                          </p>
+                          <span className="mt-6 h-11 w-40 rounded-full bg-monova-orange" />
+                        </div>
+                        <div className="rounded-2xl border border-monova-orange/25 bg-monova-orange/10" />
+                      </div>
+                      <div className="mt-5 grid grid-cols-2 gap-3">
+                        <span className="h-24 rounded-2xl border border-white/10 bg-white/10" />
+                        <span className="h-24 rounded-2xl border border-white/10 bg-white/10" />
+                        <span className="h-24 rounded-2xl border border-white/10 bg-white/10" />
+                        <span className="h-24 rounded-2xl border border-white/10 bg-white/10" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="relative min-h-[360px] overflow-hidden rounded-[24px] border border-white/10">
+                  <img
+                    src={formPanel.image}
+                    alt={formPanel.title}
+                    className={`h-full min-h-[360px] w-full object-cover opacity-82 saturate-[1.18] contrast-[1.08] brightness-[1.1] ${
+                      isDiagnostic ? "scale-[1.12] object-[88%_center]" : "object-center"
+                    }`}
+                  />
+                  {isDiagnostic ? (
+                    <div className="absolute inset-y-0 left-0 w-[46%] bg-gradient-to-r from-black via-black/90 to-transparent" />
+                  ) : null}
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.16)_0%,rgba(0,0,0,0.22)_42%,rgba(0,0,0,0.76)_100%)]" />
+                </div>
+
+                <div className="relative -mt-20 rounded-3xl border border-white/12 bg-black/62 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+                  <p className="font-display text-[10px] font-black uppercase tracking-[0.24em] text-monova-cyan">
+                    {isDiagnostic ? "Monova IA" : "Monova contacto"}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-white/70">
+                    {isDiagnostic
+                      ? diagnosticLoading
+                        ? "Analizando tu web y preparando una previsualización de la home."
+                        : "Completa el diagnóstico y revisamos oportunidades para mejorar tu presencia digital."
+                      : "Cuéntanos tu idea y te respondemos con el siguiente paso recomendado."}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex flex-col justify-center py-2 lg:py-5">
@@ -1128,7 +1517,120 @@ function RailPanelModal({
               {formPanel.copy}
             </p>
 
-            {panelFormSent ? (
+            {isDiagnostic && diagnosticResult ? (
+              <div className="mt-7 max-h-[58vh] space-y-4 overflow-y-auto pr-2">
+                <div className="rounded-3xl border border-monova-orange/35 bg-monova-orange/10 p-5">
+                  <p className="font-display text-xl font-black text-white">
+                    Diagnóstico generado
+                  </p>
+                  <p className="mt-3 text-sm font-semibold leading-7 text-white/70">
+                    {diagnosticResult.diagnostico.resumen}
+                  </p>
+                  {diagnosticResult.auditedUrl ? (
+                    <a
+                      href={diagnosticResult.auditedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex text-xs font-black uppercase tracking-[0.14em] text-monova-orange hover:text-monova-amber"
+                    >
+                      Web auditada
+                    </a>
+                  ) : null}
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-4">
+                  {diagnosticScores.map((score) => (
+                    <div
+                      key={score.label}
+                      className="rounded-2xl border border-white/10 bg-white/[0.045] p-3"
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/45">
+                        {score.label}
+                      </span>
+                      <strong className="mt-1 block font-display text-2xl font-black text-white">
+                        {score.value}
+                      </strong>
+                      <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <span
+                          className="block h-full rounded-full bg-monova-orange"
+                          style={{ width: `${score.value}%` }}
+                        />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
+                    <h3 className="font-display text-sm font-black uppercase tracking-[0.18em] text-monova-orange">
+                      Qué está mal
+                    </h3>
+                    <ul className="mt-4 space-y-3">
+                      {diagnosticResult.diagnostico.problemasDetectados.map((item) => (
+                        <li key={item} className="text-sm font-semibold leading-6 text-white/70">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5">
+                    <h3 className="font-display text-sm font-black uppercase tracking-[0.18em] text-monova-cyan">
+                      Qué haríamos
+                    </h3>
+                    <ul className="mt-4 space-y-3">
+                      {diagnosticResult.diagnostico.recomendaciones.map((item) => (
+                        <li key={item} className="text-sm font-semibold leading-6 text-white/70">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-black/45 p-5">
+                  <p className="font-display text-[11px] font-black uppercase tracking-[0.24em] text-monova-orange">
+                    Concepto visual propuesto
+                  </p>
+                  <p className="mt-3 font-display text-lg font-black text-white">
+                    {diagnosticResult.propuesta.concepto}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-white/62">
+                    {diagnosticResult.propuesta.estiloVisual}
+                  </p>
+                  {diagnosticResult.mockupImageUrl ? (
+                    <button
+                      type="button"
+                      onClick={openMockupPreview}
+                      className="mt-4 inline-flex rounded-full bg-monova-orange px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-black transition hover:scale-[1.02]"
+                    >
+                      Abrir mockup en pestaña
+                    </button>
+                  ) : null}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {diagnosticResult.diagnostico.serviciosSugeridos.map((service) => (
+                      <span
+                        key={service}
+                        className="rounded-full border border-monova-orange/30 bg-monova-orange/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-monova-orange"
+                      >
+                        {service}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDiagnosticResult(null);
+                    setPanelFormSent(false);
+                  }}
+                  className="inline-flex rounded-full border border-white/12 px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-white/70 transition hover:border-monova-orange/60 hover:text-monova-orange"
+                >
+                  Hacer otro diagnóstico
+                </button>
+              </div>
+            ) : panelFormSent ? (
               <div className="mt-7 rounded-3xl border border-monova-orange/35 bg-monova-orange/10 p-6">
                 <p className="font-display text-xl font-black text-white">Listo, recibimos tus datos.</p>
                 <p className="mt-3 text-sm font-semibold leading-7 text-white/68">
@@ -1138,7 +1640,7 @@ function RailPanelModal({
             ) : (
               <form
                 className="mt-7 grid gap-3"
-                onSubmit={(event) => {
+                onSubmit={isDiagnostic ? submitDiagnostic : (event) => {
                   event.preventDefault();
                   setPanelFormSent(true);
                 }}
@@ -1159,26 +1661,62 @@ function RailPanelModal({
                 </div>
                 <input
                   required
-                  name="empresa"
+                  name={isDiagnostic ? "tipoNegocio" : "empresa"}
                   placeholder={isDiagnostic ? "Tipo de negocio o empresa" : "Empresa o proyecto"}
                   className="rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm font-bold text-white outline-none placeholder:text-white/38 focus:border-monova-orange/50"
                 />
+                {isDiagnostic ? (
+                  <input
+                    required
+                    name="url"
+                    type="url"
+                    placeholder="Link de tu web actual"
+                    className="rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm font-bold text-white outline-none placeholder:text-white/38 focus:border-monova-orange/50"
+                  />
+                ) : null}
                 <textarea
                   required
-                  name="mensaje"
+                  name={isDiagnostic ? "descripcion" : "mensaje"}
                   rows={4}
                   placeholder={
                     isDiagnostic
-                      ? "Cuéntanos qué vendes, cómo llegan tus clientes y qué quieres mejorar."
+                      ? "Cuéntanos qué vendes, qué no te gusta de tu web y qué quieres mejorar."
                       : "Cuéntanos qué necesitas construir, automatizar o mejorar."
                   }
                   className="resize-none rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm font-bold leading-6 text-white outline-none placeholder:text-white/38 focus:border-monova-orange/50"
                 />
+                {isDiagnostic ? (
+                  <select
+                    required
+                    name="objetivo"
+                    defaultValue=""
+                    className="rounded-2xl border border-white/10 bg-[#111820] px-4 py-3 text-sm font-bold text-white outline-none focus:border-monova-orange/50"
+                  >
+                    <option value="" disabled>
+                      Objetivo principal
+                    </option>
+                    <option value="vender mas">Vender más</option>
+                    <option value="mejorar imagen">Mejorar imagen</option>
+                    <option value="captar leads">Captar leads</option>
+                    <option value="automatizar atencion">Automatizar atención</option>
+                    <option value="redisenar web">Rediseñar la web</option>
+                  </select>
+                ) : null}
+                {diagnosticError ? (
+                  <p className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-100">
+                    {diagnosticError}
+                  </p>
+                ) : null}
                 <button
                   type="submit"
+                  disabled={diagnosticLoading}
                   className="mt-2 inline-flex w-fit rounded-full bg-monova-orange px-6 py-3 text-xs font-black uppercase tracking-[0.16em] text-black transition hover:scale-[1.02]"
                 >
-                  {isDiagnostic ? "Enviar diagnóstico" : "Enviar mensaje"}
+                  {diagnosticLoading
+                    ? "Analizando web..."
+                    : isDiagnostic
+                      ? "Generar diagnóstico"
+                      : "Enviar mensaje"}
                 </button>
               </form>
             )}
@@ -1298,13 +1836,11 @@ function RailPanelModal({
 }
 
 export function OfficeExperience() {
-  const [activeHotspot, setActiveHotspot] = useState("ia");
+  const [activeHotspot, setActiveHotspot] = useState("ux");
   const [showBoot, setShowBoot] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceKey | null>(null);
   const [selectedRailPanel, setSelectedRailPanel] = useState<RailPanelKey | null>(null);
-  const activeHotspotData = hotspots.find((hotspot) => hotspot.id === activeHotspot) ?? hotspots[0];
-  const ActiveHotspotIcon = activeHotspotData.icon;
   const openHotspotService = (serviceKey: ServiceKey) => setSelectedService(serviceKey);
   const openContact = () => setChatOpen(true);
   const handleRailAction = (action: string) => {
@@ -1359,15 +1895,6 @@ export function OfficeExperience() {
           </span>
         </a>
 
-        <nav className="hidden items-center gap-7 rounded-full border border-white/10 bg-black/26 px-6 py-3 text-sm font-black text-white backdrop-blur-2xl lg:flex">
-          <a className="text-monova-orange" href="#oficina">Inicio</a>
-          <a className="transition hover:text-monova-orange" href="#servicios">Servicios</a>
-          <a className="transition hover:text-monova-orange" href="proyectos.html">Proyectos</a>
-          <a className="transition hover:text-monova-orange" href="nosotros.html">Nosotros</a>
-          <a className="transition hover:text-monova-orange" href="/diagnostico">Diagnóstico IA</a>
-          <a className="transition hover:text-monova-orange" href="/herramientas">Herramientas IA</a>
-        </nav>
-
         <button
           type="button"
           onClick={() => setChatOpen(true)}
@@ -1391,7 +1918,7 @@ export function OfficeExperience() {
             const Icon = hotspot.icon;
             const isActive = activeHotspot === hotspot.id;
 
-            const className = `grid h-11 w-11 place-items-center rounded-full border transition ${
+            const className = `monova-click-pulse grid h-11 w-11 place-items-center rounded-full border transition ${
               isActive
                 ? "border-monova-orange/70 bg-monova-orange/16 text-monova-orange shadow-orange"
                 : "border-white/10 bg-white/[0.035] text-white/74 hover:border-monova-cyan/50 hover:text-monova-cyan"
@@ -1414,31 +1941,9 @@ export function OfficeExperience() {
           })}
         </div>
 
-        <motion.button
-          key={activeHotspotData.id}
-          type="button"
-          onClick={() => openHotspotService(activeHotspotData.serviceKey as ServiceKey)}
-          initial={{ opacity: 0, x: -8, scale: 0.98 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ duration: 0.2 }}
-          className="w-[250px] rounded-2xl border border-monova-orange/35 bg-black/62 p-4 text-left shadow-orange backdrop-blur-2xl"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-monova-cyan/10 text-monova-cyan">
-              <ActiveHotspotIcon size={18} />
-            </span>
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-monova-orange/60 text-monova-orange">
-              +
-            </span>
-          </div>
-          <h3 className="mt-3 font-display text-sm font-black uppercase tracking-[0.14em] text-white">
-            {activeHotspotData.title}
-          </h3>
-          <p className="mt-2 text-xs leading-5 text-white/66">{activeHotspotData.description}</p>
-        </motion.button>
       </motion.div>
 
-      <aside className="absolute right-7 top-1/2 z-30 hidden -translate-y-1/2 overflow-hidden rounded-[24px] border border-white/10 bg-black/38 shadow-2xl shadow-black/40 backdrop-blur-2xl xl:block">
+      <aside className="monova-rail-pulse absolute right-7 top-1/2 z-30 hidden -translate-y-1/2 overflow-hidden rounded-[24px] border border-white/10 bg-black/38 shadow-2xl shadow-black/40 backdrop-blur-2xl xl:block">
         {railItems.map((item) => {
           const Icon = item.icon;
           const className = `grid h-16 w-16 place-items-center border-b border-white/10 transition last:border-b-0 ${
@@ -1511,40 +2016,6 @@ export function OfficeExperience() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_48%,transparent_0%,rgba(2,5,10,0.08)_54%,rgba(2,5,10,0.55)_100%)]" />
-
-              {hotspots.map((hotspot, index) => {
-                const Icon = hotspot.icon;
-                const isActive = activeHotspot === hotspot.id;
-
-                return (
-                  <motion.button
-                    key={hotspot.id}
-                    type="button"
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.38 + index * 0.07, duration: 0.45 }}
-                    onClick={() => openHotspotService(hotspot.serviceKey as ServiceKey)}
-                    onMouseEnter={() => setActiveHotspot(hotspot.id)}
-                    onFocus={() => setActiveHotspot(hotspot.id)}
-                    className={`group absolute hidden w-[184px] rounded-2xl border p-3 text-left backdrop-blur-xl transition duration-300 md:block ${hotspot.position} ${
-                      isActive
-                        ? "border-monova-orange/70 bg-black/70 shadow-orange"
-                        : "border-white/12 bg-black/45 hover:border-monova-cyan/55 hover:shadow-holo"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <Icon className="mt-1 text-monova-cyan" size={17} />
-                      <span className="grid h-7 w-7 place-items-center rounded-full border border-monova-orange/60 text-monova-orange transition group-hover:bg-monova-orange group-hover:text-black">
-                        +
-                      </span>
-                    </div>
-                    <h3 className="mt-2 font-display text-xs font-black uppercase tracking-[0.14em] text-white">
-                      {hotspot.title}
-                    </h3>
-                    <p className="mt-2 text-[11px] leading-4 text-white/68">{hotspot.description}</p>
-                  </motion.button>
-                );
-              })}
 
               <motion.button
                 type="button"
@@ -1623,7 +2094,7 @@ export function OfficeExperience() {
               key={hotspot.id}
               type="button"
               onClick={() => openHotspotService(hotspot.serviceKey as ServiceKey)}
-              className="flex items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.05] p-4 text-left backdrop-blur"
+              className="monova-click-pulse flex items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.05] p-4 text-left backdrop-blur"
             >
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-monova-cyan/10 text-monova-cyan">
                 <Icon size={22} />

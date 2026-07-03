@@ -28,7 +28,7 @@ await loadEnv();
 const port = Number(process.env.PORT || 8000);
 const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 const imageModel = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
-const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "57XXXXXXXXXX";
+const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573214198831";
 const diagnosticRateLimit = new Map();
 
 const monovaKnowledge = `

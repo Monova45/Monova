@@ -659,10 +659,23 @@ h1 span,
   filter: blur(8px);
 }
 
+.lab-cat-scene::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: min(250px, 70%);
+  height: 24px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.7), transparent 70%);
+  transform: translateX(-50%);
+  filter: blur(4px);
+}
+
 .lab-cat-scene img {
   position: absolute;
   left: 50%;
-  bottom: -12px;
+  bottom: 2px;
   width: min(360px, 30vw);
   max-width: none;
   transform: translateX(-50%);
@@ -5960,7 +5973,7 @@ body.cursor-ready { cursor: none; }
 
   .lab-cat-scene img {
     width: min(220px, 60vw);
-    bottom: 2px;
+    bottom: 8px;
   }
 
   .lab-copy .section-kicker {

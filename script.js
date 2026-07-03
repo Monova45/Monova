@@ -1,5 +1,11 @@
 const menuButton = document.querySelector(".menu-button");
 const nav = document.querySelector(".desktop-nav");
+let monovaWhatsAppNumber = "573214198831";
+
+const getServiceWhatsAppLink = (serviceTitle = "este servicio") => {
+  const message = `Hola Monova, quiero cotizar el servicio de ${serviceTitle}.`;
+  return `https://wa.me/${monovaWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+};
 
 menuButton?.addEventListener("click", () => {
   nav?.classList.toggle("open");
@@ -106,6 +112,7 @@ const serviceModal = document.querySelector(".service-modal");
 const serviceModalTitle = document.querySelector("#service-modal-title");
 const serviceModalCopy = document.querySelector(".service-modal__copy");
 const serviceModalList = document.querySelector(".service-modal__list");
+const serviceQuoteLink = document.querySelector("[data-quote-service]");
 let lastServiceTrigger = null;
 
 const closeServiceModal = () => {
@@ -124,6 +131,7 @@ document.querySelectorAll(".service-more").forEach((button) => {
     lastServiceTrigger = button;
     serviceModalTitle.textContent = details.title;
     serviceModalCopy.textContent = details.copy;
+    if (serviceQuoteLink) serviceQuoteLink.href = getServiceWhatsAppLink(details.title);
     serviceModalList.innerHTML = "";
     details.points.forEach((point) => {
       const item = document.createElement("li");
@@ -137,6 +145,16 @@ document.querySelectorAll(".service-more").forEach((button) => {
     serviceModal.querySelector(".service-modal__close")?.focus();
   });
 });
+
+fetch("/api/public-config")
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.whatsappNumber) monovaWhatsAppNumber = data.whatsappNumber;
+    if (serviceQuoteLink) {
+      serviceQuoteLink.href = getServiceWhatsAppLink(serviceModalTitle?.textContent || "este servicio");
+    }
+  })
+  .catch(() => {});
 
 document.querySelectorAll("[data-close-modal]").forEach((button) => {
   button.addEventListener("click", closeServiceModal);
