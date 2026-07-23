@@ -40,11 +40,16 @@ function cleanText(value: unknown) {
     .trim();
 }
 
-function extractResponseText(data: any) {
+type OpenAIContentPart = { text?: unknown; output_text?: unknown };
+type OpenAIOutputItem = { content?: OpenAIContentPart[] };
+type OpenAIResponsePayload = { output_text?: unknown; output?: OpenAIOutputItem[] };
+
+function extractResponseText(value: unknown) {
+  const data = (typeof value === "object" && value !== null ? value : {}) as OpenAIResponsePayload;
   if (typeof data.output_text === "string") return data.output_text;
-  return (data.output || [])
-    .flatMap((item: any) => item.content || [])
-    .map((part: any) => part.text || part.output_text || "")
+  return (Array.isArray(data.output) ? data.output : [])
+    .flatMap((item) => Array.isArray(item.content) ? item.content : [])
+    .map((part) => typeof part.text === "string" ? part.text : typeof part.output_text === "string" ? part.output_text : "")
     .join("\n")
     .trim();
 }

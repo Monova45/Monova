@@ -178,18 +178,28 @@ async function fetchWebsiteSnapshot(inputUrl: string) {
   }
 }
 
-function extractResponseText(data: any) {
+type OpenAIContentPart = { text?: unknown; output_text?: unknown };
+type OpenAIOutputItem = { content?: OpenAIContentPart[] };
+type OpenAIResponsePayload = { output_text?: unknown; output?: OpenAIOutputItem[] };
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+}
+
+function extractResponseText(value: unknown) {
+  const data = asRecord(value) as OpenAIResponsePayload;
   if (typeof data.output_text === "string") return data.output_text;
-  return (data.output || [])
-    .flatMap((item: any) => item.content || [])
-    .map((part: any) => part.text || part.output_text || "")
+  return (Array.isArray(data.output) ? data.output : [])
+    .flatMap((item) => Array.isArray(item.content) ? item.content : [])
+    .map((part) => typeof part.text === "string" ? part.text : typeof part.output_text === "string" ? part.output_text : "")
     .join("\n")
     .trim();
 }
 
-function normalizeDiagnosticVisual(data: any): DiagnosticVisual {
-  const diagnostic = data?.diagnostico || {};
-  const propuesta = data?.propuesta || {};
+function normalizeDiagnosticVisual(value: unknown): DiagnosticVisual {
+  const data = asRecord(value);
+  const diagnostic = asRecord(data.diagnostico);
+  const propuesta = asRecord(data.propuesta);
 
   return {
     diagnostico: {
@@ -230,7 +240,7 @@ function normalizeDiagnosticVisual(data: any): DiagnosticVisual {
         6
       )
     },
-    imagePrompt: cleanText(data?.imagePrompt) || fallbackDiagnostic.imagePrompt
+    imagePrompt: cleanText(data.imagePrompt) || fallbackDiagnostic.imagePrompt
   };
 }
 

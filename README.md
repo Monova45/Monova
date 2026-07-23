@@ -1,107 +1,52 @@
-# MONOVA
+# Monova Marketing OS
 
-<p align="center">
-  <strong>AI Software Studio · Enterprise Automation</strong>
-</p>
+El sistema operativo para tu marketing: una plataforma SaaS modular para creación, planificación, canales, conversaciones y analítica.
 
-<p align="center">
-  Sistemas de IA con estética premium y poder real. Creamos agentes inteligentes, plataformas a medida y automatizaciones para empresas que quieren operar más rápido, vender mejor y verse inolvidables.
-</p>
+## Stack detectado
 
----
+- Next.js 16.2.9 (App Router), React 19.2.7 y TypeScript 6 estricto.
+- Tailwind CSS 3.4, Framer Motion y Lucide.
+- Dos Route Handlers OpenAI heredados: `/api/chat` y `/api/diagnostico-visual`.
+- Sin autenticación ni base de datos conectadas. La migración inicial para Supabase está en `supabase/migrations`.
 
-## ✨ Descripción
-
-MONOVA es un estudio digital que combina **software**, **diseño**, **branding** e **inteligencia artificial**. Este repositorio contiene el sitio web oficial: una oficina holográfica interactiva de una sola página con un asistente AI integrado que diagnostica necesidades de negocio y propone soluciones personalizadas.
-
-### 🚀 Stack Tecnológico
-
-| Categoría | Tecnologías |
-|-----------|-------------|
-| **Framework** | Next.js (App Router) |
-| **UI** | React, TypeScript, Tailwind CSS, Framer Motion |
-| **AI** | OpenAI Responses API (`gpt-4.1-mini`) + generación de imágenes (`gpt-image-1`) |
-| **Tipografía** | Inter, Space Grotesk (Google Fonts) |
-| **Despliegue** | Vercel |
-
----
-
-## 🛠️ Instalación
+## Ejecutar
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/Monova45/Monova.git
-cd Monova
-
-# 2. Instalar dependencias
 npm install
-
-# 3. Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tu OPENAI_API_KEY
-
-# 4. Iniciar servidor de desarrollo
+cp .env.example .env.local
 npm run dev
-# → http://localhost:3000
 ```
 
-## 🔐 Variables de Entorno
+Abre `http://localhost:3000`. La demo privada está en `/app/dashboard`; no requiere credenciales reales.
 
-| Variable | Descripción | Default |
-|----------|-------------|---------|
-| `OPENAI_API_KEY` | API key de OpenAI | — |
-| `OPENAI_MODEL` | Modelo de texto de OpenAI | `gpt-4.1-mini` |
-| `OPENAI_IMAGE_MODEL` | Modelo de imágenes de OpenAI | `gpt-image-1` |
+## Rutas
 
-## 📁 Estructura
+- Públicas: `/`, `/funciones`, `/precios`, `/soluciones`, `/agencias`, `/empresas`, `/recursos`, `/contacto`.
+- Acceso: `/login`, `/registro`.
+- Aplicación: `/app/dashboard` y todos los módulos declarados en el sidebar.
+- Experiencia anterior conservada: `/legacy`.
 
-```
-Monova/
-├── app/
-│   ├── api/
-│   │   ├── chat/route.ts               # Chat asistente Monova
-│   │   └── diagnostico-visual/route.ts # Diagnóstico + mockup con IA
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── components/
-│   └── office-experience.tsx  # Componente principal (oficina holográfica)
-├── public/
-│   ├── assets/       # Imágenes, SVGs, video
-│   └── images/       # Imagen de la oficina
-└── package.json
-```
+## Arquitectura
 
-## 🤖 API Endpoints
+- `app/`: rutas públicas, privadas y API.
+- `components/marketing-app.tsx`: shell y superficies demo de la primera entrega.
+- `config/product.ts`: nombre, tagline y datos centrales.
+- `lib/ai/provider.ts`: contrato multiproveedor.
+- `supabase/migrations/`: esquema PostgreSQL y RLS inicial.
+- `IMPLEMENTATION_STATUS.md`: alcance real por estado.
+- `INTEGRATIONS.md`: credenciales, límites y conexión de proveedores.
 
-### `POST /api/chat`
-Chat asistente con contexto comercial de MONOVA.
+## Validación
 
-```json
-{
-  "messages": [
-    { "role": "user", "content": "Necesito un sistema de inventario" }
-  ]
-}
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
 ```
 
-### `POST /api/diagnostico-visual`
-Analiza la web de un cliente y genera un diagnóstico con propuesta visual (incluye mockup generado por IA).
+No se debe afirmar que una integración está conectada hasta validar sus credenciales y completar una prueba real.
 
-```json
-{
-  "nombre": "...",
-  "whatsapp": "...",
-  "tipoNegocio": "...",
-  "url": "https://ejemplo.com",
-  "descripcion": "...",
-  "objetivo": "vender mas"
-}
-```
-
----
-
-<p align="center">
-  Hecho con ♠ por <strong>MONOVA</strong><br>
-  <sub>Código. Diseño. Inteligencia. Pasión.</sub>
-</p>
+La documentación técnica se encuentra en [`docs/`](docs/), comenzando por
+[`docs/REPOSITORY_AUDIT.md`](docs/REPOSITORY_AUDIT.md) y
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).

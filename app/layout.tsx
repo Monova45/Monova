@@ -1,23 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap"
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space",
-  display: "swap"
-});
+import { appConfig } from "@/config/app";
 
 export const metadata: Metadata = {
-  title: "Monova | Oficina holográfica interactiva",
-  description:
-    "Explora la oficina holográfica de Monova: software, diseño, IA, automatización, estrategia y casos de éxito."
+  title: {
+    default: appConfig.name,
+    template: `%s | ${appConfig.name}`
+  },
+  description: appConfig.description
 };
 
 export default function RootLayout({
@@ -26,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="es">
       <body>{children}</body>
     </html>
   );

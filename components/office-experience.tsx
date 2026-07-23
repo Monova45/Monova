@@ -364,40 +364,27 @@ const chatSuggestions = [
   "Quiero una plataforma para mi negocio"
 ];
 
-const bootLines = [
-  "> MONOVA_OS v2.6  LOADING ...",
-  "> IA ENGINE .............. [ONLINE]",
-  "> SOFTWARE CORE .......... [ONLINE]",
-  "> DESIGN STUDIO .......... [ONLINE]",
-  "> AUTOMATION MODULE ...... [ONLINE]",
-  "> ALL SYSTEMS OPERATIONAL"
-];
-
 const introMinimumDuration = 9000;
 
 function BootOverlay({ onEnter }: { onEnter: () => void }) {
   const fieldRef = useRef<HTMLCanvasElement>(null);
   const markRef = useRef<HTMLCanvasElement>(null);
-  const [visibleLines, setVisibleLines] = useState(0);
-  const introStartedAt = useRef(Date.now());
+  const introStartedAt = useRef<number | null>(null);
   const exitTimeout = useRef<number | null>(null);
 
   const enterAfterMinimumDuration = () => {
     if (exitTimeout.current) return;
 
-    const elapsed = Date.now() - introStartedAt.current;
+    const elapsed = Date.now() - (introStartedAt.current ?? Date.now());
     const remaining = Math.max(0, introMinimumDuration - elapsed);
     exitTimeout.current = window.setTimeout(onEnter, remaining);
   };
 
   useEffect(() => {
-    const timers = bootLines.map((_, index) =>
-      window.setTimeout(() => setVisibleLines(index + 1), 280 + index * 420)
-    );
+    introStartedAt.current = Date.now();
     const done = window.setTimeout(onEnter, introMinimumDuration);
 
     return () => {
-      timers.forEach(window.clearTimeout);
       window.clearTimeout(done);
       if (exitTimeout.current) window.clearTimeout(exitTimeout.current);
     };
@@ -969,13 +956,6 @@ function RailPanelModal({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [panel, onClose]);
-
-  useEffect(() => {
-    setPanelFormSent(false);
-    setDiagnosticResult(null);
-    setDiagnosticError("");
-    setDiagnosticLoading(false);
-  }, [panelKey]);
 
   const submitDiagnostic = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -2115,6 +2095,7 @@ export function OfficeExperience() {
       <ChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} />
       <ServiceModal serviceKey={selectedService} onClose={() => setSelectedService(null)} />
       <RailPanelModal
+        key={selectedRailPanel ?? "closed"}
         panelKey={selectedRailPanel}
         onClose={() => setSelectedRailPanel(null)}
         onContact={openContact}
