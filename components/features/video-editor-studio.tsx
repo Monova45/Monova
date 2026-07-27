@@ -7,6 +7,9 @@ type Aspect = "9:16" | "1:1" | "16:9" | "4:5";
 type TextPosition = "top" | "center" | "bottom";
 type TextEffect = "clean" | "shadow" | "outline" | "box" | "neon";
 type TextAnimation = "none" | "fade" | "pop" | "slide";
+type VideoFit = "cover" | "contain";
+type BrandPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+type ExportQuality = "720p" | "1080p";
 
 const aspectDimensions: Record<Aspect, { width: number; height: number }> = {
   "9:16": { width: 720, height: 1280 },
@@ -14,6 +17,21 @@ const aspectDimensions: Record<Aspect, { width: number; height: number }> = {
   "16:9": { width: 1280, height: 720 },
   "4:5": { width: 864, height: 1080 },
 };
+
+const highQualityDimensions: Record<Aspect, { width: number; height: number }> = {
+  "9:16": { width: 1080, height: 1920 },
+  "1:1": { width: 1080, height: 1080 },
+  "16:9": { width: 1920, height: 1080 },
+  "4:5": { width: 1080, height: 1350 },
+};
+
+const stylePresets = [
+  { id: "monova", label: "Monova", color: "#ff6a00", effect: "box" as TextEffect, font: "Inter, Arial, sans-serif", animation: "slide" as TextAnimation },
+  { id: "minimal", label: "Minimal", color: "#ffffff", effect: "clean" as TextEffect, font: "Inter, Arial, sans-serif", animation: "fade" as TextAnimation },
+  { id: "editorial", label: "Editorial", color: "#fff7e8", effect: "shadow" as TextEffect, font: "Georgia, serif", animation: "fade" as TextAnimation },
+  { id: "impact", label: "Impacto", color: "#fff200", effect: "outline" as TextEffect, font: "Impact, Haettenschweiler, sans-serif", animation: "pop" as TextAnimation },
+  { id: "neon", label: "Neón", color: "#75fff1", effect: "neon" as TextEffect, font: "Arial Black, Arial, sans-serif", animation: "pop" as TextAnimation },
+];
 
 export function VideoEditorStudio() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -32,8 +50,21 @@ export function VideoEditorStudio() {
   const [textPosition, setTextPosition] = useState<TextPosition>("center");
   const [textEffect, setTextEffect] = useState<TextEffect>("shadow");
   const [textAnimation, setTextAnimation] = useState<TextAnimation>("fade");
+  const [fontFamily, setFontFamily] = useState("Inter, Arial, sans-serif");
+  const [textOpacity, setTextOpacity] = useState(1);
+  const [letterSpacing, setLetterSpacing] = useState(0);
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [videoFit, setVideoFit] = useState<VideoFit>("cover");
+  const [stageColor, setStageColor] = useState("#111111");
+  const [brightness, setBrightness] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [saturation, setSaturation] = useState(100);
+  const [showSafeZones, setShowSafeZones] = useState(false);
+  const [brandEnabled, setBrandEnabled] = useState(false);
+  const [brandLabel, setBrandLabel] = useState("MONOVA");
+  const [brandPosition, setBrandPosition] = useState<BrandPosition>("bottom-right");
+  const [exportQuality, setExportQuality] = useState<ExportQuality>("1080p");
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [error, setError] = useState("");
@@ -121,8 +152,21 @@ export function VideoEditorStudio() {
     setTextPosition("center");
     setTextEffect("shadow");
     setTextAnimation("fade");
+    setFontFamily("Inter, Arial, sans-serif");
+    setTextOpacity(1);
+    setLetterSpacing(0);
     setVolume(1);
     setPlaybackRate(1);
+    setVideoFit("cover");
+    setStageColor("#111111");
+    setBrightness(100);
+    setContrast(100);
+    setSaturation(100);
+    setShowSafeZones(false);
+    setBrandEnabled(false);
+    setBrandLabel("MONOVA");
+    setBrandPosition("bottom-right");
+    setExportQuality("1080p");
     if (videoRef.current) videoRef.current.playbackRate = 1;
     seek(0);
   }
@@ -137,6 +181,13 @@ export function VideoEditorStudio() {
     if (currentTime <= trimStart + .1) return setError("El corte final debe quedar después del inicio.");
     setTrimEnd(currentTime);
     setError("");
+  }
+
+  function applyStylePreset(preset: (typeof stylePresets)[number]) {
+    setTextColor(preset.color);
+    setTextEffect(preset.effect);
+    setFontFamily(preset.font);
+    setTextAnimation(preset.animation);
   }
 
   async function exportVideo() {
@@ -157,7 +208,7 @@ export function VideoEditorStudio() {
     let watchdog = 0;
 
     try {
-      const dimensions = aspectDimensions[aspect];
+      const dimensions = exportQuality === "1080p" ? highQualityDimensions[aspect] : aspectDimensions[aspect];
       const canvas = document.createElement("canvas");
       canvas.width = dimensions.width;
       canvas.height = dimensions.height;
@@ -202,8 +253,9 @@ export function VideoEditorStudio() {
         if (Math.abs(video.currentTime - desiredSourceTime) > .08) {
           video.currentTime = desiredSourceTime;
         }
-        drawVideoFrame(context, video, dimensions.width, dimensions.height);
-        if (overlayText.trim()) drawText(context, overlayText, dimensions.width, dimensions.height, textPosition, textSize, textColor, textEffect, textAnimation, video.currentTime - trimStart);
+        drawVideoFrame(context, video, dimensions.width, dimensions.height, videoFit, stageColor, brightness, contrast, saturation);
+        if (overlayText.trim()) drawText(context, overlayText, dimensions.width, dimensions.height, textPosition, textSize, textColor, textEffect, textAnimation, video.currentTime - trimStart, fontFamily, textOpacity, letterSpacing);
+        if (brandEnabled && brandLabel.trim()) drawBrand(context, brandLabel, dimensions.width, dimensions.height, brandPosition, textColor);
         setExportProgress(Math.min(99, Math.round((elapsed / outputDuration) * 100)));
         if (elapsed >= outputDuration) {
           stopped = true;
@@ -258,15 +310,47 @@ export function VideoEditorStudio() {
     <header className="tool-title"><div><h1>Video Editor <small>BETA</small></h1><p>Edita y exporta videos cortos para redes directamente en Monova.</p></div><span className="connected-badge">EDITOR LOCAL</span></header>
     {!source ? <label className="video-upload"><input type="file" accept="video/*" onChange={chooseVideo}/><Upload size={32}/><strong>Sube tu primer video</strong><span>MP4, MOV o WebM · máximo 500 MB</span><b>Seleccionar video</b></label> :
       <div className="video-editor-shell">
-        <aside className="video-controls">
-          <section><h3><Scissors size={15}/> Proyecto</h3><label>Formato<select value={aspect} onChange={(event) => setAspect(event.target.value as Aspect)}><option>9:16</option><option>1:1</option><option>4:5</option><option>16:9</option></select></label><label>Velocidad<select value={playbackRate} onChange={(event) => { const next = Number(event.target.value); setPlaybackRate(next); if (videoRef.current) videoRef.current.playbackRate = next; }}><option value=".5">0.5×</option><option value=".75">0.75×</option><option value="1">1× normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><label>Volumen <span>{Math.round(volume * 100)}%</span><input type="range" min="0" max="1" step=".05" value={volume} onChange={(event) => { const next = Number(event.target.value); setVolume(next); if (videoRef.current) videoRef.current.volume = next; }}/></label></section>
-          <section><h3><Type size={15}/> Texto</h3><label>Contenido<textarea value={overlayText} maxLength={120} onChange={(event) => setOverlayText(event.target.value)} placeholder="Escribe un título…"/></label><div className="field-row"><label>Posición<select value={textPosition} onChange={(event) => setTextPosition(event.target.value as TextPosition)}><option value="top">Arriba</option><option value="center">Centro</option><option value="bottom">Abajo</option></select></label><label>Color<input type="color" value={textColor} onChange={(event) => setTextColor(event.target.value)}/></label></div><label>Tamaño <span>{textSize}px</span><input type="range" min="22" max="90" value={textSize} onChange={(event) => setTextSize(Number(event.target.value))}/></label><span className="control-label">Estilo</span><div className="text-presets">{(["clean","shadow","outline","box","neon"] as TextEffect[]).map((effect) => <button type="button" className={textEffect === effect ? "active" : ""} onClick={() => setTextEffect(effect)} key={effect}>{({clean:"Limpio",shadow:"Sombra",outline:"Contorno",box:"Caja",neon:"Neón"})[effect]}</button>)}</div><label>Animación<select value={textAnimation} onChange={(event) => setTextAnimation(event.target.value as TextAnimation)}><option value="none">Sin animación</option><option value="fade">Aparecer</option><option value="pop">Pop</option><option value="slide">Deslizar</option></select></label></section>
+        <aside className="video-controls video-editor-controls">
+          <section>
+            <h3><Scissors size={15}/> Proyecto</h3>
+            <div className="editor-control-grid"><label>Formato<select value={aspect} onChange={(event) => setAspect(event.target.value as Aspect)}><option>9:16</option><option>1:1</option><option>4:5</option><option>16:9</option></select></label><label>Calidad<select value={exportQuality} onChange={(event) => setExportQuality(event.target.value as ExportQuality)}><option>720p</option><option>1080p</option></select></label></div>
+            <label>Velocidad<select value={playbackRate} onChange={(event) => { const next = Number(event.target.value); setPlaybackRate(next); if (videoRef.current) videoRef.current.playbackRate = next; }}><option value=".5">0.5×</option><option value=".75">0.75×</option><option value="1">1× normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+            <label>Volumen <span>{Math.round(volume * 100)}%</span><input type="range" min="0" max="1" step=".05" value={volume} onChange={(event) => { const next = Number(event.target.value); setVolume(next); if (videoRef.current) videoRef.current.volume = next; }}/></label>
+          </section>
+          <section>
+            <h3><Type size={15}/> Estilo rápido</h3>
+            <div className="brand-presets">{stylePresets.map((preset) => <button type="button" onClick={() => applyStylePreset(preset)} key={preset.id}><i style={{ background: preset.color }}/><span>{preset.label}</span></button>)}</div>
+          </section>
+          <section>
+            <h3><Type size={15}/> Texto</h3>
+            <label>Contenido<textarea value={overlayText} maxLength={120} onChange={(event) => setOverlayText(event.target.value)} placeholder="Escribe un título…"/></label>
+            <label>Tipografía<select value={fontFamily} onChange={(event) => setFontFamily(event.target.value)}><option value="Inter, Arial, sans-serif">Inter · Moderna</option><option value="Georgia, serif">Georgia · Editorial</option><option value="Impact, Haettenschweiler, sans-serif">Impact · Potente</option><option value="Arial Black, Arial, sans-serif">Arial Black · Bold</option><option value="Courier New, monospace">Courier · Tech</option></select></label>
+            <div className="field-row"><label>Posición<select value={textPosition} onChange={(event) => setTextPosition(event.target.value as TextPosition)}><option value="top">Arriba</option><option value="center">Centro</option><option value="bottom">Abajo</option></select></label><label>Color<input type="color" value={textColor} onChange={(event) => setTextColor(event.target.value)}/></label></div>
+            <label>Tamaño <span>{textSize}px</span><input type="range" min="22" max="90" value={textSize} onChange={(event) => setTextSize(Number(event.target.value))}/></label>
+            <label>Opacidad <span>{Math.round(textOpacity * 100)}%</span><input type="range" min=".2" max="1" step=".05" value={textOpacity} onChange={(event) => setTextOpacity(Number(event.target.value))}/></label>
+            <label>Espaciado <span>{letterSpacing}px</span><input type="range" min="-2" max="12" step="1" value={letterSpacing} onChange={(event) => setLetterSpacing(Number(event.target.value))}/></label>
+            <span className="control-label">Tratamiento</span><div className="text-presets">{(["clean","shadow","outline","box","neon"] as TextEffect[]).map((effect) => <button type="button" className={textEffect === effect ? "active" : ""} onClick={() => setTextEffect(effect)} key={effect}>{({clean:"Limpio",shadow:"Sombra",outline:"Contorno",box:"Caja",neon:"Neón"})[effect]}</button>)}</div>
+            <label>Animación<select value={textAnimation} onChange={(event) => setTextAnimation(event.target.value as TextAnimation)}><option value="none">Sin animación</option><option value="fade">Aparecer</option><option value="pop">Pop</option><option value="slide">Deslizar</option></select></label>
+          </section>
+          <section>
+            <h3><Volume2 size={15}/> Imagen</h3>
+            <div className="editor-control-grid"><label>Encuadre<select value={videoFit} onChange={(event) => setVideoFit(event.target.value as VideoFit)}><option value="cover">Llenar</option><option value="contain">Completo</option></select></label><label>Fondo<input type="color" value={stageColor} onChange={(event) => setStageColor(event.target.value)}/></label></div>
+            <label>Brillo <span>{brightness}%</span><input type="range" min="50" max="150" value={brightness} onChange={(event) => setBrightness(Number(event.target.value))}/></label>
+            <label>Contraste <span>{contrast}%</span><input type="range" min="50" max="150" value={contrast} onChange={(event) => setContrast(Number(event.target.value))}/></label>
+            <label>Saturación <span>{saturation}%</span><input type="range" min="0" max="180" value={saturation} onChange={(event) => setSaturation(Number(event.target.value))}/></label>
+            <label className="editor-toggle"><input type="checkbox" checked={showSafeZones} onChange={(event) => setShowSafeZones(event.target.checked)}/><span>Mostrar zonas seguras</span></label>
+          </section>
+          <section>
+            <h3><Type size={15}/> Firma de marca</h3>
+            <label className="editor-toggle"><input type="checkbox" checked={brandEnabled} onChange={(event) => setBrandEnabled(event.target.checked)}/><span>Mostrar firma</span></label>
+            {brandEnabled && <><label>Nombre<input type="text" maxLength={28} value={brandLabel} onChange={(event) => setBrandLabel(event.target.value)}/></label><label>Ubicación<select value={brandPosition} onChange={(event) => setBrandPosition(event.target.value as BrandPosition)}><option value="top-left">Arriba izquierda</option><option value="top-right">Arriba derecha</option><option value="bottom-left">Abajo izquierda</option><option value="bottom-right">Abajo derecha</option></select></label></>}
+          </section>
           <button className="reset-editor" onClick={reset}><RotateCcw size={14}/> Restablecer edición</button>
         </aside>
         <main className="video-workspace">
-          <div className={`video-stage aspect-${aspect.replace(":", "-")}`}><video ref={videoRef} src={source} playsInline onLoadedMetadata={loaded} onTimeUpdate={updateTime}/>{overlayText && <div className={`video-text position-${textPosition} effect-${textEffect} animation-${textAnimation}`} style={{ color: textColor, fontSize: `${Math.max(18, textSize * .55)}px` }}>{overlayText}</div>}</div>
+          <div className={`video-stage aspect-${aspect.replace(":", "-")}`} style={{ background: stageColor }}><video ref={videoRef} src={source} playsInline onLoadedMetadata={loaded} onTimeUpdate={updateTime} style={{ objectFit: videoFit, filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)` }}/>{showSafeZones && <div className="video-safe-zones"><span/></div>}{overlayText && <div className={`video-text position-${textPosition} effect-${textEffect} animation-${textAnimation}`} style={{ color: textColor, fontSize: `${Math.max(18, textSize * .55)}px`, fontFamily, opacity: textOpacity, letterSpacing: `${letterSpacing}px` }}>{overlayText}</div>}{brandEnabled && brandLabel.trim() && <div className={`video-brand position-${brandPosition}`} style={{ color: textColor }}>{brandLabel}</div>}</div>
           <div className="playback-bar"><button onClick={() => void togglePlayback()}>{playing ? <Pause size={17}/> : <Play size={17}/>}</button><span>{formatTime(currentTime)} / {formatTime(duration)}</span><Volume2 size={15}/><b>{fileName}</b><button className="export-video" disabled={exporting} onClick={() => void exportVideo()}><Download size={15}/>{exporting ? `Exportando ${exportProgress}%` : "Exportar video"}</button></div>
-          <div className="timeline"><div className="timeline-head"><strong>Timeline</strong><span>Duración final: {formatTime(Math.max(0, (trimEnd - trimStart) / playbackRate))}</span></div><div className="cut-toolbar"><button onClick={cutStartAtPlayhead}><Scissors size={13}/> Cortar todo antes</button><button onClick={cutEndAtPlayhead}><Scissors size={13}/> Cortar todo después</button><span>Cabezal: {formatTime(currentTime)}</span></div><input className="playhead-range" type="range" min={trimStart} max={trimEnd || 0.1} step=".01" value={Math.min(Math.max(currentTime, trimStart), trimEnd || .1)} onChange={(event) => seek(Number(event.target.value))}/><div className="clip-track"><span style={{ left: `${duration ? (trimStart / duration) * 100 : 0}%`, right: `${duration ? 100 - (trimEnd / duration) * 100 : 0}%` }}><Scissors size={13}/> {fileName}</span></div><div className="trim-row"><label>Inicio<input type="range" min="0" max={duration} step=".05" value={trimStart} onChange={(event) => updateTrimStart(Number(event.target.value))}/><b>{formatTime(trimStart)}</b></label><label>Final<input type="range" min="0" max={duration} step=".05" value={trimEnd} onChange={(event) => updateTrimEnd(Number(event.target.value))}/><b>{formatTime(trimEnd)}</b></label></div></div>
+          <div className="timeline"><div className="timeline-head"><strong>Timeline · 3 capas</strong><span>Duración final: {formatTime(Math.max(0, (trimEnd - trimStart) / playbackRate))}</span></div><div className="cut-toolbar"><button onClick={cutStartAtPlayhead}><Scissors size={13}/> Cortar todo antes</button><button onClick={cutEndAtPlayhead}><Scissors size={13}/> Cortar todo después</button><span>Cabezal: {formatTime(currentTime)}</span></div><input className="playhead-range" type="range" min={trimStart} max={trimEnd || 0.1} step=".01" value={Math.min(Math.max(currentTime, trimStart), trimEnd || .1)} onChange={(event) => seek(Number(event.target.value))}/><div className="timeline-layers"><div className="timeline-layer-label">VIDEO</div><div className="clip-track"><span style={{ left: `${duration ? (trimStart / duration) * 100 : 0}%`, right: `${duration ? 100 - (trimEnd / duration) * 100 : 0}%` }}><Scissors size={13}/> {fileName}</span></div>{overlayText && <><div className="timeline-layer-label">TEXTO</div><div className="clip-track text-layer"><span>{overlayText}</span></div></>}{brandEnabled && <><div className="timeline-layer-label">MARCA</div><div className="clip-track brand-layer"><span>{brandLabel}</span></div></>}</div><div className="trim-row"><label>Inicio<input type="range" min="0" max={duration} step=".05" value={trimStart} onChange={(event) => updateTrimStart(Number(event.target.value))}/><b>{formatTime(trimStart)}</b></label><label>Final<input type="range" min="0" max={duration} step=".05" value={trimEnd} onChange={(event) => updateTrimEnd(Number(event.target.value))}/><b>{formatTime(trimEnd)}</b></label></div></div>
         </main>
       </div>}
     {error && <p className="tool-error">{error}</p>}
@@ -302,8 +386,8 @@ function seekVideo(video: HTMLVideoElement, time: number) {
   });
 }
 
-function drawVideoFrame(context: CanvasRenderingContext2D, video: HTMLVideoElement, width: number, height: number) {
-  context.fillStyle = "#000";
+function drawVideoFrame(context: CanvasRenderingContext2D, video: HTMLVideoElement, width: number, height: number, fit: VideoFit, background: string, brightness: number, contrast: number, saturation: number) {
+  context.fillStyle = background;
   context.fillRect(0, 0, width, height);
   const sourceRatio = video.videoWidth / video.videoHeight;
   const targetRatio = width / height;
@@ -311,25 +395,28 @@ function drawVideoFrame(context: CanvasRenderingContext2D, video: HTMLVideoEleme
   let drawHeight = height;
   let x = 0;
   let y = 0;
-  if (sourceRatio > targetRatio) {
+  if ((sourceRatio > targetRatio && fit === "cover") || (sourceRatio < targetRatio && fit === "contain")) {
     drawWidth = height * sourceRatio;
     x = (width - drawWidth) / 2;
   } else {
     drawHeight = width / sourceRatio;
     y = (height - drawHeight) / 2;
   }
+  context.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
   context.drawImage(video, x, y, drawWidth, drawHeight);
+  context.filter = "none";
 }
 
-function drawText(context: CanvasRenderingContext2D, text: string, width: number, height: number, position: TextPosition, fontSize: number, color: string, effect: TextEffect, animation: TextAnimation, elapsed: number) {
+function drawText(context: CanvasRenderingContext2D, text: string, width: number, height: number, position: TextPosition, fontSize: number, color: string, effect: TextEffect, animation: TextAnimation, elapsed: number, fontFamily: string, opacity: number, letterSpacing: number) {
   const scale = width / 720;
   const size = Math.round(fontSize * scale);
   const entrance = Math.min(1, Math.max(0, elapsed / .45));
   const animatedSize = animation === "pop" ? size * (.65 + entrance * .35) : size;
-  context.font = `800 ${animatedSize}px Inter, Arial, sans-serif`;
+  context.font = `800 ${animatedSize}px ${fontFamily}`;
+  (context as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = `${letterSpacing * scale}px`;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.globalAlpha = animation === "fade" ? entrance : 1;
+  context.globalAlpha = opacity * (animation === "fade" ? entrance : 1);
   context.lineWidth = effect === "outline" ? Math.max(5, size * .13) : Math.max(3, size * .09);
   context.strokeStyle = effect === "neon" ? color : "rgba(0,0,0,.8)";
   context.shadowColor = effect === "neon" ? color : effect === "shadow" ? "rgba(0,0,0,.9)" : "transparent";
@@ -352,6 +439,29 @@ function drawText(context: CanvasRenderingContext2D, text: string, width: number
   });
   context.globalAlpha = 1;
   context.shadowBlur = 0;
+  (context as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "0px";
+}
+
+function drawBrand(context: CanvasRenderingContext2D, text: string, width: number, height: number, position: BrandPosition, color: string) {
+  const size = Math.max(18, Math.round(width * .025));
+  const paddingX = size * .7;
+  const paddingY = size * .48;
+  context.font = `800 ${size}px Inter, Arial, sans-serif`;
+  context.textBaseline = "middle";
+  const measured = context.measureText(text).width;
+  const left = position.endsWith("left") ? width * .055 : width * .945 - measured - paddingX * 2;
+  const top = position.startsWith("top") ? height * .055 : height * .945 - size - paddingY * 2;
+  context.fillStyle = "rgba(0,0,0,.62)";
+  roundRect(context, left, top, measured + paddingX * 2, size + paddingY * 2, size * .45);
+  context.fill();
+  context.fillStyle = color;
+  context.textAlign = "left";
+  context.fillText(text, left + paddingX, top + (size + paddingY * 2) / 2);
+}
+
+function roundRect(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
 }
 
 function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
