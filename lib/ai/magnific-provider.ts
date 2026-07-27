@@ -45,7 +45,7 @@ function normalizeStatus(status: string | undefined): JobStatus {
     case "FAILED": return "failed";
     case "CANCELLED": return "cancelled";
     case "IN_PROGRESS": return "processing";
-    case "CREATED": return "queued";
+    case "CREATED": return "pending";
     default: return "pending";
   }
 }

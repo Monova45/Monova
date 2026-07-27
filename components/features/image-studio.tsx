@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { ChevronDown, Download, ImagePlus, PackagePlus, Palette, Sparkles, UserRound, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, Download, Film, ImagePlus, PackagePlus, Palette, Sparkles, UserRound, X } from "lucide-react";
 
 type Format = "instagram-post" | "instagram-square" | "instagram-story" | "facebook-post" | "linkedin-post" | "tiktok-post" | "pinterest-pin" | "x-post";
 type Size = "1024x1024" | "1024x1536" | "1536x1024";
@@ -20,6 +21,7 @@ const formats: Array<{ id: Format; network: string; label: string; aspectLabel: 
 ];
 
 export function ImageStudio({ creative = false }: { creative?: boolean }) {
+  const router = useRouter();
   const [network, setNetwork] = useState("instagram");
   const [format, setFormat] = useState<Format>("instagram-post");
   const [size, setSize] = useState<Size>("1024x1536");
@@ -40,6 +42,7 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
   const [composition, setComposition] = useState("");
   const [avoid, setAvoid] = useState("Marcas de agua, logotipos inventados, texto adicional y elementos no solicitados");
   const [image, setImage] = useState("");
+  const [variations, setVariations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [referenceImages, setReferenceImages] = useState<Partial<Record<ReferenceType, string>>>({});
@@ -102,12 +105,26 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
       const payload = await response.json() as { image?: string; error?: string };
       if (!response.ok || !payload.image) throw new Error(payload.error || "No se pudo generar la imagen.");
       const selectedFormat = formats.find((item) => item.id === format);
-      setImage(selectedFormat ? await cropToAspect(payload.image, selectedFormat.ratio) : payload.image);
+      const generatedImage = selectedFormat ? await cropToAspect(payload.image, selectedFormat.ratio) : payload.image;
+      setImage(generatedImage);
+      setVariations((current) => [generatedImage, ...current.filter((item) => item !== generatedImage)].slice(0, 4));
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : "No se pudo generar la imagen.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function animateInVideoStudio() {
+    if (!image) return;
+    try {
+      sessionStorage.setItem("monova-video-source", image);
+      sessionStorage.setItem("monova-video-prompt", prompt);
+    } catch {
+      setError("La imagen es demasiado grande para transferirla automáticamente. Descárgala y súbela en Video Studio.");
+      return;
+    }
+    router.push("/app/video-studio");
   }
 
   return <section className="image-studio-live">
@@ -151,7 +168,7 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
         {error && <p className="tool-error">{error}</p>}
       </form>
       <div className="generated-preview live-generated rich-preview">
-        {image ? <><Image src={image} width={1536} height={1536} unoptimized alt="Imagen generada por Monova"/><div className="result-actions"><a href={image} download={`monova-${format}.png`}><Download size={14}/> Descargar</a><button disabled title="Requiere Supabase Storage">Guardar en Recursos · requiere Storage</button></div></> :
+        {image ? <><Image src={image} width={1536} height={1536} unoptimized alt="Imagen generada por Monova"/>{variations.length > 1 && <div className="generation-variations" aria-label="Variaciones generadas">{variations.map((variation, index) => <button type="button" className={variation === image ? "active" : ""} onClick={() => setImage(variation)} key={`${variation.slice(-24)}-${index}`} aria-label={`Seleccionar variación ${index + 1}`}><Image src={variation} width={72} height={72} unoptimized alt=""/></button>)}</div>}<div className="result-actions"><a href={image} download={`monova-${format}.png`}><Download size={14}/> Descargar</a><button type="button" onClick={animateInVideoStudio}><Film size={14}/> Animar en Video Studio</button><button disabled title="Requiere Supabase Storage">Guardar · requiere Storage</button></div></> :
           <div className="generation-empty"><ImagePlus size={32}/><strong>Tu creación aparecerá aquí</strong><p>Completa el brief creativo y genera la primera propuesta.</p></div>}
         {loading && <div className="processing-overlay"><Sparkles size={23}/><strong>OpenAI está creando la pieza</strong><span>Puede tardar algunos segundos</span></div>}
       </div>

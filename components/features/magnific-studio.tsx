@@ -104,7 +104,7 @@ export function MagnificStudio() {
 
   const working = ["uploading", "queued", "processing"].includes(status);
   return <section className="magnific-live">
-    <header className="tool-title"><div><h1>Magnific Upscaler</h1><p>Mejora real mediante Magnific Creative API · Los créditos dependen del tamaño final.</p></div><span className="connected-badge">API CONECTADA</span></header>
+    <header className="tool-title"><div><h1>Escalar imagen</h1><p>Aumenta la resolución y recupera detalles sin perder la calidad original.</p></div><span className="connected-badge">MAGNIFIC CONECTADO</span></header>
     <div className="magnific-live-grid">
       <form onSubmit={submit}>
         <label className="upload-zone"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={selectImage}/><Upload size={22}/><strong>{preview ? "Cambiar imagen" : "Seleccionar imagen"}</strong><small>JPG, PNG o WebP · máximo temporal 5 MB</small></label>
@@ -113,7 +113,7 @@ export function MagnificStudio() {
         <Range label="Creatividad" value={creativity} onChange={setCreativity}/>
         <Range label="Parecido" value={resemblance} onChange={setResemblance}/>
         <Range label="HDR / detalle" value={hdr} onChange={setHdr}/>
-        <button className="generate-main" disabled={!preview || working}>{working ? `Procesando ${progress}%` : "Mejorar con Magnific"}</button>
+        <button className="generate-main" disabled={!preview || working}>{working ? `Escalando ${progress}%` : "Escalar imagen"}</button>
         {jobId && <small className="job-reference">Job: {jobId}</small>}
         {error && <p className="tool-error">{error}</p>}
       </form>
@@ -121,7 +121,7 @@ export function MagnificStudio() {
         <Preview title="Original" source={preview}/>
         <Preview title="Resultado" source={resultUrl}/>
         {!preview && <div className="comparison-empty"><ImagePlus size={30}/><p>Selecciona una imagen para comenzar.</p></div>}
-        {working && <div className="processing-overlay"><Sparkles size={22}/><strong>Magnific está trabajando</strong><span>{progress}%</span></div>}
+        {working && <div className="processing-overlay"><Sparkles size={22}/><strong>Escalando y recuperando detalles</strong><span>{progress}%</span></div>}
       </div>
     </div>
   </section>;
