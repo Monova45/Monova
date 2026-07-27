@@ -37,6 +37,7 @@ export function VideoEditorStudio() {
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [error, setError] = useState("");
+  const [exportNotice, setExportNotice] = useState("");
 
   useEffect(() => () => {
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
@@ -58,6 +59,7 @@ export function VideoEditorStudio() {
     setTrimEnd(0);
     setPlaying(false);
     setError("");
+    setExportNotice("");
   }
 
   function loaded() {
@@ -140,70 +142,116 @@ export function VideoEditorStudio() {
   async function exportVideo() {
     const video = videoRef.current;
     if (!video || !source || trimEnd <= trimStart) return;
-    if (!window.MediaRecorder) return setError("Este navegador no permite exportar video localmente.");
+    if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
+      return setError("Este navegador no permite exportar video localmente. Intenta con Chrome o Edge.");
+    }
     setExporting(true);
     setExportProgress(0);
     setError("");
-    const dimensions = aspectDimensions[aspect];
-    const canvas = document.createElement("canvas");
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      setExporting(false);
-      return setError("No se pudo iniciar el renderizador.");
-    }
-    const mimeType = ["video/mp4;codecs=avc1", "video/webm;codecs=vp9", "video/webm;codecs=vp8"]
-      .find((type) => MediaRecorder.isTypeSupported(type)) || "video/webm";
-    const canvasStream = canvas.captureStream(30);
-    const captured = (video as HTMLVideoElement & { captureStream?: () => MediaStream }).captureStream?.();
-    const audioTracks = volume > 0 ? (captured?.getAudioTracks() || []) : [];
-    const outputStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
-    const recorder = new MediaRecorder(outputStream, { mimeType, videoBitsPerSecond: 8_000_000 });
-    const chunks: Blob[] = [];
-    recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
-    const finished = new Promise<void>((resolve) => { recorder.onstop = () => resolve(); });
-
+    setExportNotice("");
     const previousMuted = video.muted;
-    video.muted = true;
-    video.pause();
-    video.currentTime = trimStart;
-    await waitForSeek(video);
-    recorder.start(250);
-
+    let recorder: MediaRecorder | null = null;
+    let outputStream: MediaStream | null = null;
+    let renderTimer = 0;
     let stopped = false;
-    const render = () => {
-      if (stopped) return;
-      drawVideoFrame(context, video, dimensions.width, dimensions.height);
-      if (overlayText.trim()) drawText(context, overlayText, dimensions.width, dimensions.height, textPosition, textSize, textColor, textEffect, textAnimation, video.currentTime - trimStart);
-      const elapsed = Math.max(0, video.currentTime - trimStart);
-      setExportProgress(Math.min(100, Math.round((elapsed / (trimEnd - trimStart)) * 100)));
-      if (video.currentTime >= trimEnd || video.ended) {
-        stopped = true;
-        video.pause();
-        recorder.stop();
-        return;
-      }
-      requestAnimationFrame(render);
-    };
-    await video.play();
-    render();
-    await finished;
-    video.muted = previousMuted;
-    video.currentTime = trimStart;
-    setCurrentTime(trimStart);
-    setPlaying(false);
+    let watchdog = 0;
 
-    const extension = mimeType.startsWith("video/mp4") ? "mp4" : "webm";
-    const blob = new Blob(chunks, { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${fileName.replace(/\.[^.]+$/, "") || "monova-video"}-${aspect.replace(":", "x")}.${extension}`;
-    anchor.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
-    setExportProgress(100);
-    setExporting(false);
+    try {
+      const dimensions = aspectDimensions[aspect];
+      const canvas = document.createElement("canvas");
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("No se pudo iniciar el renderizador.");
+
+      const canvasStream = canvas.captureStream(30);
+      const captured = (video as HTMLVideoElement & { captureStream?: () => MediaStream }).captureStream?.();
+      const audioTracks = volume > 0 ? (captured?.getAudioTracks() || []) : [];
+      outputStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
+      const candidates = ["video/mp4;codecs=avc1", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"]
+        .filter((type) => MediaRecorder.isTypeSupported(type));
+      for (const mimeType of candidates) {
+        try {
+          recorder = new MediaRecorder(outputStream, { mimeType, videoBitsPerSecond: 8_000_000 });
+          break;
+        } catch {
+          // Some browsers report codec support but reject it for a canvas stream.
+        }
+      }
+      if (!recorder) throw new Error("El navegador no encontró un formato de exportación compatible.");
+
+      const activeRecorder = recorder;
+      const chunks: Blob[] = [];
+      const finished = new Promise<void>((resolve, reject) => {
+        activeRecorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+        activeRecorder.onstop = () => resolve();
+        activeRecorder.onerror = () => reject(new Error("El navegador interrumpió la exportación."));
+      });
+
+      video.muted = true;
+      video.pause();
+      await seekVideo(video, trimStart);
+      activeRecorder.start(250);
+
+      const outputDuration = (trimEnd - trimStart) / playbackRate;
+      const renderStartedAt = performance.now();
+      const render = () => {
+        if (stopped) return;
+        const elapsed = Math.max(0, (performance.now() - renderStartedAt) / 1_000);
+        const desiredSourceTime = Math.min(trimEnd, trimStart + elapsed * playbackRate);
+        if (Math.abs(video.currentTime - desiredSourceTime) > .08) {
+          video.currentTime = desiredSourceTime;
+        }
+        drawVideoFrame(context, video, dimensions.width, dimensions.height);
+        if (overlayText.trim()) drawText(context, overlayText, dimensions.width, dimensions.height, textPosition, textSize, textColor, textEffect, textAnimation, video.currentTime - trimStart);
+        setExportProgress(Math.min(99, Math.round((elapsed / outputDuration) * 100)));
+        if (elapsed >= outputDuration) {
+          stopped = true;
+          video.pause();
+          if (activeRecorder.state !== "inactive") activeRecorder.stop();
+          return;
+        }
+        renderTimer = window.setTimeout(render, 33);
+      };
+
+      await video.play().catch(() => undefined);
+      render();
+      const maximumRenderTime = Math.max(15_000, outputDuration * 3_000);
+      const timedOut = new Promise<never>((_, reject) => {
+        watchdog = window.setTimeout(() => reject(new Error("La exportación tardó demasiado y fue cancelada.")), maximumRenderTime);
+      });
+      await Promise.race([finished, timedOut]);
+
+      if (!chunks.length) throw new Error("El navegador no generó datos para el video.");
+      const mimeType = activeRecorder.mimeType || "video/webm";
+      const extension = mimeType.startsWith("video/mp4") ? "mp4" : "webm";
+      const blob = new Blob(chunks, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const downloadName = `${fileName.replace(/\.[^.]+$/, "") || "monova-video"}-${aspect.replace(":", "x")}.${extension}`;
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = downloadName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setExportProgress(100);
+      setExportNotice(`Listo: ${downloadName} se guardó en tus Descargas.`);
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : "No se pudo exportar el video.");
+    } finally {
+      stopped = true;
+      if (renderTimer) window.clearTimeout(renderTimer);
+      if (watchdog) window.clearTimeout(watchdog);
+      if (recorder?.state !== "inactive") recorder?.stop();
+      outputStream?.getTracks().forEach((track) => track.stop());
+      video.pause();
+      video.muted = previousMuted;
+      await seekVideo(video, trimStart).catch(() => undefined);
+      setCurrentTime(trimStart);
+      setPlaying(false);
+      setExporting(false);
+    }
   }
 
   return <section className="video-editor">
@@ -222,6 +270,7 @@ export function VideoEditorStudio() {
         </main>
       </div>}
     {error && <p className="tool-error">{error}</p>}
+    {exportNotice && <p className="tool-success">{exportNotice}</p>}
   </section>;
 }
 
@@ -232,9 +281,25 @@ function formatTime(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
 }
 
-function waitForSeek(video: HTMLVideoElement) {
-  if (video.readyState >= 2) return Promise.resolve();
-  return new Promise<void>((resolve) => video.addEventListener("seeked", () => resolve(), { once: true }));
+function seekVideo(video: HTMLVideoElement, time: number) {
+  if (Math.abs(video.currentTime - time) < .02 && video.readyState >= 2) return Promise.resolve();
+  return new Promise<void>((resolve, reject) => {
+    let timeout = 0;
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      video.removeEventListener("seeked", completed);
+      video.removeEventListener("error", failed);
+    };
+    const completed = () => { cleanup(); resolve(); };
+    const failed = () => { cleanup(); reject(new Error("No se pudo leer el video seleccionado.")); };
+    timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("No se pudo preparar el video para exportar."));
+    }, 5_000);
+    video.addEventListener("seeked", completed, { once: true });
+    video.addEventListener("error", failed, { once: true });
+    video.currentTime = time;
+  });
 }
 
 function drawVideoFrame(context: CanvasRenderingContext2D, video: HTMLVideoElement, width: number, height: number) {
