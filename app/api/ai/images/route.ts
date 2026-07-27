@@ -56,7 +56,7 @@ function responseText(value: ResponsesPayload): string {
   ).join("\n").trim();
 }
 
-async function professionalizePrompt(brief: string): Promise<string> {
+async function professionalizePrompt(brief: string, hasDesignBase: boolean): Promise<string> {
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -75,10 +75,12 @@ async function professionalizePrompt(brief: string): Promise<string> {
 Convierte el brief del usuario en un único prompt de producción visual profesional.
 
 Reglas obligatorias:
+${hasDesignBase ? "- Esta solicitud incluye un DISEÑO BASE y debe resolverse como una edición conservadora, no como una reinterpretación creativa." : ""}
 - Conserva exactamente el producto, oferta, porcentaje, precio, cantidad y condiciones solicitadas. No inventes datos.
 - Respeta el idioma del usuario. Si solicita texto dentro de la imagen, no lo traduzcas: corrige únicamente ortografía y acentos, y escríbelo entre comillas como copy exacto.
 - Define jerarquía visual, composición, iluminación, materiales, profundidad, encuadre, zona segura y acabado publicitario.
-- Usa la referencia solo para dirección estética; no copies logotipos, personajes protegidos ni marcas.
+- Si hay un DISEÑO BASE, trátalo como una edición: conserva su composición, fondo, estructura, bloques, ilustraciones y estilo. Cambia solamente lo que pide el usuario; no conviertas el diseño en un objeto, empaque, escena o fotografía nueva.
+- Si no hay DISEÑO BASE, usa las demás referencias solo como dirección estética; no copies logotipos ni personajes protegidos.
 - Evita texto redundante, letras deformes, productos incorrectos, elementos no pedidos y marcas de agua.
 - Prioriza claridad comercial y una sola idea principal.
 - Devuelve exclusivamente el prompt final, sin explicaciones, títulos ni Markdown.`,
@@ -134,13 +136,21 @@ export async function POST(request: Request) {
       "Crea una pieza lista para marketing. No inventes logotipos, datos, certificaciones ni marcas de agua.",
       !input.headline && !input.supportingText && !input.cta && !promptRequestsText && "No incluyas texto dentro de la imagen.",
     ].filter(Boolean).join("\n");
-    const enhancedPrompt = await professionalizePrompt(generationPrompt);
+    const hasDesignBase = input.referenceImages.some((item) => item.type === "style");
+    const enhancedPrompt = await professionalizePrompt(
+      `${hasDesignBase ? "MODO OBLIGATORIO: EDICIÓN DE DISEÑO BASE. Conserva el diseño adjunto y modifica únicamente lo solicitado.\n" : ""}${generationPrompt}`,
+      hasDesignBase,
+    );
 
     let response: Response;
     if (input.referenceImages.length) {
       const form = new FormData();
       form.set("model", model);
-      form.set("prompt", `${enhancedPrompt}\nUsa las imágenes adjuntas según su nombre: style como dirección estética, character para conservar la persona/personaje y product para respetar el producto.`);
+      form.set("prompt", `${enhancedPrompt}
+Usa las imágenes adjuntas según su nombre:
+- style es el DISEÑO BASE: conserva su composición, fondo, estructura, bloques, proporciones y lenguaje visual. Modifica únicamente los datos o elementos pedidos. No lo conviertas en un producto, empaque, tubo, objeto 3D ni escena fotográfica.
+- character sirve para conservar la persona o personaje.
+- product sirve para respetar la apariencia del producto.`);
       form.set("n", "1");
       form.set("size", input.size);
       form.set("quality", input.quality);

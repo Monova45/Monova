@@ -136,12 +136,12 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
         <label className="primary-control">Red social<select value={network} onChange={(event) => selectNetwork(event.target.value)}><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="linkedin">LinkedIn</option><option value="tiktok">TikTok</option><option value="pinterest">Pinterest</option><option value="x">X / Twitter</option></select></label>
 
         <div className="reference-section"><div className="reference-heading"><strong>Imágenes de referencia</strong><small>{Object.keys(referenceImages).length}/3 · opcionales</small></div><div className="reference-tiles upload-reference-tiles">
-          <ReferenceUpload type="style" icon={Palette} label="Estilo" value={referenceImages.style} onChange={loadReference} onRemove={removeReference}/>
+          <ReferenceUpload type="style" icon={Palette} label="Diseño base" value={referenceImages.style} onChange={loadReference} onRemove={removeReference}/>
           <ReferenceUpload type="character" icon={UserRound} label="Persona" value={referenceImages.character} onChange={loadReference} onRemove={removeReference}/>
           <ReferenceUpload type="product" icon={PackagePlus} label="Producto" value={referenceImages.product} onChange={loadReference} onRemove={removeReference}/>
-        </div><small className="reference-help">JPG, PNG o WebP · máximo 4 MB por imagen</small></div>
+        </div><small className="reference-help">Usa “Diseño base” para conservar la composición y cambiar solo lo que indiques · máximo 4 MB</small></div>
 
-        <label className="prompt-control"><span className="prompt-label">Prompt <small><Sparkles size={10}/> Mejora profesional activa</small></span><textarea required minLength={10} maxLength={4000} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe la imagen, el producto y el texto exacto que quieres ver…"/></label>
+        <label className="prompt-control"><span className="prompt-label">Prompt <small><Sparkles size={10}/> Mejora profesional activa</small></span><textarea required minLength={10} maxLength={4000} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={referenceImages.style ? "Indica exactamente qué elementos o cifras quieres reemplazar…" : "Describe la imagen, el producto y el texto exacto que quieres ver…"}/></label>
 
         <div className="compact-controls">
           <label>Formato<select value={format} onChange={(event) => { const selected = formats.find((item) => item.id === event.target.value); if (selected) selectFormat(selected); }}>{formats.filter((item) => item.network === network).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
