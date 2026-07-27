@@ -105,7 +105,9 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
       const payload = await response.json() as { image?: string; error?: string };
       if (!response.ok || !payload.image) throw new Error(payload.error || "No se pudo generar la imagen.");
       const selectedFormat = formats.find((item) => item.id === format);
-      const generatedImage = selectedFormat ? await cropToAspect(payload.image, selectedFormat.ratio) : payload.image;
+      const generatedImage = selectedFormat && !referenceImages.style
+        ? await cropToAspect(payload.image, selectedFormat.ratio)
+        : payload.image;
       setImage(generatedImage);
       setVariations((current) => [generatedImage, ...current.filter((item) => item !== generatedImage)].slice(0, 4));
     } catch (generationError) {
@@ -141,13 +143,14 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
           <ReferenceUpload type="product" icon={PackagePlus} label="Producto" value={referenceImages.product} onChange={loadReference} onRemove={removeReference}/>
         </div><small className="reference-help">Usa “Diseño base” para conservar la composición y cambiar solo lo que indiques · máximo 4 MB</small></div>
 
-        <label className="prompt-control"><span className="prompt-label">Prompt <small><Sparkles size={10}/> Mejora profesional activa</small></span><textarea required minLength={10} maxLength={4000} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={referenceImages.style ? "Indica exactamente qué elementos o cifras quieres reemplazar…" : "Describe la imagen, el producto y el texto exacto que quieres ver…"}/></label>
+        <label className="prompt-control"><span className="prompt-label">Prompt <small><Sparkles size={10}/>{referenceImages.style ? " Edición conservadora activa" : " Mejora profesional activa"}</small></span><textarea required minLength={10} maxLength={4000} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={referenceImages.style ? "Ejemplo: reemplaza únicamente “$50.000” por “$70.000”; conserva absolutamente todo lo demás…" : "Describe la imagen, el producto y el texto exacto que quieres ver…"}/></label>
 
         <div className="compact-controls">
           <label>Formato<select value={format} onChange={(event) => { const selected = formats.find((item) => item.id === event.target.value); if (selected) selectFormat(selected); }}>{formats.filter((item) => item.network === network).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
           <label>Relación<input value={formats.find((item) => item.id === format)?.aspectLabel ?? ""} disabled aria-label="Relación final"/></label>
           <label>Calidad<select value={quality} onChange={(event) => setQuality(event.target.value)}><option value="low">Borrador</option><option value="medium">Alta</option><option value="high">Máxima</option></select></label>
         </div>
+        {referenceImages.style && <small className="reference-help">En Diseño base se conserva la proporción original y no se aplica el recorte del formato social.</small>}
 
         <details className="advanced-brief"><summary>Ajustes avanzados <ChevronDown size={14}/></summary><div>
           <label>Objetivo de la pieza<input value={objective} onChange={(event) => setObjective(event.target.value)}/></label>

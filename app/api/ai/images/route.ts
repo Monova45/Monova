@@ -56,7 +56,7 @@ function responseText(value: ResponsesPayload): string {
   ).join("\n").trim();
 }
 
-async function professionalizePrompt(brief: string, hasDesignBase: boolean): Promise<string> {
+async function professionalizePrompt(brief: string): Promise<string> {
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -75,12 +75,10 @@ async function professionalizePrompt(brief: string, hasDesignBase: boolean): Pro
 Convierte el brief del usuario en un único prompt de producción visual profesional.
 
 Reglas obligatorias:
-${hasDesignBase ? "- Esta solicitud incluye un DISEÑO BASE y debe resolverse como una edición conservadora, no como una reinterpretación creativa." : ""}
 - Conserva exactamente el producto, oferta, porcentaje, precio, cantidad y condiciones solicitadas. No inventes datos.
 - Respeta el idioma del usuario. Si solicita texto dentro de la imagen, no lo traduzcas: corrige únicamente ortografía y acentos, y escríbelo entre comillas como copy exacto.
 - Define jerarquía visual, composición, iluminación, materiales, profundidad, encuadre, zona segura y acabado publicitario.
-- Si hay un DISEÑO BASE, trátalo como una edición: conserva su composición, fondo, estructura, bloques, ilustraciones y estilo. Cambia solamente lo que pide el usuario; no conviertas el diseño en un objeto, empaque, escena o fotografía nueva.
-- Si no hay DISEÑO BASE, usa las demás referencias solo como dirección estética; no copies logotipos ni personajes protegidos.
+- Usa las referencias solo como dirección estética; no copies logotipos ni personajes protegidos.
 - Evita texto redundante, letras deformes, productos incorrectos, elementos no pedidos y marcas de agua.
 - Prioriza claridad comercial y una sola idea principal.
 - Devuelve exclusivamente el prompt final, sin explicaciones, títulos ni Markdown.`,
@@ -110,6 +108,7 @@ export async function POST(request: Request) {
 
   try {
     const input = requestSchema.parse(await request.json());
+    const hasDesignBase = input.referenceImages.some((item) => item.type === "style");
     const styleInstruction = {
       photographic: "fotografía publicitaria profesional, iluminación realista y detalle de producto",
       editorial: "dirección de arte editorial premium, composición limpia y tipografía ausente",
@@ -136,25 +135,39 @@ export async function POST(request: Request) {
       "Crea una pieza lista para marketing. No inventes logotipos, datos, certificaciones ni marcas de agua.",
       !input.headline && !input.supportingText && !input.cta && !promptRequestsText && "No incluyas texto dentro de la imagen.",
     ].filter(Boolean).join("\n");
-    const hasDesignBase = input.referenceImages.some((item) => item.type === "style");
-    const enhancedPrompt = await professionalizePrompt(
-      `${hasDesignBase ? "MODO OBLIGATORIO: EDICIÓN DE DISEÑO BASE. Conserva el diseño adjunto y modifica únicamente lo solicitado.\n" : ""}${generationPrompt}`,
-      hasDesignBase,
-    );
+    const enhancedPrompt = hasDesignBase
+      ? `EDICIÓN CONSERVADORA DE UN DISEÑO BASE.
+
+INSTRUCCIÓN EXACTA DEL USUARIO:
+${input.prompt}
+
+REGLAS OBLIGATORIAS:
+1. Usa la imagen llamada "style" como lienzo base. No rediseñes ni reinterpretes la pieza.
+2. Conserva exactamente el encuadre, proporción, fondo, logotipo, fotografías, iconos, colores, tipografías, bloques, bordes, alineación, espaciado y jerarquía.
+3. Considera inmutables todos los píxeles y textos que el usuario no haya pedido modificar.
+4. Modifica únicamente los elementos mencionados explícitamente en la instrucción del usuario.
+5. Todo texto no solicitado debe permanecer idéntico, legible y en la misma posición. No lo reescribas, traduzcas, resumas ni regeneres.
+6. Los valores nuevos deben aparecer exactamente como los escribió el usuario, respetando puntos, comas, moneda y mayúsculas.
+7. Prohibido añadir texto de relleno, pseudo-letras, palabras inventadas, símbolos, personas, productos, empaques, tubos, objetos 3D, escenas o adornos.
+8. No cortes, amplíes ni cambies la relación de aspecto del diseño base. Devuelve la pieza completa con todos sus bordes visibles.
+9. Si una parte no necesita cambio, cópiala visualmente sin alterarla.`
+      : await professionalizePrompt(generationPrompt);
 
     let response: Response;
     if (input.referenceImages.length) {
       const form = new FormData();
       form.set("model", model);
       form.set("prompt", `${enhancedPrompt}
-Usa las imágenes adjuntas según su nombre:
-- style es el DISEÑO BASE: conserva su composición, fondo, estructura, bloques, proporciones y lenguaje visual. Modifica únicamente los datos o elementos pedidos. No lo conviertas en un producto, empaque, tubo, objeto 3D ni escena fotográfica.
-- character sirve para conservar la persona o personaje.
-- product sirve para respetar la apariencia del producto.`);
+
+IMÁGENES ADJUNTAS:
+- "style": diseño base que debe conservarse completo y sin reinterpretación.
+- "character": referencia para conservar la persona o personaje, solo si existe.
+- "product": referencia para conservar el producto, solo si existe.`);
       form.set("n", "1");
-      form.set("size", input.size);
+      form.set("size", hasDesignBase ? "auto" : input.size);
       form.set("quality", input.quality);
       form.set("output_format", "png");
+      if (hasDesignBase) form.set("input_fidelity", "high");
       for (const referenceImage of input.referenceImages) {
         const [metadata, encoded] = referenceImage.data.split(",", 2);
         const mimeType = metadata.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64$/)?.[1];
