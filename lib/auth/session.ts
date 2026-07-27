@@ -84,6 +84,25 @@ export async function authenticateUser(email: string, password: string): Promise
   return { id: user.id, email: user.email, fullName: user.full_name, workspaceId: user.workspace_id, workspaceName: user.workspace_name };
 }
 
+export async function getActiveUserByEmail(email: string): Promise<AuthUser | null> {
+  const result = await getDatabase().query<{
+    id: string; email: string; full_name: string;
+    workspace_id: string; workspace_name: string;
+  }>(
+    `select u.id, u.email::text, u.full_name, u.workspace_id,
+            w.name as workspace_name
+       from public.app_users u
+       join public.workspaces w on w.id = u.workspace_id
+      where u.email = $1 and u.status = 'active'
+      limit 1`,
+    [normalizeEmail(email)],
+  );
+  const user = result.rows[0];
+  return user
+    ? { id: user.id, email: user.email, fullName: user.full_name, workspaceId: user.workspace_id, workspaceName: user.workspace_name }
+    : null;
+}
+
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
