@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getDatabase } from "@/lib/database";
+import { getCurrentUser } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
@@ -33,9 +34,14 @@ const requestSchema = z.object({
   })).max(3).optional().default([]),
 });
 
-function costActionAllowed() {
-  return process.env.NODE_ENV !== "production" ||
-    process.env.MONOVA_ALLOW_UNAUTHENTICATED_AI_ACTIONS === "true";
+async function costActionAllowed() {
+  if (
+    process.env.NODE_ENV !== "production" ||
+    process.env.MONOVA_ALLOW_UNAUTHENTICATED_AI_ACTIONS === "true"
+  ) {
+    return true;
+  }
+  return Boolean(await getCurrentUser());
 }
 
 type ResponsesPayload = {
@@ -90,7 +96,7 @@ Reglas obligatorias:
 }
 
 export async function POST(request: Request) {
-  if (!costActionAllowed()) {
+  if (!(await costActionAllowed())) {
     return NextResponse.json(
       { error: "La generación requiere autenticación activa en producción." },
       { status: 403 },
