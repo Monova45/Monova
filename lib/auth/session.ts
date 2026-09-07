@@ -6,6 +6,15 @@ import { getDatabase } from "@/lib/database";
 const scrypt = promisify(scryptCallback);
 export const SESSION_COOKIE = "monova_session";
 const SESSION_DAYS = 14;
+const LOCAL_TEST_SESSION = "monova-local-test-session";
+
+const LOCAL_TEST_USER: AuthUser = {
+  id: "00000000-0000-0000-0000-000000000001",
+  email: "pruebas@monova.local",
+  fullName: "Equipo Monova",
+  workspaceId: "00000000-0000-0000-0000-000000000001",
+  workspaceName: "Monova Demo",
+};
 
 export interface AuthUser {
   id: string;
@@ -124,9 +133,22 @@ export async function setSessionCookie(token: string, expiresAt: Date) {
   });
 }
 
+export function isLocalTestAccessEnabled() {
+  return process.env.NODE_ENV !== "production" &&
+    process.env.MONOVA_ALLOW_PASSWORDLESS_TEST_LOGIN === "true";
+}
+
+export async function createLocalTestSession() {
+  if (!isLocalTestAccessEnabled()) throw new Error("El acceso local de prueba no está habilitado.");
+  const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
+  await setSessionCookie(LOCAL_TEST_SESSION, expiresAt);
+  return LOCAL_TEST_USER;
+}
+
 export async function getCurrentUser(): Promise<AuthUser | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
+  if (token === LOCAL_TEST_SESSION && isLocalTestAccessEnabled()) return LOCAL_TEST_USER;
   const result = await getDatabase().query<{
     id: string; email: string; full_name: string; workspace_id: string; workspace_name: string;
   }>(
@@ -144,7 +166,9 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 export async function revokeCurrentSession() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
-  if (token) await getDatabase().query("delete from public.app_sessions where token_hash = $1", [tokenHash(token)]);
+  if (token && token !== LOCAL_TEST_SESSION) {
+    await getDatabase().query("delete from public.app_sessions where token_hash = $1", [tokenHash(token)]);
+  }
   store.delete(SESSION_COOKIE);
 }
 
