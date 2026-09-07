@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Activity, ArrowUpRight, BarChart3, Bell, Bot, Boxes, BriefcaseBusiness, CalendarDays, Check, ChevronDown, CircleHelp,
+  Activity, ArrowLeft, ArrowUpRight, BarChart3, Bell, Bot, Boxes, BriefcaseBusiness, CalendarDays, Check, ChevronDown, CircleHelp,
   Clapperboard, Command, CreditCard, FileText, FolderOpen, Gauge, ImageIcon, Share2,
   LayoutDashboard, Mail, MessageCircle, Palette, Plus, Search, Settings, Grid3X3,
   Sparkles, Users, WandSparkles, Workflow, X, Zap
@@ -51,7 +51,7 @@ export function MarketingApp({ section, user }: { section: string; user: AuthUse
   if (section === "dashboard") return <AppLauncher user={user}/>;
   return <div className="os-shell os-shell-wide">
     <main className="os-main">
-      <header className="os-header"><Link href="/app" className="app-switcher-button" aria-label="Volver a aplicaciones" title="Aplicaciones"><Grid3X3 size={18}/></Link><div className="global-search" title="La búsqueda global requiere datos persistidos"><Search size={17}/><input disabled aria-label="Buscar" placeholder="Buscar campañas, clientes o contenido"/><kbd><Command size={12}/> K</kbd></div><div className="header-actions"><Link className="header-upgrade" href="/app/billing">Mejorar plan <ArrowUpRight size={14}/></Link><button className="create-button" onClick={()=>setCreateOpen(!createOpen)}><Plus size={17}/> Crear</button><button className="icon-button" disabled title="Centro de ayuda próximamente" aria-label="Ayuda"><CircleHelp size={18}/></button><button className="icon-button" disabled title="Requiere Realtime" aria-label="Notificaciones"><Bell size={18}/></button><span className="header-avatar">{initials(user.fullName)}</span></div></header>
+      <header className="os-header"><Link href="/app" className="app-switcher-button" aria-label="Volver a todas las aplicaciones"><ArrowLeft size={16}/><Grid3X3 size={17}/><span>Todas las aplicaciones</span></Link><div className="global-search" title="La búsqueda global requiere datos persistidos"><Search size={17}/><input disabled aria-label="Buscar" placeholder="Buscar campañas, clientes o contenido"/><kbd><Command size={12}/> K</kbd></div><div className="header-actions"><Link className="header-upgrade" href="/app/billing">Mejorar plan <ArrowUpRight size={14}/></Link><button className="create-button" onClick={()=>setCreateOpen(!createOpen)}><Plus size={17}/> Crear</button><button className="icon-button" disabled title="Centro de ayuda próximamente" aria-label="Ayuda"><CircleHelp size={18}/></button><button className="icon-button" disabled title="Requiere Realtime" aria-label="Notificaciones"><Bell size={18}/></button><span className="header-avatar">{initials(user.fullName)}</span></div></header>
       {createOpen&&<div className="create-popover"><strong>Crear nuevo</strong><Link onClick={()=>setCreateOpen(false)} href="/app/creative-studio"><Plus size={15}/>Imagen con IA</Link><Link onClick={()=>setCreateOpen(false)} href="/app/creative-studio"><Plus size={15}/>Pieza creativa</Link><Link onClick={()=>setCreateOpen(false)} href="/app/magnific"><Plus size={15}/>Mejorar imagen</Link><Link onClick={()=>setCreateOpen(false)} href="/app/assistant"><Plus size={15}/>Consultar a Monova AI</Link></div>}
       {section==="dashboard"?<Dashboard userName={user.fullName} workspaceName={user.workspaceName}/>:<ModulePage section={section} title={current}/>}
     </main>
