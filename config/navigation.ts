@@ -1,7 +1,7 @@
 export type NavigationIcon =
   | "dashboard" | "assistant" | "creative" | "image" | "video" | "magnific"
   | "resources" | "planner" | "social" | "whatsapp" | "analytics" | "ads"
-  | "email" | "page" | "automation" | "crm" | "brand" | "team" | "billing" | "settings";
+  | "email" | "page" | "automation" | "crm" | "inventory" | "brand" | "team" | "billing" | "settings";
 
 export interface NavigationItem {
   slug: string;
@@ -29,6 +29,7 @@ export const appNavigation: readonly NavigationItem[] = [
   { slug: "blog", label: "Blog y SEO", icon: "page", group: "manage" },
   { slug: "automations", label: "Automatizaciones", icon: "automation", group: "manage" },
   { slug: "crm", label: "Clientes CRM", icon: "crm", group: "manage" },
+  { slug: "inventario", label: "Inventario", icon: "inventory", group: "manage" },
   { slug: "brand-center", label: "Brand Center", icon: "brand", group: "workspace" },
   { slug: "team", label: "Equipo", icon: "team", group: "workspace" },
   { slug: "billing", label: "Facturación", icon: "billing", group: "workspace" },

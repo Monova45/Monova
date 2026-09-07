@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Activity, ArrowUpRight, BarChart3, Bell, Bot, BriefcaseBusiness, CalendarDays, Check, ChevronDown, CircleHelp,
+  Activity, ArrowUpRight, BarChart3, Bell, Bot, Boxes, BriefcaseBusiness, CalendarDays, Check, ChevronDown, CircleHelp,
   Clapperboard, Command, CreditCard, FileText, FolderOpen, Gauge, ImageIcon, Share2,
-  LayoutDashboard, Mail, Menu, MessageCircle, Palette, PanelLeftClose, Plus, Search, Settings,
+  LayoutDashboard, Mail, MessageCircle, Palette, Plus, Search, Settings, Grid3X3,
   Sparkles, Users, WandSparkles, Workflow, X, Zap
 } from "lucide-react";
 import { appNavigation, type NavigationIcon } from "@/config/navigation";
@@ -27,6 +28,7 @@ import { EmailStudio } from "@/components/features/email-studio";
 import { BlogStudio } from "@/components/features/blog-studio";
 import { AutomationsStudio } from "@/components/features/automations-studio";
 import { CrmStudio } from "@/components/features/crm-studio";
+import { InventoryStudio } from "@/components/features/inventory-studio";
 import { BrandCenterStudio } from "@/components/features/brand-center-studio";
 import { TeamStudio } from "@/components/features/team-studio";
 import { BillingStudio } from "@/components/features/billing-studio";
@@ -37,28 +39,19 @@ const iconByName: Readonly<Record<NavigationIcon, LucideIcon>> = {
   dashboard: LayoutDashboard, assistant: Bot, creative: WandSparkles, image: ImageIcon,
   video: Clapperboard, magnific: Sparkles, resources: FolderOpen, planner: CalendarDays,
   social: Share2, whatsapp: MessageCircle, analytics: BarChart3, ads: Gauge, email: Mail,
-  page: FileText, automation: Workflow, crm: BriefcaseBusiness, brand: Palette, team: Users,
+  page: FileText, automation: Workflow, crm: BriefcaseBusiness, inventory: Boxes, brand: Palette, team: Users,
   billing: CreditCard, settings: Settings,
 };
 
 const labels = Object.fromEntries(appNavigation.map(({ slug, label }) => [slug, label]));
 
 export function MarketingApp({ section, user }: { section: string; user: AuthUser }) {
-  const [menuOpen,setMenuOpen] = useState(false);
-  const [collapsed,setCollapsed] = useState(false);
   const [createOpen,setCreateOpen] = useState(false);
   const current = labels[section] ?? "Dashboard";
-  return <div className={`os-shell ${collapsed?"is-collapsed":""}`}>
-    <aside className={`os-sidebar ${menuOpen?"mobile-open":""}`}>
-      <div className="os-brand"><span className="brand-mark">M</span><div><strong>MONOVA</strong><small>MARKETING OS</small></div><button className="icon-button collapse-button" onClick={()=>setCollapsed(!collapsed)} aria-label="Contraer navegación"><PanelLeftClose size={18}/></button><button className="icon-button mobile-close" onClick={()=>setMenuOpen(false)} aria-label="Cerrar navegación"><X size={18}/></button></div>
-      <button className="workspace-switch" disabled title="Workspace de la sesión actual"><span>{user.workspaceName.slice(0,2).toUpperCase()}</span><div><strong>{user.workspaceName}</strong><small>Workspace activo</small></div><ChevronDown size={15}/></button>
-      <nav className="os-nav" aria-label="Navegación principal">{appNavigation.map(({ slug, label, icon, badge }) => { const Icon = iconByName[icon]; return <Link key={slug} onClick={()=>setMenuOpen(false)} href={`/app/${slug}`} className={section===slug?"active":""} title={label}><Icon size={18}/><span>{label}</span>{badge&&<b>{badge}</b>}</Link>; })}</nav>
-      <div className="sidebar-commercial"><span>PLAN PRO</span><strong>Potencia tu crecimiento</strong><p>Activa más créditos, equipo e integraciones.</p><Link href="/app/billing">Ver planes <ArrowUpRight size={13}/></Link></div>
-      <div className="sidebar-user"><div className="usage"><span><small>Uso de IA mensual</small><b>68%</b></span><i><em/></i></div><div className="user-row"><span>{initials(user.fullName)}</span><div><strong>{user.fullName}</strong><small>Owner · Plan Pro</small></div><form action="/api/auth/logout" method="post"><button className="icon-button" title="Cerrar sesión" aria-label="Cerrar sesión"><ChevronDown size={14}/></button></form></div></div>
-    </aside>
-    {menuOpen&&<button className="sidebar-scrim" onClick={()=>setMenuOpen(false)} aria-label="Cerrar menú"/>}
+  if (section === "dashboard") return <AppLauncher user={user}/>;
+  return <div className="os-shell os-shell-wide">
     <main className="os-main">
-      <header className="os-header"><button className="icon-button mobile-menu" onClick={()=>setMenuOpen(true)} aria-label="Abrir menú"><Menu size={20}/></button><div className="global-search" title="La búsqueda global requiere datos persistidos"><Search size={17}/><input disabled aria-label="Buscar" placeholder="Buscar campañas, clientes o contenido"/><kbd><Command size={12}/> K</kbd></div><div className="header-actions"><Link className="header-upgrade" href="/app/billing">Mejorar plan <ArrowUpRight size={14}/></Link><button className="create-button" onClick={()=>setCreateOpen(!createOpen)}><Plus size={17}/> Crear</button><button className="icon-button" disabled title="Centro de ayuda próximamente" aria-label="Ayuda"><CircleHelp size={18}/></button><button className="icon-button" disabled title="Requiere Realtime" aria-label="Notificaciones"><Bell size={18}/></button><span className="header-avatar">{initials(user.fullName)}</span></div></header>
+      <header className="os-header"><Link href="/app" className="app-switcher-button" aria-label="Volver a aplicaciones" title="Aplicaciones"><Grid3X3 size={18}/></Link><div className="global-search" title="La búsqueda global requiere datos persistidos"><Search size={17}/><input disabled aria-label="Buscar" placeholder="Buscar campañas, clientes o contenido"/><kbd><Command size={12}/> K</kbd></div><div className="header-actions"><Link className="header-upgrade" href="/app/billing">Mejorar plan <ArrowUpRight size={14}/></Link><button className="create-button" onClick={()=>setCreateOpen(!createOpen)}><Plus size={17}/> Crear</button><button className="icon-button" disabled title="Centro de ayuda próximamente" aria-label="Ayuda"><CircleHelp size={18}/></button><button className="icon-button" disabled title="Requiere Realtime" aria-label="Notificaciones"><Bell size={18}/></button><span className="header-avatar">{initials(user.fullName)}</span></div></header>
       {createOpen&&<div className="create-popover"><strong>Crear nuevo</strong><Link onClick={()=>setCreateOpen(false)} href="/app/creative-studio"><Plus size={15}/>Imagen con IA</Link><Link onClick={()=>setCreateOpen(false)} href="/app/creative-studio"><Plus size={15}/>Pieza creativa</Link><Link onClick={()=>setCreateOpen(false)} href="/app/magnific"><Plus size={15}/>Mejorar imagen</Link><Link onClick={()=>setCreateOpen(false)} href="/app/assistant"><Plus size={15}/>Consultar a Monova AI</Link></div>}
       {section==="dashboard"?<Dashboard userName={user.fullName} workspaceName={user.workspaceName}/>:<ModulePage section={section} title={current}/>}
     </main>
@@ -66,6 +59,32 @@ export function MarketingApp({ section, user }: { section: string; user: AuthUse
 }
 
 function initials(name:string){return name.trim().split(/\s+/).slice(0,2).map(part=>part[0]?.toUpperCase()).join("")||"U"}
+
+const launcherColors = [
+  "#ff6a00", "#7357d9", "#ec4899", "#2563eb", "#06a879", "#e59b16",
+  "#ef4444", "#0e9f9a", "#7c3aed", "#16a34a", "#0284c7", "#f97316",
+  "#db2777", "#4f46e5", "#0891b2", "#9333ea", "#2563eb", "#d97706",
+  "#0f766e", "#64748b", "#374151"
+];
+
+function AppLauncher({user}:{user:AuthUser}) {
+  const [query,setQuery] = useState("");
+  const modules = appNavigation.filter(item=>item.slug!=="dashboard" && item.label.toLowerCase().includes(query.toLowerCase().trim()));
+  return <main className="app-launcher">
+    <header className="launcher-topbar">
+      <Link href="/app" className="launcher-brand" aria-label="Inicio de Monova"><span>M</span><div><strong>MONOVA</strong><small>MARKETING OS</small></div></Link>
+      <div className="launcher-top-search"><Search size={16}/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Buscar una aplicación..." aria-label="Buscar aplicaciones"/>{query&&<button onClick={()=>setQuery("")} aria-label="Limpiar búsqueda"><X size={14}/></button>}</div>
+      <nav aria-label="Acciones de usuario"><Link href="/app/assistant" title="Monova AI"><Sparkles size={18}/></Link><Link href="/app/whatsapp" title="Mensajes" className="launcher-notification"><MessageCircle size={18}/><b>3</b></Link><Link href="/app/planner" title="Planner"><CalendarDays size={18}/></Link><Link href="/app/settings" title="Ajustes"><Settings size={18}/></Link><span className="launcher-company">{user.workspaceName}</span><span className="launcher-avatar">{initials(user.fullName)}</span></nav>
+    </header>
+    <section className="launcher-content">
+      <div className="launcher-welcome"><span>Tu espacio de trabajo</span><h1>Hola, {user.fullName.split(/\s+/)[0]}</h1><p>¿Qué quieres hacer hoy?</p></div>
+      {modules.length?<div className="launcher-grid">{modules.map((item,index)=>{const Icon=iconByName[item.icon];return <Link href={`/app/${item.slug}`} className="launcher-app" key={item.slug}>
+        <span className="launcher-icon" style={{"--app-color":launcherColors[index%launcherColors.length]} as CSSProperties}><Icon size={31}/>{item.badge&&<b>{item.badge}</b>}</span>
+        <strong>{item.label}</strong>
+      </Link>})}</div>:<div className="launcher-empty"><Search size={28}/><strong>No encontramos esa aplicación</strong><p>Prueba con otro nombre.</p></div>}
+    </section>
+  </main>;
+}
 
 function Dashboard({userName,workspaceName}:{userName:string;workspaceName:string}) {
   const { metrics: stats, assistantInsights, channelPerformance, calendarItems } = demoDashboardSummary;
@@ -84,7 +103,7 @@ function Dashboard({userName,workspaceName}:{userName:string;workspaceName:strin
 }
 
 function ModulePage({ section,title }: { section:string; title:string }) {
-  if (["assistant","creative-studio","video-studio","video-editor","magnific","resources","planner","social","whatsapp","analytics","meta-ads","email","brand-center","automations","landing-pages","blog","crm","team","billing","settings"].includes(section)) {
+  if (["assistant","creative-studio","video-studio","video-editor","magnific","resources","planner","social","whatsapp","analytics","meta-ads","email","brand-center","automations","landing-pages","blog","crm","inventario","team","billing","settings"].includes(section)) {
     return <ToolModule section={section} title={title}/>;
   }
   const special: Record<string,string> = { "assistant":"Chat, ideas, análisis, copywriter y estrategia con contexto de Brand Brain.", "creative-studio":"Crea una pieza de principio a fin: formato, canal, producto, estilo, modelo y aprobación.", "video-studio":"Jobs asíncronos con progreso, reintentos y registro de consumo.", "resources":"Biblioteca central de imágenes, videos, logos, plantillas y generaciones.", "planner":"Calendario compartido de campañas, contenidos, tareas y aprobaciones.", "analytics":"Métricas demostrativas por canal, campaña, producto y periodo.", "brand-center":"Identidad, tono, audiencias, productos y activos que alimentan Brand Brain." };
@@ -104,6 +123,7 @@ function ToolModule({section,title}:{section:string;title:string}) {
   if(section==="blog") return <div className="tool-canvas blog-canvas"><BlogStudio/></div>;
   if(section==="automations") return <div className="tool-canvas automation-canvas-page"><AutomationsStudio/></div>;
   if(section==="crm") return <div className="tool-canvas crm-canvas"><CrmStudio/></div>;
+  if(section==="inventario") return <div className="tool-canvas inventory-canvas"><InventoryStudio/></div>;
   if(section==="brand-center") return <div className="tool-canvas brand-center-canvas"><BrandCenterStudio/></div>;
   if(section==="team") return <div className="tool-canvas team-canvas"><TeamStudio/></div>;
   if(section==="billing") return <div className="tool-canvas billing-canvas"><BillingStudio/></div>;
