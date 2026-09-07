@@ -20,6 +20,15 @@ const formats: Array<{ id: Format; network: string; label: string; aspectLabel: 
   { id: "x-post", network: "x", label: "Post horizontal", aspectLabel: "16:9", ratio: 16 / 9, size: "1536x1024" },
 ];
 
+const MIN_CUSTOM_PX = 64;
+const MAX_CUSTOM_PX = 4096;
+
+function nearestOpenAiSize(ratio: number): Size {
+  if (ratio > 1.15) return "1536x1024";
+  if (ratio < 0.85) return "1024x1536";
+  return "1024x1024";
+}
+
 export function ImageStudio({ creative = false }: { creative?: boolean }) {
   const router = useRouter();
   const [network, setNetwork] = useState("instagram");
@@ -41,6 +50,9 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
   const [cta, setCta] = useState("");
   const [composition, setComposition] = useState("");
   const [avoid, setAvoid] = useState("Marcas de agua, logotipos inventados, texto adicional y elementos no solicitados");
+  const [customSize, setCustomSize] = useState(false);
+  const [customWidth, setCustomWidth] = useState(1024);
+  const [customHeight, setCustomHeight] = useState(1024);
   const [image, setImage] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,24 +102,32 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
     setLoading(true);
     setError("");
     try {
+      const width = Math.min(MAX_CUSTOM_PX, Math.max(MIN_CUSTOM_PX, Math.round(customWidth) || MIN_CUSTOM_PX));
+      const height = Math.min(MAX_CUSTOM_PX, Math.max(MIN_CUSTOM_PX, Math.round(customHeight) || MIN_CUSTOM_PX));
+      const effectiveSize = customSize ? nearestOpenAiSize(width / height) : size;
       const response = await fetch("/api/ai/images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt, network, format, style, size, quality, objective, audience, product,
+          prompt, network, format, style, size: effectiveSize, quality, objective, audience, product,
           graphicLine: hasGraphicLine ? graphicLine : "", reference, colors, composition, avoid,
           referenceImages: Object.entries(referenceImages).map(([type, data]) => ({ type, data })),
           headline: includeText ? headline : "",
           supportingText: includeText ? supportingText : "",
           cta: includeText ? cta : "",
+          customRatio: customSize ? width / height : undefined,
         }),
       });
       const payload = await response.json() as { image?: string; error?: string };
       if (!response.ok || !payload.image) throw new Error(payload.error || "No se pudo generar la imagen.");
       const selectedFormat = formats.find((item) => item.id === format);
-      const generatedImage = selectedFormat && !referenceImages.style
-        ? await cropToAspect(payload.image, selectedFormat.ratio)
-        : payload.image;
+      const generatedImage = referenceImages.style
+        ? payload.image
+        : customSize
+          ? await cropToSize(payload.image, width, height)
+          : selectedFormat
+            ? await cropToAspect(payload.image, selectedFormat.ratio)
+            : payload.image;
       setImage(generatedImage);
       setVariations((current) => [generatedImage, ...current.filter((item) => item !== generatedImage)].slice(0, 4));
     } catch (generationError) {
@@ -146,10 +166,15 @@ export function ImageStudio({ creative = false }: { creative?: boolean }) {
         <label className="prompt-control"><span className="prompt-label">Prompt <small><Sparkles size={10}/>{referenceImages.style ? " Edición conservadora activa" : " Mejora profesional activa"}</small></span><textarea required minLength={10} maxLength={4000} value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={referenceImages.style ? "Ejemplo: reemplaza únicamente “$50.000” por “$70.000”; conserva absolutamente todo lo demás…" : "Describe la imagen, el producto y el texto exacto que quieres ver…"}/></label>
 
         <div className="compact-controls">
-          <label>Formato<select value={format} onChange={(event) => { const selected = formats.find((item) => item.id === event.target.value); if (selected) selectFormat(selected); }}>{formats.filter((item) => item.network === network).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
-          <label>Relación<input value={formats.find((item) => item.id === format)?.aspectLabel ?? ""} disabled aria-label="Relación final"/></label>
+          <label>Formato<select value={format} disabled={customSize} onChange={(event) => { const selected = formats.find((item) => item.id === event.target.value); if (selected) selectFormat(selected); }}>{formats.filter((item) => item.network === network).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
+          <label>Relación<input value={customSize ? `${customWidth}:${customHeight}` : formats.find((item) => item.id === format)?.aspectLabel ?? ""} disabled aria-label="Relación final"/></label>
           <label>Calidad<select value={quality} onChange={(event) => setQuality(event.target.value)}><option value="low">Borrador</option><option value="medium">Alta</option><option value="high">Máxima</option></select></label>
         </div>
+        <Toggle checked={customSize} onChange={setCustomSize} title="Medidas personalizadas" description="Define un ancho y alto exactos en píxeles para la imagen final."/>
+        {customSize && <div className="field-row">
+          <label>Ancho (px)<input type="number" min={MIN_CUSTOM_PX} max={MAX_CUSTOM_PX} value={customWidth} onChange={(event) => setCustomWidth(Number(event.target.value))}/></label>
+          <label>Alto (px)<input type="number" min={MIN_CUSTOM_PX} max={MAX_CUSTOM_PX} value={customHeight} onChange={(event) => setCustomHeight(Number(event.target.value))}/></label>
+        </div>}
         {referenceImages.style && <small className="reference-help">En Diseño base se conserva la proporción original y no se aplica el recorte del formato social.</small>}
 
         <details className="advanced-brief"><summary>Ajustes avanzados <ChevronDown size={14}/></summary><div>
@@ -191,10 +216,18 @@ function ReferenceUpload({ type, icon: Icon, label, value, onChange, onRemove }:
 }
 
 async function cropToAspect(source: string, targetRatio: number): Promise<string> {
+  const maxSide = 1536;
+  const width = targetRatio >= 1 ? maxSide : Math.round(maxSide * targetRatio);
+  const height = targetRatio >= 1 ? Math.round(maxSide / targetRatio) : maxSide;
+  return cropToSize(source, width, height);
+}
+
+async function cropToSize(source: string, targetWidth: number, targetHeight: number): Promise<string> {
   return await new Promise((resolve) => {
     const sourceImage = new window.Image();
     sourceImage.crossOrigin = "anonymous";
     sourceImage.onload = () => {
+      const targetRatio = targetWidth / targetHeight;
       const sourceRatio = sourceImage.width / sourceImage.height;
       let sx = 0;
       let sy = 0;
@@ -207,13 +240,10 @@ async function cropToAspect(source: string, targetRatio: number): Promise<string
         sh = sourceImage.width / targetRatio;
         sy = (sourceImage.height - sh) / 2;
       }
-      const maxSide = 1536;
-      const width = targetRatio >= 1 ? maxSide : Math.round(maxSide * targetRatio);
-      const height = targetRatio >= 1 ? Math.round(maxSide / targetRatio) : maxSide;
       const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext("2d")?.drawImage(sourceImage, sx, sy, sw, sh, 0, 0, width, height);
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      canvas.getContext("2d")?.drawImage(sourceImage, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
       try { resolve(canvas.toDataURL("image/png")); } catch { resolve(source); }
     };
     sourceImage.onerror = () => resolve(source);

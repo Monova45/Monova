@@ -28,11 +28,32 @@ const requestSchema = z.object({
   cta: z.string().trim().max(80).optional().default(""),
   composition: z.string().trim().max(500).optional().default(""),
   avoid: z.string().trim().max(500).optional().default(""),
+  customRatio: z.number().positive().optional(),
   referenceImages: z.array(z.object({
     type: z.enum(["style", "character", "product"]),
     data: z.string().startsWith("data:image/").max(6_000_000),
   })).max(3).optional().default([]),
 });
+
+function safeZoneInstruction(baseSize: string, targetRatio: number): string {
+  const [width, height] = baseSize.split("x").map(Number);
+  const sourceRatio = width / height;
+  if (Math.abs(sourceRatio - targetRatio) < 0.05) return "";
+  if (sourceRatio > targetRatio) {
+    const keptFraction = Math.round((targetRatio / sourceRatio) * 100);
+    return `El resultado final se recorta por los lados, conservando solo el ${keptFraction}% central del ancho. Ubica TODO el texto, el titular, el CTA y el producto dentro de una franja vertical central de ese ancho; no coloques elementos importantes cerca de los bordes izquierdo o derecho. El producto debe verse COMPLETO y reconocible dentro de esa franja (con todos sus extremos, tapa y base si aplica), nunca como un acercamiento recortado que solo muestre una textura o fragmento ampliado; si el producto es más alto que ancho, redúcelo de tamaño o inclínalo/acuéstalo para que quepa entero.`;
+  }
+  const keptFraction = Math.round((sourceRatio / targetRatio) * 100);
+  const safeFraction = Math.max(25, Math.round(keptFraction * 0.65));
+  return `ATENCIÓN, RESTRICCIÓN CRÍTICA DE ENCUADRE: el lienzo que generas mide ${width}x${height}px, pero el resultado final se recorta arriba y abajo dejando visible ÚNICAMENTE una franja horizontal centrada de ${keptFraction}% de la altura (aproximadamente ${Math.round(height * keptFraction / 100)}px de los ${height}px). Todo lo que dibujes fuera de esa franja central desaparecerá sin previo aviso, incluida cualquier letra que quede pegada al límite.
+Por seguridad, NO uses el 100% de esa franja: comprime todo el contenido (texto y producto) dentro de una zona todavía más chica, de solo el ${safeFraction}% de la altura total, exactamente centrada verticalmente. El espacio entre esa zona segura y el borde de la franja que se recorta debe quedar completamente vacío (solo fondo), como colchón de seguridad ante variaciones de composición.
+Reglas obligatorias de composición dentro de esa zona segura del ${safeFraction}%:
+- El producto debe dibujarse en miniatura, a una escala mucho más pequeña que la que usarías normalmente, de forma que quepa COMPLETO (todos sus extremos: tapa, cuerpo y base) dentro de esa zona, con margen de aire libre alrededor por los cuatro costados. Nunca lo dibujes ocupando toda la altura del lienzo.
+- El producto NO debe tocar ni sobrepasar ningún borde del lienzo (ni izquierdo, ni derecho, ni el de la zona segura arriba/abajo): dibújalo completamente rodeado de fondo/espacio vacío, como si flotara en el centro con aire alrededor, nunca "sangrado" o cortado por el marco.
+- Si el producto es más alto que ancho, acuéstalo horizontalmente o inclínalo en diagonal suave para que su silueta entera, incluida la tapa y la base, quepa con margen dentro de la zona segura.
+- El titular, el texto secundario y el CTA deben escribirse en líneas horizontales cortas, todas dentro de esa misma zona segura, verticalmente centradas, con aire libre por encima de la primera línea y por debajo de la última.
+- Deja el tercio superior y el tercio inferior del lienzo completo prácticamente vacíos (solo fondo o degradado), sin texto ni partes del producto, porque se van a recortar.`;
+}
 
 async function costActionAllowed() {
   if (
@@ -120,6 +141,7 @@ export async function POST(request: Request) {
       `Concepto principal: ${input.prompt}`,
       `Canal de publicación: ${input.network}. Adapta la jerarquía visual, el encuadre y la legibilidad a esta red social.`,
       `Formato final: ${input.format}. Mantén los elementos importantes dentro de una zona segura central para el recorte social.`,
+      input.customRatio && safeZoneInstruction(input.size, input.customRatio),
       input.product && `Producto o servicio: ${input.product}`,
       input.objective && `Objetivo de comunicación: ${input.objective}`,
       input.audience && `Audiencia: ${input.audience}`,
