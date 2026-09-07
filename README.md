@@ -21,7 +21,9 @@ Abre `http://localhost:3000`. La demo privada está en `/app/dashboard`; no requ
 
 ## Rutas
 
-- Públicas: `/`, `/funciones`, `/precios`, `/soluciones`, `/agencias`, `/empresas`, `/recursos`, `/contacto`.
+- Agencia: `/` (experiencia interactiva de Monova).
+- Monova Marketing: `/marketing`.
+- Públicas de marketing: `/funciones`, `/precios`, `/soluciones`, `/agencias`, `/empresas`, `/recursos`, `/contacto`.
 - Acceso: `/login`, `/registro`.
 - Aplicación: `/app/dashboard` y todos los módulos declarados en el sidebar.
 - Experiencia anterior conservada: `/legacy`.

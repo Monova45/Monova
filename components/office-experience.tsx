@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -1865,7 +1866,7 @@ export function OfficeExperience() {
 
       {showBoot ? <BootOverlay onEnter={() => setShowBoot(false)} /> : null}
 
-      <header className="relative z-30 mx-auto flex w-full max-w-[1640px] items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+      <header className="relative z-30 mx-auto flex w-full max-w-[1640px] flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-10">
         <a href="#oficina" className="flex items-center gap-4">
           <span className="relative grid h-11 w-14 place-items-center overflow-hidden rounded-xl border border-monova-orange/25 bg-monova-orange/10">
             <img src="/assets/monova-mark.svg" alt="" className="h-7 w-auto" />
@@ -1875,6 +1876,11 @@ export function OfficeExperience() {
           </span>
         </a>
 
+        <nav aria-label="Navegación principal" className="flex flex-wrap items-center gap-3">
+          <Link href="/marketing" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-3 text-xs font-bold text-white transition hover:border-monova-orange hover:text-monova-amber">
+            <Megaphone size={16} /> Monova Marketing
+          </Link>
+          <Link href="/login" className="px-2 py-3 text-xs font-bold text-white/80 transition hover:text-monova-amber">Ingresar</Link>
         <button
           type="button"
           onClick={() => setChatOpen(true)}
@@ -1882,6 +1888,7 @@ export function OfficeExperience() {
         >
           Hablemos <ArrowRight size={18} />
         </button>
+        </nav>
       </header>
 
       <motion.div
