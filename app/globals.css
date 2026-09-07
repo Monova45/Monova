@@ -625,3 +625,4 @@ a {
 .os-shell-wide .app-switcher-button{display:flex;align-items:center;gap:7px;flex:0 0 auto;width:auto;height:38px;padding:0 12px;margin-right:4px;color:#4d535b;font-size:10px;font-weight:800;white-space:nowrap}
 .os-shell-wide .app-switcher-button svg:first-child{color:#e45e00}
 @media(max-width:720px){.os-shell-wide .app-switcher-button span{display:none}.os-shell-wide .app-switcher-button{padding:0 10px}.os-shell-wide .global-search{width:min(440px,48vw)}}
+.assistant-full-canvas{min-height:calc(100vh - 68px)}

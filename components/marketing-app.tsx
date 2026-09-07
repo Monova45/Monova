@@ -114,7 +114,7 @@ function ModulePage({ section,title }: { section:string; title:string }) {
 function CheckIcon(){ return <span aria-label="Completado">✓</span> }
 
 function ToolModule({section,title}:{section:string;title:string}) {
-  if(section==="assistant") return <div className="tool-layout"><ToolRail title={title} items={["Chat","Ideas","Análisis","Copywriter","Planificador"]}/><div className="tool-canvas"><AssistantStudio/></div></div>;
+  if(section==="assistant") return <div className="tool-canvas assistant-full-canvas"><AssistantStudio/></div>;
   if(section==="magnific") return <div className="tool-layout"><ToolRail title={title} items={["Mejorar"]}/><div className="tool-canvas"><MagnificStudio/></div></div>;
   if(section==="resources") return <div className="tool-layout"><ToolRail title={title} items={["Buscar","Descargas","Favoritos","Colecciones"]}/><div className="tool-canvas"><ResourcesStudio/></div></div>;
   if(section==="whatsapp") return <div className="tool-canvas whatsapp-full-canvas"><WhatsAppStudio/></div>;
