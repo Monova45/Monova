@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { OfficeExperience } from "@/components/office-experience";
+import { AgencyHome } from "@/components/agency-home";
 
 export const metadata: Metadata = {
   title: { absolute: "Monova | Agencia de soluciones digitales" },
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <main className="overflow-hidden bg-monova-black text-white"><OfficeExperience /></main>;
+  return <AgencyHome />;
 }
