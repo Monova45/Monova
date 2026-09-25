@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { HeroVideo } from "./hero-video";
 import { ProjectCarousel } from "./project-carousel";
+import { MonovaWebAR } from "./monova-web-ar";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BrainCircuit, Code2, Smartphone, Settings, PenTool, Search, ChartNoAxesColumnIncreasing, Phone, Globe, Mouse } from "lucide-react";
 import styles from "./agency-home.module.css";
@@ -32,7 +33,7 @@ export function AgencyHome() {
     </div>
     <section className={styles.partners} aria-label="Proyectos de nuestro portafolio"><p className={styles.eyebrow}>IDEAS QUE YA SE CONVIRTIERON EN REALIDAD</p><div><span>kliniu<span className={styles.dot}>.</span></span><span>Drokex ↗</span><span>UNIPARS <small>TECH</small></span><span>4U <small>STUDIO ACADEMY</small></span><p>GRANDES IDEAS.<br/>MEJORES ALIADOS.</p></div></section>
     <section className={styles.portfolio} id="proyectos">
-      <div className={styles.portfolioHeading}><p className={styles.eyebrow}>DE LA IDEA A LO REAL / PORTAFOLIO</p><div><h2>Hecho para<br/>hacer la diferencia<span>↗</span></h2><p>Cada negocio tiene su mundo.<br/>Nosotros lo llevamos al siguiente nivel.</p></div></div>
+      <div className={styles.portfolioHeading}><p className={styles.eyebrow}>TRABAJO SELECCIONADO / PORTAFOLIO</p><div><h2>Ideas que<br/><span>tomaron forma.</span></h2><p>Una mirada a los productos y experiencias que construimos junto a nuestros clientes.</p></div></div>
       <ProjectCarousel projects={projects} />
       <div className={styles.portfolioFooter}><span>EL PRÓXIMO GRAN PROYECTO PUEDE SER EL TUYO.</span><a href={contact} target="_blank" rel="noreferrer">Vamos a crearlo <ArrowRight size={22}/></a></div>
     </section>
@@ -44,5 +45,6 @@ export function AgencyHome() {
     </section>
     <section className={styles.contact} id="contacto"><div><p className={styles.eyebrow}>HABLEMOS</p><h2>¿Tienes una idea?<br/>Hagámosla funcionar<span>.</span></h2></div><a className={styles.phone} href="tel:+573214198831"><Phone size={26}/><span>321 419 8831<br/><small>Conversemos sobre tu proyecto</small></span></a><a className={styles.primary} href={contact} target="_blank" rel="noreferrer">Hablemos ahora <ArrowRight size={18}/></a></section>
     <footer className={styles.footer}><Brand/><span>Ideas que funcionan.</span><a href="#servicios">Servicios</a><a href="#proyectos">Proyectos</a><a href="#nosotros">Nosotros</a><Link href="/marketing">Monova Marketing <ArrowUpRight size={13}/></Link><span className={styles.footerEnd}><Globe size={16}/> Hecho para un mañana real.</span></footer>
+    <MonovaWebAR />
   </main>;
 }
