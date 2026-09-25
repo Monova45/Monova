@@ -19,6 +19,7 @@ export function MonovaWebAR() {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [active, setActive] = useState(0);
+  const [danceVideoReady, setDanceVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const requestRef = useRef(0);
@@ -108,8 +109,8 @@ export function MonovaWebAR() {
           <div className={styles.orbitTwo} aria-hidden="true" />
           <div className={styles.danceFloor} aria-hidden="true" />
           <div className={styles.danceStage} aria-hidden="true">
-            <Image className={`${styles.dancePose} ${styles.dancePoseOne}`} src="/assets/monova-dance-step-one.webp" alt="" fill sizes="(max-width: 700px) 76vw, 36vw" priority />
-            <Image className={`${styles.dancePose} ${styles.dancePoseTwo}`} src="/assets/monova-dance-step-two.webp" alt="" fill sizes="(max-width: 700px) 76vw, 36vw" priority />
+            <Image className={`${styles.danceFallback} ${danceVideoReady ? styles.danceFallbackHidden : ""}`} src="/assets/monova-dance-step-one.webp" alt="" fill sizes="(max-width: 700px) 76vw, 36vw" priority />
+            <video className={styles.danceVideo} src="/assets/monova-dance-alpha.webm" autoPlay loop muted playsInline preload="auto" onLoadedData={() => setDanceVideoReady(true)} onError={() => setDanceVideoReady(false)} />
           </div>
           <div className={styles.serviceCard} key={service.title}><span className={styles.serviceIcon}><Icon size={24}/></span><span className={styles.serviceTag}>{service.tag}</span><h3>{service.title}</h3><p>{service.description}</p><span className={styles.cardFooter}>MONOVA / LO HACEMOS REAL <ArrowRight size={15}/></span></div>
         </div>
