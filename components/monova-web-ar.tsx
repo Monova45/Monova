@@ -101,12 +101,16 @@ export function MonovaWebAR() {
       <div className={styles.tint} aria-hidden="true" />
       <header className={styles.topbar}><div className={styles.brand}><span><Image src="/assets/monova-mark.svg" alt="" width={26} height={21}/></span><strong>MONOVA</strong><small>AR EXPERIENCE</small></div><button ref={closeRef} type="button" onClick={close} aria-label="Cerrar experiencia AR"><X size={23}/></button></header>
       <div className={styles.content}>
-        <p className={styles.overline}><span className={styles.liveDot}/> {status === "ready" ? "EXPLORA EN TU ESPACIO" : "EXPERIENCIA INTERACTIVA"}</p>
+        <p className={styles.overline}><span className={styles.liveDot}/> {status === "ready" ? "MONOVA BAILA EN TU ESPACIO" : "MONOVA EN MOVIMIENTO"}</p>
         <h2 id="monova-ar-title">Ideas que<br/><em>cobran vida.</em></h2>
         <div className={styles.hologram}>
           <div className={styles.orbit} aria-hidden="true" />
           <div className={styles.orbitTwo} aria-hidden="true" />
-          <Image className={styles.mascot} src="/assets/monova-portfolio-mascot-v2.png" alt="" fill sizes="(max-width: 700px) 70vw, 30vw" />
+          <div className={styles.danceFloor} aria-hidden="true" />
+          <div className={styles.danceStage} aria-hidden="true">
+            <Image className={`${styles.dancePose} ${styles.dancePoseOne}`} src="/assets/monova-dance-step-one.webp" alt="" fill sizes="(max-width: 700px) 76vw, 36vw" priority />
+            <Image className={`${styles.dancePose} ${styles.dancePoseTwo}`} src="/assets/monova-dance-step-two.webp" alt="" fill sizes="(max-width: 700px) 76vw, 36vw" priority />
+          </div>
           <div className={styles.serviceCard} key={service.title}><span className={styles.serviceIcon}><Icon size={24}/></span><span className={styles.serviceTag}>{service.tag}</span><h3>{service.title}</h3><p>{service.description}</p><span className={styles.cardFooter}>MONOVA / LO HACEMOS REAL <ArrowRight size={15}/></span></div>
         </div>
         <div className={styles.servicePicker} aria-label="Explorar servicios de Monova">{services.map((item, index) => <button key={item.title} type="button" className={index === active ? styles.selected : ""} onClick={() => setActive(index)} aria-pressed={index === active}><item.icon size={17}/><span>{item.title}</span></button>)}</div>
