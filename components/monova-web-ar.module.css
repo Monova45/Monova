@@ -68,13 +68,13 @@
 /* Let the camera stay bright while the service information floats in glass. */
 .topbar,.content h2,.overline,.bottombar{text-shadow:0 2px 10px #111820b3,0 1px 2px #111820cc}
 .serviceCard{
-  border:1px solid #ffffffb8;
-  background:#ffffff85;
+  border:1px solid #ffffff8c;
+  background:#ffffff33;
   color:#151b1f;
-  box-shadow:0 16px 42px #11182033,inset 0 1px #ffffffb8;
-  -webkit-backdrop-filter:blur(20px) saturate(1.2);
-  backdrop-filter:blur(20px) saturate(1.2);
-  text-shadow:none;
+  box-shadow:0 12px 30px #11182024,inset 0 1px #ffffff8c;
+  -webkit-backdrop-filter:blur(5px) saturate(1.15);
+  backdrop-filter:blur(5px) saturate(1.15);
+  text-shadow:0 1px 2px #ffffffb0;
 }
-.serviceCard p{color:#313c43}
+.serviceCard p{color:#202a30}
 .cardFooter{border-top-color:#26333c38}
