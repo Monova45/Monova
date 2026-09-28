@@ -72,13 +72,13 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
         {projects.map((project, index) => {
           const slot = (index - active + count) % count;
           const position = (mobile ? mobilePositions : positions)[slot] ?? positions[2];
-          return <motion.button key={project.name} type="button" className={styles.coverflowCard} onClick={() => select(index)} aria-label={`Mostrar proyecto ${project.name}`} aria-current={slot === 0 ? "true" : undefined} initial={false} animate={position} transition={{ duration: reduceMotion ? 0 : 1.05, ease }} style={{ zIndex: position.zIndex }}>
+          return <motion.a key={project.name} href={project.url} target="_blank" rel="noopener noreferrer" className={styles.coverflowCard} aria-label={`Abrir página de ${project.name} (abre en una pestaña nueva)`} aria-current={slot === 0 ? "true" : undefined} initial={false} animate={position} transition={{ duration: reduceMotion ? 0 : 1.05, ease }} style={{ zIndex: position.zIndex }}>
             <div className={styles.coverflowCardImage}><Image src={`/assets/project-${project.image}.png`} alt="" fill sizes="(max-width: 700px) 65vw, 32vw" /></div>
             <div className={styles.coverflowCardCaption}><span>0{index + 1} / 0{count}</span><strong>{project.name}</strong></div>
-          </motion.button>;
+          </motion.a>;
         })}
       </div>
-      <motion.div className={styles.coverflowMascot} aria-hidden="true" animate={reduceMotion ? undefined : { y: [0, -12, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}><Image src="/assets/monova-portfolio-mascot-v2.png" alt="" fill sizes="(max-width: 700px) 65vw, 38vw" /></motion.div>
+      <div className={styles.coverflowMascot} aria-hidden="true"><Image src="/assets/monova-portfolio-mascot-v4.png" alt="" fill sizes="(max-width: 700px) 65vw, 38vw" /></div>
       <span className={styles.coverflowSceneLabel}>DISEÑO · TECNOLOGÍA · IMPACTO</span>
     </div>
     <div className={styles.coverflowPlayer}>
