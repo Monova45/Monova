@@ -99,7 +99,6 @@ export function MonovaWebAR() {
     {open && <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="monova-ar-title">
       <video ref={videoRef} className={styles.camera} autoPlay muted playsInline aria-hidden="true" />
       {status !== "ready" && <div className={styles.preview} aria-hidden="true" />}
-      <div className={styles.tint} aria-hidden="true" />
       <header className={styles.topbar}><div className={styles.brand}><span><Image src="/assets/monova-mark.svg" alt="" width={26} height={21}/></span><strong>MONOVA</strong><small>AR EXPERIENCE</small></div><button ref={closeRef} type="button" onClick={close} aria-label="Cerrar experiencia AR"><X size={23}/></button></header>
       <div className={styles.content}>
         <p className={styles.overline}><span className={styles.liveDot}/> {status === "ready" ? "MONOVA BAILA EN TU ESPACIO" : "MONOVA EN MOVIMIENTO"}</p>

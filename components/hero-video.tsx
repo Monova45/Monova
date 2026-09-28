@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "./agency-home.module.css";
 
 // The paw reaches the camera near the end of this ten-second clip.
@@ -8,11 +9,13 @@ const IMPACT_TIME = 6.7;
 
 export function HeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
     const page = video?.closest("main");
     if (!video || !page) return;
+    void video.play().catch(() => {});
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let previousTime = 0;
     let animations: Animation[] = [];
@@ -45,7 +48,10 @@ export function HeroVideo() {
     };
   }, []);
 
-  return <video ref={videoRef} className={styles.heroImage} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} autoPlay muted loop playsInline preload="auto" poster="/assets/monova-hero-light.png" aria-label="Mascota de Monova animada: un gato naranja con traje negro y casco futurista">
-    <source src="/assets/monova-mascot-motion.mp4" type="video/mp4" />
-  </video>;
+  return <div className={styles.heroMedia}>
+    <Image className={styles.heroPoster} src="/assets/monova-hero-light.png" alt="" fill priority sizes="100vw" />
+    <video ref={videoRef} className={`${styles.heroImage} ${playing ? styles.heroImagePlaying : ""}`} autoPlay muted loop playsInline preload="auto" poster="/assets/monova-hero-light.png" onPlaying={() => setPlaying(true)} aria-label="Mascota de Monova animada: un gato naranja con traje negro y casco futurista">
+      <source src="/assets/monova-mascot-motion.mp4" type="video/mp4" />
+    </video>
+  </div>;
 }
