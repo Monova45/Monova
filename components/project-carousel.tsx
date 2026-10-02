@@ -71,9 +71,17 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
       <div className={styles.coverflowDeck}>
         {projects.map((project, index) => {
           const slot = (index - active + count) % count;
-          const position = (mobile ? mobilePositions : positions)[slot] ?? positions[2];
-          return <motion.a key={project.name} href={project.url} target="_blank" rel="noopener noreferrer" className={styles.coverflowCard} aria-label={`Abrir página de ${project.name} (abre en una pestaña nueva)`} aria-current={slot === 0 ? "true" : undefined} initial={false} animate={position} transition={{ duration: reduceMotion ? 0 : 1.05, ease }} style={{ zIndex: position.zIndex }}>
-            <div className={styles.coverflowCardImage}><Image src={`/assets/project-${project.image}.png`} alt="" fill sizes="(max-width: 700px) 65vw, 32vw" /></div>
+          const visibleSlot = slot === count - 1 ? 3 : slot;
+          const visible = slot < 3 || slot === count - 1;
+          const position = visible ? (mobile ? mobilePositions : positions)[visibleSlot] : { ...positions[2], opacity: 0, scale: .4, zIndex: 0 };
+          return <motion.a key={project.name} href={project.url} target="_blank" rel="noopener noreferrer" className={styles.coverflowCard} aria-label={`Abrir página de ${project.name} (abre en una pestaña nueva)`} aria-current={slot === 0 ? "true" : undefined} initial={false} animate={position} transition={{ duration: reduceMotion ? 0 : 1.05, ease }} aria-hidden={!visible} tabIndex={visible ? 0 : -1} style={{ zIndex: position.zIndex, pointerEvents: visible ? "auto" : "none" }}>
+            <div className={styles.projectCover} data-brand={project.image}>
+              <span className={styles.coverCategory}>{project.category}</span>
+              <strong className={styles.coverTitle}>{project.name}</strong>
+              <p className={styles.coverDescription}>{project.description}</p>
+              <div className={styles.coverPreview}><Image src={`/assets/project-${project.image === "drokex" ? "drokex-updated" : project.image === "tuma" ? "tuma-site" : project.image}.${project.image === "peluvi" ? "jpg" : "png"}`} alt="" fill sizes="(max-width: 700px) 65vw, 32vw" /></div>
+              <ArrowUpRight className={styles.coverArrow} size={22} aria-hidden="true"/>
+            </div>
             <div className={styles.coverflowCardCaption}><span>0{index + 1} / 0{count}</span><strong>{project.name}</strong></div>
           </motion.a>;
         })}
@@ -90,5 +98,6 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
       <div className={styles.coverflowNow}><span>AHORA EN PANTALLA · 0{active + 1} / 0{count}</span><strong>{current.name}</strong><small>{current.category}</small></div>
       <div className={styles.coverflowPlayerEnd}><div className={styles.coverflowTimeline} aria-hidden="true"><span key={`${active}-${cycle}-${playing}`} style={{ animationPlayState: playing ? "running" : "paused" }} /></div><a href={current.url} target="_blank" rel="noreferrer" aria-label={`Visitar proyecto ${current.name} (abre en una pestaña nueva)`}>Ver proyecto <ArrowUpRight size={19}/></a></div>
     </div>
+    <div className={styles.projectPicker} aria-label="Seleccionar proyecto">{projects.map((project, index) => <button key={project.name} type="button" onClick={() => select(index)} aria-pressed={index === active}>{String(index + 1).padStart(2, "0")} <span>{project.name}</span></button>)}</div>
   </div>;
 }

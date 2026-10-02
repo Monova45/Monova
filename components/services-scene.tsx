@@ -1,112 +1,75 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, ArrowUpRight, BrainCircuit, Code2, PenTool, Settings, Smartphone, X } from "lucide-react";
-import styles from "./agency-home.module.css";
+import { ArrowUpRight, ArrowLeft, Globe, ShoppingBag, PanelsTopLeft, Smartphone, Users, Rocket, Bot, FileSearch, ChartColumn, Workflow, BellRing, CalendarClock, Palette, MousePointer2, Route, TabletSmartphone, Search, Plug, Waypoints, Braces, CircleCheck, Lightbulb, ShieldCheck, Network, Activity, BookOpen, Layers, PenTool } from "lucide-react";
+import styles from "./services-spectrum.module.css";
 
+const serviceIcons = {
+  web: { main: Globe, solutions: [Globe, ShoppingBag, PanelsTopLeft], deliverables: [TabletSmartphone, Search, Plug] },
+  apps: { main: Smartphone, solutions: [Smartphone, Users, Rocket], deliverables: [Waypoints, Braces, CircleCheck] },
+  ai: { main: Bot, solutions: [Bot, FileSearch, ChartColumn], deliverables: [Lightbulb, Plug, ShieldCheck] },
+  automation: { main: Workflow, solutions: [Workflow, BellRing, CalendarClock], deliverables: [Route, Network, Activity] },
+  brand: { main: Palette, solutions: [Palette, MousePointer2, Route], deliverables: [BookOpen, PenTool, Layers] },
+};
 const services = [
-  { name: "Desarrollo Web", text: "Sitios y plataformas que generan resultados.", detail: "Creamos sitios corporativos, tiendas y plataformas a medida, con una experiencia rápida y clara en cada dispositivo.", image: "services-scene-web.jpg", icon: Code2 },
-  { name: "Aplicaciones", text: "Apps que conectan personas y negocios.", detail: "Diseñamos productos digitales alrededor de tus usuarios y los procesos que hacen único a tu negocio.", image: "services-scene-apps.jpg", icon: Smartphone },
-  { name: "Inteligencia Artificial", text: "IA para automatizar, analizar y escalar.", detail: "Integramos asistentes y herramientas de inteligencia artificial para resolver necesidades concretas de tu equipo.", image: "services-scene-ai.jpg", icon: BrainCircuit },
-  { name: "Automatización", text: "Procesos más simples, negocios más eficientes.", detail: "Conectamos tus herramientas, información y operaciones para reducir tareas repetitivas y ahorrar tiempo.", image: "services-scene-automation.jpg", icon: Settings },
-  { name: "Branding & UX/UI", text: "Marcas y experiencias que inspiran y convierten.", detail: "Damos forma a tu identidad y diseñamos interfaces intuitivas, coherentes y centradas en las personas.", image: "services-scene-brand.jpg", icon: PenTool },
+  { id: "web", name: "Desarrollo Web", color: "#ff5106", ink: "#000000", accent: "#000000", tint: "#ffffff", text: "Tu negocio, abierto al mundo.", detail: "Sitios y plataformas que combinan una identidad propia con una experiencia rápida y clara en cada dispositivo.", solutions: ["Sitios corporativos y landing pages", "Tiendas online y catálogos", "Plataformas y portales a medida"], deliverables: ["Diseño adaptable a móvil", "SEO técnico y analítica", "Formularios e integraciones"] },
+  { id: "apps", name: "Aplicaciones", color: "#000000", ink: "#ffffff", accent: "#000000", tint: "#ffffff", text: "Grandes ideas. Al alcance de tu mano.", detail: "Productos digitales diseñados alrededor de tus usuarios y de los procesos que hacen único a tu negocio.", solutions: ["Aplicaciones móviles y web", "Portales de clientes y proveedores", "MVP para validar tu producto"], deliverables: ["Flujos y prototipo interactivo", "Desarrollo e integración de APIs", "Pruebas y acompañamiento al lanzamiento"] },
+  { id: "ai", name: "Inteligencia Artificial", color: "#ffffff", ink: "#000000", accent: "#000000", tint: "#ffffff", text: "Una nueva forma de hacer posible.", detail: "Integramos inteligencia artificial para resolver necesidades concretas, con criterios de calidad y supervisión humana.", solutions: ["Asistentes para clientes y equipos", "Búsqueda sobre tus documentos", "Clasificación y análisis de información"], deliverables: ["Diseño de casos de uso", "Integración con tus herramientas", "Evaluación y controles de respuesta"] },
+  { id: "automation", name: "Automatización", color: "#ff5106", ink: "#000000", accent: "#000000", tint: "#ffffff", text: "Menos tareas. Más posibilidades.", detail: "Conectamos tus herramientas, información y operaciones para reducir tareas repetitivas y recuperar tiempo.", solutions: ["Flujos entre CRM, ventas y operaciones", "Seguimiento de leads y notificaciones", "Reportes y tareas programadas"], deliverables: ["Mapa del proceso", "Integraciones y reglas de negocio", "Monitoreo y manejo de errores"] },
+  { id: "brand", name: "Branding & UX/UI", color: "#000000", ink: "#ffffff", accent: "#000000", tint: "#ffffff", text: "Una identidad que se siente tuya.", detail: "Damos forma a tu marca y diseñamos experiencias intuitivas, coherentes y centradas en las personas.", solutions: ["Identidad visual y dirección de marca", "Interfaces web y móviles", "Mejora de experiencias y flujos"], deliverables: ["Sistema visual y guía de marca", "Prototipos navegables", "Componentes y archivos para desarrollo"] },
 ];
-const ease = [0.22, 1, 0.36, 1] as const;
 
 export function ServicesScene({ contact }: { contact: string }) {
-  const root = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [compact, setCompact] = useState(false);
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [active, setActive] = useState<number | null>(null);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
   const reduceMotion = useReducedMotion();
-
+  const current = active === null ? null : services[active];
+  const icons = current ? serviceIcons[current.id as keyof typeof serviceIcons] : null;
+  const MainIcon = icons?.main;
+  const close = () => { setActive(null); setHovered(null); opener.current?.focus({ preventScroll: true }); };
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 700px)");
-    const sync = () => setCompact(query.matches);
-    sync();
-    query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
-  useEffect(() => {
-    const element = root.current;
-    if (!element) return;
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .25 });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!visible || open || userInteracted || reduceMotion) return;
-    const timer = window.setInterval(() => setActive(index => (index + 1) % services.length), 5200);
-    return () => window.clearInterval(timer);
-  }, [visible, open, userInteracted, reduceMotion]);
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!root.current?.contains(document.activeElement)) return;
-      if (event.key === "Escape" && open) setOpen(false);
-      if (open) return;
-      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-        event.preventDefault();
-        setUserInteracted(true);
-        setActive(index => (index + (event.key === "ArrowRight" ? 1 : services.length - 1)) % services.length);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
-
-  const step = (direction: number) => {
-    setUserInteracted(true);
-    setOpen(false);
-    setActive(index => (index + direction + services.length) % services.length);
-  };
-  const current = services[active];
-  const CurrentIcon = current.icon;
-
-  return <div className={styles.servicesScene} ref={root} onMouseEnter={() => setUserInteracted(true)} onTouchStart={() => setUserInteracted(true)}>
-    <div className={styles.servicesSceneTop}><span>MONOVA / EXPLORA</span><span>0{active + 1} / 0{services.length}</span></div>
-    <div className={styles.servicesGallery} aria-label="Explora los servicios de Monova">
+    if (active !== null) closeButton.current?.focus({ preventScroll: true });
+    else opener.current?.focus({ preventScroll: true });
+  }, [active]);
+  const palette = (service: typeof services[number]) => ({ "--tone": service.color, "--tint": service.tint, "--ink": service.ink, "--accent": service.accent } as CSSProperties);
+  const duration = reduceMotion ? 0 : .85;
+  const ease = [.22, 1, .36, 1] as const;
+  return <div className={styles.spectrum} onKeyDown={event => { if (event.key === "Escape" && active !== null) { event.preventDefault(); close(); } }}>
+    <div className={styles.top}><span>UN EQUIPO. CINCO FORMAS DE CREAR.</span><span>MONOVA / SERVICIOS</span></div>
+    <div className={styles.stage} style={{ background: current?.color }} data-open={active !== null} onMouseLeave={() => setHovered(null)}>
       {services.map((service, index) => {
-        let offset = index - active;
-        if (offset > 2) offset -= services.length;
-        if (offset < -2) offset += services.length;
-        const selected = offset === 0;
-        const Icon = service.icon;
-        const distance = compact ? 164 : 224;
-        return <motion.button key={service.name} type="button" className={styles.servicesFloatingCard}
-          aria-label={selected ? `Ver detalles de ${service.name}` : `Seleccionar ${service.name}`}
-          aria-current={selected ? "true" : undefined}
-          onClick={() => { setUserInteracted(true); if (selected) setOpen(true); else { setActive(index); setOpen(false); } }}
-          initial={false}
-          animate={{ x: offset * distance, y: selected ? 0 : 20 + Math.abs(offset) * 10, scale: selected ? 1.1 : Math.abs(offset) === 1 ? .88 : .75, rotateY: offset * -9, opacity: Math.abs(offset) === 2 ? .85 : 1, zIndex: 5 - Math.abs(offset) }}
-          transition={{ duration: reduceMotion ? 0 : .8, ease }}>
-          <div className={styles.servicesCardArt}><Image src={`/assets/${service.image}`} alt="" fill sizes="(max-width: 700px) 55vw, 240px" /></div>
-          <div className={styles.servicesCardCopy}><span><Icon size={15}/><small>0{index + 1} / CAPACIDADES</small></span><strong>{service.name}</strong><p>{service.text}</p></div>
-          <span className={styles.servicesCardArrow} aria-hidden="true"><ArrowUpRight size={17}/></span>
-        </motion.button>;
+        const selected = active === index;
+        const width = active !== null ? (selected ? 55 : 20) : hovered === null ? 20 : hovered === index ? 28 : 18;
+        const left = active !== null ? selected ? 0 : index < active ? -25 - (active - index) * 20 : 100 + (index - active) * 20 : hovered === null ? index * 20 : index * 18 + (index > hovered ? 10 : 0);
+        return <motion.div key={service.id} className={styles.strip} style={palette(service)} data-selected={selected} aria-hidden={active !== null && !selected}
+          initial={false} animate={{ left: `${left}%`, width: `${width}%` }} transition={{ duration, ease }}>
+          <button ref={element => { if (selected && element) opener.current = element; }} type="button" className={styles.stripButton}
+            onMouseEnter={() => { if (active === null) setHovered(index); }} onFocus={() => { if (active === null) setHovered(index); }} onBlur={() => setHovered(null)}
+            onClick={event => { opener.current = event.currentTarget; setActive(index); }} aria-label={`Ver detalles de ${service.name}`} aria-expanded={selected} aria-controls="service-details" tabIndex={active === null ? 0 : -1} disabled={active !== null}>
+            <motion.span className={styles.stripLabel} animate={{ opacity: active === null ? 1 : 0 }} transition={{ duration: reduceMotion ? 0 : .2 }}><small>0{index + 1} / MONOVA</small><strong>{service.name}</strong></motion.span>
+            <motion.div className={styles.stripMascot} initial={false} animate={{ width: selected ? "76%" : "100%", left: selected ? "24%" : "0%", top: selected ? "22%" : "19%", height: selected ? "75%" : "67%" }} transition={{ duration, ease }}><Image src={`/assets/services/monova-${service.id}-standing.png`} alt={`Monova de ${service.name}`} fill unoptimized loading="eager" sizes="(max-width: 700px) 320px, 500px"/></motion.div>
+            <motion.span className={styles.stripExplore} animate={{ opacity: active === null ? 1 : 0 }} transition={{ duration: reduceMotion ? 0 : .2 }}>EXPLORAR <ArrowUpRight size={19}/></motion.span>
+          </button>
+          <AnimatePresence>{selected && <motion.div className={styles.expandedTitle} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : .45, delay: reduceMotion ? 0 : .25 }}><span>MONOVA / {service.name}</span><h3>{service.text}</h3></motion.div>}</AnimatePresence>
+        </motion.div>;
       })}
+      <AnimatePresence>{current && <motion.aside key={current.id} id="service-details" aria-labelledby="service-title" className={styles.inlineDetail} style={palette(current)} initial={{ x: "100%", opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: "100%", opacity: 0 }} transition={{ duration: reduceMotion ? 0 : .65, ease, delay: reduceMotion ? 0 : .15 }}>
+        <div className={styles.inlineCopy}>
+          <div className={styles.detailEyebrow}><span>EL SIGUIENTE PASO PARA TU MARCA</span><span>0{active! + 1} / 05</span></div>
+          <div className={styles.detailTitle}>{MainIcon && <span className={styles.serviceIcon}><MainIcon size={27} strokeWidth={1.7} aria-hidden="true"/></span>}<h2 id="service-title">{current.name}</h2></div><p>{current.detail}</p>
+          <h4>Lo que podemos crear juntos</h4>
+          <ul className={styles.solutionCards}>{current.solutions.map((item, index) => { const Icon = icons!.solutions[index]; return <li key={item}><span className={styles.solutionIcon}><Icon size={22} strokeWidth={1.6} aria-hidden="true"/></span><strong>{item}</strong></li>; })}</ul>
+          <div className={styles.deliverables}><h4>De la idea a algo tangible</h4><ul>{current.deliverables.map((item, index) => { const Icon = icons!.deliverables[index]; return <li key={item}><Icon size={18} strokeWidth={1.6} aria-hidden="true"/><span>{item}</span></li>; })}</ul></div>
+          <a className={styles.detailCta} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, me interesa el servicio de ${current.name}. Quiero conversar sobre mi proyecto.`)}`} target="_blank" rel="noopener noreferrer"><span>Cuéntanos tu idea<small>Hablemos por WhatsApp</small></span><ArrowUpRight size={23}/></a>
+          <small>Alcance a tu medida. Definimos juntos los entregables.</small>
+        </div>
+      </motion.aside>}</AnimatePresence>
+      {current && <button ref={closeButton} type="button" className={styles.back} onClick={close} aria-label="Volver a todos los servicios"><ArrowLeft size={16}/> Todos los servicios</button>}
     </div>
-    <div className={styles.servicesFurniture} aria-hidden="true"><Image src="/assets/services-scene-furniture.png" alt="" fill sizes="(max-width: 700px) 330px, 540px" /></div>
-    <div className={styles.servicesMascot}><Image src="/assets/monova-seated-v1.png" alt="Monova sentado junto a los servicios" fill sizes="(max-width: 700px) 48vw, 320px" /></div>
-    <div className={styles.servicesSceneBottom}>
-      <div><span className={styles.servicesSceneEyebrow}>IDEAS QUE FUNCIONAN</span><strong>{current.name}</strong><p>{current.text}</p></div>
-    </div>
-    <div className={styles.servicesNavigation}><button type="button" onClick={() => step(-1)} aria-label="Servicio anterior"><ArrowLeft size={20}/></button><button type="button" onClick={() => step(1)} aria-label="Siguiente servicio"><ArrowRight size={20}/></button></div>
-    <AnimatePresence>
-      {open && <motion.div className={styles.servicesDetailBackdrop} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : .28 }}>
-        <motion.div className={styles.servicesDetailPanel} role="dialog" aria-modal="true" aria-labelledby="services-detail-title"
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 28, scale: reduceMotion ? 1 : .93 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: reduceMotion ? 0 : 20, scale: reduceMotion ? 1 : .95 }}
-          transition={{ duration: reduceMotion ? 0 : .45, ease }}>
-          <div className={styles.servicesDetailArt}><Image src={`/assets/${current.image}`} alt="" fill sizes="(max-width: 700px) 80vw, 460px" /></div>
-          <div className={styles.servicesDetailCopy}><span><CurrentIcon size={20}/> MONOVA / CAPACIDADES</span><h3 id="services-detail-title">{current.name}</h3><p>{current.detail}</p><a href={contact} target="_blank" rel="noopener noreferrer">Hablemos <ArrowUpRight size={18}/></a></div>
-          <button className={styles.servicesDetailClose} type="button" onClick={() => setOpen(false)} aria-label="Cerrar detalle"><X size={22}/></button>
-        </motion.div>
-      </motion.div>}
-    </AnimatePresence>
+    <div className={styles.bottom}><strong>{current ? current.name : "Elige un color. Descubre lo que podemos crear."}</strong><span>ESTRATEGIA + DISEÑO + TECNOLOGÍA</span></div>
   </div>;
 }

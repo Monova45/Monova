@@ -4,28 +4,32 @@ import { ServicesScene } from "./services-scene";
 import { ProjectCarousel } from "./project-carousel";
 import { MonovaWebAR } from "./monova-web-ar";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Code2, PenTool, Search, ChartNoAxesColumnIncreasing, Phone, Globe, Mouse } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Code2, PenTool, Search, ChartNoAxesColumnIncreasing, Globe, Mouse } from "lucide-react";
 import styles from "./agency-home.module.css";
 
-const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573214198831"}?text=${encodeURIComponent("Hola Monova, quiero conversar sobre un proyecto.")}`;
+const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent("Hola Monova, quiero conversar sobre un proyecto.")}`;
 const projects = [
   { name: "Kliniu", category: "Plataforma · Web / App", description: "Servicios de limpieza, una experiencia más simple.", image: "kliniu", url: "https://kliniu.vercel.app" },
   { name: "Drokex", category: "Marketplace · B2B", description: "Conectando negocios más allá de las fronteras.", image: "drokex", url: "https://drokex.com" },
-  { name: "Unipars Tech", category: "Industria · Web", description: "Tecnología que impulsa nuevas posibilidades.", image: "unipars", url: "https://unipars-tech.vercel.app" },
+  { name: "Totalpars", category: "Industria · Web", description: "Tecnología que impulsa nuevas posibilidades.", image: "unipars", url: "https://unipars-tech.vercel.app" },
   { name: "4U Studio Academy", category: "Educación · Experiencia digital", description: "Una nueva forma de conectar con la música.", image: "4ustudio", url: "https://4ustudioacademy.com" },
+  { name: "tüma", category: "Diseño · Cerámica", description: "Objetos que conectan con lo esencial.", image: "tuma", url: "https://www.xn--tma-hoa.com/" },
+  { name: "GEU Universal", category: "Industria · Catálogo digital", description: "Universal de Cauchos. Soluciones para la industria.", image: "geu", url: "https://geu-universal.com/" },
+  { name: "Peluvi", category: "Mascotas · Web / App", description: "Todo el bienestar de tu mascota, más cerca.", image: "peluvi", url: "https://peluvi.com/" },
+  { name: "L’Origine", category: "Belleza · E-commerce", description: "Cuidado capilar con una experiencia de compra natural.", image: "lorigine", url: "https://www.lorigine.com.co/" },
 ];
 function Brand() { return <a href="#inicio" className={styles.brand} aria-label="Monova, inicio"><span><Image src="/assets/monova-mark.svg" width={30} height={25} alt="" /></span>MONOVA</a>; }
 export function AgencyHome() {
   return <main className={styles.page} id="inicio">
     <div className={styles.heroWrap}>
-      <header className={styles.header}><Brand /><span className={styles.tagline}>Ideas que funcionan.</span><nav aria-label="Navegación principal"><a href="#servicios">Servicios</a><a href="#proyectos">Proyectos</a><a href="#nosotros">Nosotros</a><a href="#contacto">Contacto</a></nav><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={17}/></a></header>
+      <header className={styles.header}><Brand /><span className={styles.tagline}>Ideas que funcionan.</span><nav aria-label="Navegación principal"><a href="#servicios">Servicios</a><a href="#proyectos">Proyectos</a><a href="#nosotros">Nosotros</a><a href="#contacto">Contacto</a><Link href="/personaje">Personaje</Link></nav><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={17}/></a></header>
       <section className={styles.hero} aria-labelledby="hero-title">
         <HeroVideo />
         <div className={styles.heroCopy}><p className={styles.eyebrow}>TECNOLOGÍA × CREATIVIDAD × RESULTADOS</p><h1 id="hero-title">Sistemas<br/>que convierten<br/>ideas en<br/>resultados<span>.</span></h1><p className={styles.intro}>Desarrollamos software, diseño, IA y automatización<br className={styles.desktopBreak}/> para empresas que piensan en grande.</p><div className={styles.actions}><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Comenzar un proyecto</span><ArrowRight size={17}/></a><a className={styles.secondary} href="#servicios">Conocer nuestros servicios</a></div><div className={styles.stats}><div><strong>+100</strong><span>Proyectos entregados</span></div><div><strong>+50</strong><span>Clientes felices</span></div><div><strong>+10</strong><span>Industrias impactadas</span></div></div></div>
         <div className={styles.heroBottom}><a href="#proyectos"><Mouse size={25}/><span>SCROLL<br/>PARA EXPLORAR</span></a><span className={styles.bigWord} aria-hidden="true">MONOV<span>Λ</span></span><p>TECNOLOGÍA<br/>PARA UN<br/>MAÑANA REAL.</p></div>
       </section>
     </div>
-    <section className={styles.partners} aria-label="Proyectos de nuestro portafolio"><p className={styles.eyebrow}>IDEAS QUE YA SE CONVIRTIERON EN REALIDAD</p><div><span>kliniu<span className={styles.dot}>.</span></span><span>Drokex ↗</span><span>UNIPARS <small>TECH</small></span><span>4U <small>STUDIO ACADEMY</small></span><p>GRANDES IDEAS.<br/>MEJORES ALIADOS.</p></div></section>
+    <section className={styles.partners} aria-label="Proyectos de nuestro portafolio"><p className={styles.eyebrow}>IDEAS QUE YA SE CONVIRTIERON EN REALIDAD</p><div><span>kliniu<span className={styles.dot}>.</span></span><span>Drokex ↗</span><span>TOTALPARS</span><span>4U <small>STUDIO ACADEMY</small></span><p>GRANDES IDEAS.<br/>MEJORES ALIADOS.</p></div></section>
     <section className={styles.portfolio} id="proyectos">
       <div className={styles.portfolioHeading}><p className={styles.eyebrow}>TRABAJO SELECCIONADO / PORTAFOLIO</p><div><h2>Ideas que<br/><span>tomaron forma.</span></h2><p>Una mirada a los productos y experiencias que construimos junto a nuestros clientes.</p></div></div>
       <ProjectCarousel projects={projects} />
@@ -37,7 +41,7 @@ export function AgencyHome() {
       <div className={styles.office}><Image src="/assets/monova-creative-world.png" alt="Mascota de Monova creando soluciones digitales en su estación futurista" fill sizes="(max-width: 700px) 100vw, 55vw"/><span>IDEAS QUE COBRAN VIDA</span></div>
       <div className={styles.aboutCopy}><p className={styles.eyebrow}>MUCHO GUSTO, SOMOS MONOVA</p><h2>Buenas ideas.<br/>Personas curiosas.<br/><span>Grandes posibilidades.</span></h2><p>Nos gusta hacer las preguntas correctas, imaginar lo que sigue y construirlo contigo. Unimos estrategia, diseño y tecnología para darle forma a eso que tienes en mente.</p><div className={styles.aboutPillars}><span>01 / Pensamos contigo</span><span>02 / Diseñamos con intención</span><span>03 / Hacemos que funcione</span></div><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Conozcámonos</span><ArrowUpRight size={18}/></a></div>
     </section>
-    <section className={styles.contact} id="contacto"><div><p className={styles.eyebrow}>HABLEMOS</p><h2>¿Tienes una idea?<br/>Hagámosla funcionar<span>.</span></h2></div><a className={styles.phone} href="tel:+573214198831"><Phone size={26}/><span>321 419 8831<br/><small>Conversemos sobre tu proyecto</small></span></a><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos ahora</span><ArrowRight size={18}/></a></section>
+    <section className={styles.contact} id="contacto"><div><p className={styles.eyebrow}>HABLEMOS</p><h2>¿Tienes una idea?<br/>Hagámosla funcionar<span>.</span></h2></div><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={18}/></a></section>
     <footer className={styles.footer}><Brand/><span>Ideas que funcionan.</span><a href="#servicios">Servicios</a><a href="#proyectos">Proyectos</a><a href="#nosotros">Nosotros</a><Link href="/marketing">Monova Marketing <ArrowUpRight size={13}/></Link><span className={styles.footerEnd}><Globe size={16}/> Hecho para un mañana real.</span></footer>
     <MonovaWebAR />
   </main>;

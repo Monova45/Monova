@@ -190,7 +190,7 @@ const serviceDetails = {
 
 type ServiceKey = keyof typeof serviceDetails;
 
-const monovaWhatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573214198831";
+const monovaWhatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999";
 
 function getServiceWhatsappLink(serviceTitle: string) {
   const message = `Hola Monova, quiero cotizar el servicio de ${serviceTitle}.`;
@@ -250,7 +250,7 @@ const railPanels = {
         text: "Catálogo digital para conectar empresas de LATAM con compradores internacionales."
       },
       {
-        title: "Unipars Tech",
+        title: "Totalpars",
         meta: "Industrial / Web",
         image: "/assets/project-unipars.png",
         href: "https://unipars-tech.vercel.app",
