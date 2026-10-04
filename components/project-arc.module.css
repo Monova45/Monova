@@ -1,0 +1,40 @@
+.portfolio{background:#fff;padding:32px 2% 48px;color:#111}
+.scene{position:relative;max-width:1280px;margin:auto;aspect-ratio:1.65}
+.projects{position:absolute;inset:0;transform-origin:50% 85%;animation:arcCycle 14s ease-in-out infinite}
+.projects:hover,.projects:focus-within,.projects[data-paused="true"]{animation-play-state:paused}
+.motionControl{position:absolute;right:0;top:0;width:36px;height:36px;display:grid;place-items:center;border:1px solid #ddd;border-radius:50%;background:#fff;color:#333;cursor:pointer;z-index:5}
+@keyframes arcCycle{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.project{position:absolute;width:13%;height:23%;overflow:hidden;border-radius:8px;box-shadow:0 8px 18px #15202b0c;transition:transform .25s,box-shadow .25s;isolation:isolate}
+.project img{object-fit:cover;object-position:top}
+.project::after{content:"";position:absolute;inset:30% 0 0;background:linear-gradient(transparent,#000d);z-index:1}
+.project:nth-child(1){left:36%;top:2%;transform:rotate(-10deg)}
+.project:nth-child(2){right:36%;top:2%;transform:rotate(10deg)}
+.project:nth-child(3){left:10.5%;top:28%;transform:rotate(-38deg)}
+.project:nth-child(4){right:10.5%;top:28%;transform:rotate(38deg)}
+.project:nth-child(5){right:22%;top:11%;transform:rotate(30deg)}
+.project:nth-child(6){left:22%;top:11%;transform:rotate(-30deg)}
+.project:nth-child(7){left:1%;top:54%;width:18%;height:18%;transform:rotate(12deg)}
+.project:nth-child(8){right:1%;top:54%;width:18%;height:18%;transform:rotate(-12deg)}
+.project:nth-child(9){left:0;top:79%;width:18%;height:18%;transform:rotate(-8deg)}
+.project:nth-child(10){right:0;top:79%;width:18%;height:18%;transform:rotate(8deg)}
+.project:hover,.project:focus-visible{scale:1.04;z-index:4;box-shadow:0 18px 40px #15202b30}
+.caption{position:absolute;bottom:0;left:0;right:0;padding:12px;color:#fff;z-index:2}
+.caption span{display:block;font-size:9px;line-height:1.5;margin-bottom:5px}
+.caption strong{display:block;font-size:16px;line-height:1.15;padding-right:15px;overflow-wrap:anywhere}
+.caption svg{position:absolute;right:10px;bottom:16px}
+.mascot{position:absolute;left:38%;top:36%;width:24%;height:37%;pointer-events:none}
+.mascot img{object-fit:contain;mix-blend-mode:multiply}
+.signature{position:absolute;top:74%;left:32%;width:36%;text-align:center}
+.signature img{display:block;width:100%;height:auto;max-height:115px;object-fit:contain}
+.signature p{font-size:25px;letter-spacing:0;line-height:1.4}
+.signature p span{color:#ff5106}
+.values{display:grid;grid-template-columns:repeat(3,1fr);max-width:900px;margin:40px auto 0;gap:32px}
+.values>div{display:flex;gap:20px;align-items:flex-start;padding:0 20px}
+.values>div+div{border-left:1px solid #e0e0e0}
+.values svg{flex-shrink:0;stroke:#e95515}
+.values h3{font-size:16px;font-weight:500;margin:0 0 10px!important}
+.values p{font-size:14px;color:#777;line-height:1.6}
+@media(min-width:701px) and (max-width:1000px){.caption{padding:10px}.caption strong{font-size:14px}.caption span{font-size:8px}.signature p{font-size:19px}.values{gap:10px}.values>div{padding:0 10px;gap:10px}}
+@media(max-width:700px){.portfolio{padding:12px 0 28px}.scene{aspect-ratio:auto;display:flex;flex-direction:column}.mascot{position:relative;left:auto;top:auto;width:70%;height:350px;align-self:center;order:0}.signature{position:relative;left:auto;top:auto;width:80%;align-self:center;order:1;margin-top:-15px;margin-bottom:30px}.signature img{max-height:100px}.signature p{font-size:22px}.projects{position:relative;inset:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:0 16px;order:2}.project:nth-child(n){position:relative;inset:auto;transform:none;width:100%;height:auto;aspect-ratio:4/5}.caption strong{font-size:18px}.values{grid-template-columns:1fr;margin:32px 24px 0;gap:20px}.values>div{padding:0;gap:16px}.values>div+div{border-left:0;border-top:1px solid #eee;padding-top:20px}.values h3{margin-bottom:4px!important}}
+@media(max-width:700px){.projects{animation:none}.motionControl{display:none}.project:nth-child(n+7){aspect-ratio:3/2}}
+@media(prefers-reduced-motion:reduce){.project{transition:none}.projects{animation:none}.motionControl{display:none}}

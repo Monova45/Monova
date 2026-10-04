@@ -1,103 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
-import styles from "./agency-home.module.css";
+import { ArrowUpRight, Rocket, Zap, Blend, Pause, Play } from "lucide-react";
+import styles from "./project-arc.module.css";
 
-type Project = { name: string; category: string; description: string; image: string; url: string };
-const INTERVAL = 5600;
-const ease = [0.22, 1, 0.36, 1] as const;
-const positions = [
-  { left: "35%", top: "16%", scale: 1, rotate: 0, opacity: 1, zIndex: 3 },
-  { left: "61%", top: "23%", scale: .78, rotate: 10, opacity: .88, zIndex: 2 },
-  { left: "79%", top: "28%", scale: .62, rotate: 16, opacity: .58, zIndex: 1 },
-  { left: "9%", top: "23%", scale: .78, rotate: -10, opacity: .88, zIndex: 2 },
-];
-const mobilePositions = [
-  { left: "17%", top: "17%", scale: 1, rotate: 0, opacity: 1, zIndex: 3 },
-  { left: "66%", top: "24%", scale: .72, rotate: 10, opacity: .78, zIndex: 2 },
-  { left: "88%", top: "28%", scale: .55, rotate: 15, opacity: .48, zIndex: 1 },
-  { left: "-32%", top: "24%", scale: .72, rotate: -10, opacity: .78, zIndex: 2 },
-];
+type Project = { name: string; category: string; description: string; image: string; url: string; asset?: string };
 
 export function ProjectCarousel({ projects }: { projects: Project[] }) {
-  const root = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  const [mobile, setMobile] = useState(false);
-  const [inView, setInView] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
-  const [cycle, setCycle] = useState(0);
-  const reduceMotion = useReducedMotion();
-  const count = projects.length;
-  const current = projects[active];
-  const playing = !userPaused && inView && !reduceMotion;
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 700px)");
-    const sync = () => setMobile(query.matches);
-    sync();
-    query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
-
-  useEffect(() => {
-    const element = root.current;
-    if (!element) return;
-    const observer = new IntersectionObserver(entries => setInView(entries[0].isIntersecting), { threshold: .25 });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!playing || count < 2) return;
-    const timer = window.setTimeout(() => setActive(index => (index + 1) % count), INTERVAL);
-    return () => window.clearTimeout(timer);
-  }, [active, count, playing, cycle]);
-
-  if (!count) return null;
-
-  const select = (index: number) => {
-    setActive((index + count) % count);
-    setCycle(value => value + 1);
-  };
-
-  return <div ref={root} className={styles.coverflow}>
-    <div className={styles.coverflowScene}>
-      <div className={styles.coverflowGlow} aria-hidden="true" />
-      <div className={styles.coverflowBrand}><span className={styles.coverflowBrandMark}><Image src="/assets/monova-mark.svg" width={27} height={22} alt="" /></span><span>MONOVA</span></div>
-      <span className={styles.coverflowKicker}>IDEAS QUE FUNCIONAN / PROYECTOS REALES</span>
-      <div className={styles.coverflowDeck}>
-        {projects.map((project, index) => {
-          const slot = (index - active + count) % count;
-          const visibleSlot = slot === count - 1 ? 3 : slot;
-          const visible = slot < 3 || slot === count - 1;
-          const position = visible ? (mobile ? mobilePositions : positions)[visibleSlot] : { ...positions[2], opacity: 0, scale: .4, zIndex: 0 };
-          return <motion.a key={project.name} href={project.url} target="_blank" rel="noopener noreferrer" className={styles.coverflowCard} aria-label={`Abrir página de ${project.name} (abre en una pestaña nueva)`} aria-current={slot === 0 ? "true" : undefined} initial={false} animate={position} transition={{ duration: reduceMotion ? 0 : 1.05, ease }} aria-hidden={!visible} tabIndex={visible ? 0 : -1} style={{ zIndex: position.zIndex, pointerEvents: visible ? "auto" : "none" }}>
-            <div className={styles.projectCover} data-brand={project.image}>
-              <span className={styles.coverCategory}>{project.category}</span>
-              <strong className={styles.coverTitle}>{project.name}</strong>
-              <p className={styles.coverDescription}>{project.description}</p>
-              <div className={styles.coverPreview}><Image src={`/assets/project-${project.image === "drokex" ? "drokex-updated" : project.image === "tuma" ? "tuma-site" : project.image}.${project.image === "peluvi" ? "jpg" : "png"}`} alt="" fill sizes="(max-width: 700px) 65vw, 32vw" /></div>
-              <ArrowUpRight className={styles.coverArrow} size={22} aria-hidden="true"/>
-            </div>
-            <div className={styles.coverflowCardCaption}><span>0{index + 1} / 0{count}</span><strong>{project.name}</strong></div>
-          </motion.a>;
-        })}
+  const [paused, setPaused] = useState(false);
+  const cards: Project[] = [...projects,
+    { name: "Desarrollo Web", category: "MONOVA / SERVICIOS", description: "Sitios y plataformas a medida.", image: "", asset: "/assets/services-scene-web.jpg", url: "#servicios" },
+    { name: "Inteligencia Artificial", category: "MONOVA / SERVICIOS", description: "Soluciones inteligentes para tu negocio.", image: "", asset: "/assets/services-scene-ai.jpg", url: "#servicios" },
+  ];
+  return <div className={styles.portfolio}>
+    <div className={styles.scene}>
+      <div className={styles.projects} data-paused={paused}>
+        {cards.map(project => <a key={project.name} href={project.url} target={project.asset ? undefined : "_blank"} rel="noopener noreferrer" className={styles.project} aria-label={`Ver ${project.name}${project.asset ? "" : " (abre en otra pestaña)"}`}>
+          <Image src={project.asset ?? `/assets/project-${project.image === "drokex" ? "drokex-updated" : project.image === "tuma" ? "tuma-site" : project.image}.${project.image === "peluvi" ? "jpg" : "png"}`} alt={project.description} fill sizes="(max-width: 700px) 45vw, 18vw" />
+          <div className={styles.caption}><span>{project.category}</span><strong>{project.name}</strong><ArrowUpRight size={18} aria-hidden="true" /></div>
+        </a>)}
       </div>
-      <div className={styles.coverflowMascot} aria-hidden="true"><Image src="/assets/monova-portfolio-mascot-v4.png" alt="" fill sizes="(max-width: 700px) 65vw, 38vw" /></div>
-      <span className={styles.coverflowSceneLabel}>DISEÑO · TECNOLOGÍA · IMPACTO</span>
+      <button className={styles.motionControl} type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Activar movimiento del arco" : "Pausar movimiento del arco"} title={paused ? "Activar movimiento" : "Pausar movimiento"}>{paused ? <Play size={17}/> : <Pause size={17}/>}</button>
+      <div className={styles.mascot}><Image src="/assets/monova-mummy-cat.png" alt="El gato de Monova vestido de momia, con sus audífonos blancos y naranjas" fill sizes="(max-width: 700px) 70vw, 30vw" /></div>
+      <div className={styles.signature}><Image src="/assets/monova-logo.png" alt="MONOVA" width={2172} height={724} sizes="(max-width: 700px) 75vw, 38vw" /><p>Ideas que funcionan<span>.</span></p></div>
     </div>
-    <div className={styles.coverflowPlayer}>
-      <div className={styles.coverflowPlayerControls}>
-        <button type="button" onClick={() => select(active - 1)} aria-label="Proyecto anterior"><ArrowLeft size={19}/></button>
-        <button type="button" onClick={() => { setUserPaused(value => !value); setCycle(value => value + 1); }} aria-label={userPaused ? "Reproducir portafolio" : "Pausar portafolio"}>{userPaused ? <Play size={18} fill="currentColor"/> : <Pause size={18} fill="currentColor"/>}</button>
-        <button type="button" onClick={() => select(active + 1)} aria-label="Proyecto siguiente"><ArrowRight size={19}/></button>
-      </div>
-      <div className={styles.coverflowNow}><span>AHORA EN PANTALLA · 0{active + 1} / 0{count}</span><strong>{current.name}</strong><small>{current.category}</small></div>
-      <div className={styles.coverflowPlayerEnd}><div className={styles.coverflowTimeline} aria-hidden="true"><span key={`${active}-${cycle}-${playing}`} style={{ animationPlayState: playing ? "running" : "paused" }} /></div><a href={current.url} target="_blank" rel="noreferrer" aria-label={`Visitar proyecto ${current.name} (abre en una pestaña nueva)`}>Ver proyecto <ArrowUpRight size={19}/></a></div>
+    <div className={styles.values}>
+      <div><Rocket size={32}/><section><h3>Proyectos reales</h3><p>Marcas que generan impacto.</p></section></div>
+      <div><Zap size={32}/><section><h3>Ejecución ágil</h3><p>De la idea al resultado, sin fricción.</p></section></div>
+      <div><Blend size={32}/><section><h3>Visión integral</h3><p>Estrategia, diseño y tecnología.</p></section></div>
     </div>
-    <div className={styles.projectPicker} aria-label="Seleccionar proyecto">{projects.map((project, index) => <button key={project.name} type="button" onClick={() => select(index)} aria-pressed={index === active}>{String(index + 1).padStart(2, "0")} <span>{project.name}</span></button>)}</div>
   </div>;
 }

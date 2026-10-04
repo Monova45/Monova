@@ -312,3 +312,7 @@
 .projectCover[data-brand="lorigine"] .coverTitle{font-family:Georgia,serif;font-weight:400;font-size:clamp(30px,3.8vw,52px);letter-spacing:-.055em}
 .projectCover[data-brand="lorigine"] .coverPreview{left:6%;right:6%;top:47%;height:61%;transform:rotate(-4deg);border:3px solid #f8f2e9;border-radius:8px}
 .projectCover[data-brand="lorigine"] .coverPreview img{object-position:center}
+.brand{flex-shrink:0}
+.brandLogo{display:block;width:240px;height:80px;object-fit:contain}
+.footer .brandLogo{width:180px;height:60px}
+@media(max-width:700px){.brandLogo{width:165px;height:55px}}

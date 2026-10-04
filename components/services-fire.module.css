@@ -1,0 +1,33 @@
+.scene{position:relative;isolation:isolate;min-height:800px;color:white;background:#481408;overflow:hidden}
+.background{object-fit:cover;object-position:center;z-index:-3}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,#24070099,transparent 65%);z-index:-2}
+.copy{position:relative;padding:48px 4%;width:39%;z-index:2}
+.eyebrow{font-size:10px;line-height:1.8;max-width:230px;margin-bottom:20px!important;letter-spacing:0}
+.copy h3{font-size:52px;line-height:1.04;font-weight:600;margin-bottom:20px}
+.copy h3 span{color:#ffd18e}
+.copy>p:not(.eyebrow){font-size:16px;line-height:1.5;max-width:350px}
+.explore{display:flex;align-items:center;justify-content:space-between;gap:50px;margin-top:22px;padding:15px 24px;border:1px solid #ffd8a2;border-radius:8px;color:#fff;background:#ff791f55;box-shadow:0 0 20px #ff990077;font:inherit;cursor:pointer}
+.carousel{position:absolute;bottom:55px;left:0;right:0;height:300px}
+.cards{position:relative;height:100%;margin:0 10%}
+.card{position:absolute;left:calc(50% - 115px);top:0;width:230px;height:300px;padding:25px;text-align:left;display:flex;flex-direction:column;gap:12px;color:#fff;background:#6b270e70;backdrop-filter:blur(18px);border:1px solid #ffda9c;border-radius:8px;box-shadow:inset 0 0 20px #ffad5b40,0 0 20px #ff8d3470;cursor:pointer;transition:transform .5s,opacity .5s;transform-origin:center}
+.card[data-offset="0"]{z-index:3;transform:translateY(-15px);background:#93401b99;border-color:#fff4cb;box-shadow:0 0 24px #ffcf80a0,inset 0 0 18px #ffd18660}
+.card[data-offset="-1"]{z-index:2;transform:translateX(-103%) scale(.9) rotate(-4deg)}
+.card[data-offset="1"]{z-index:2;transform:translateX(103%) scale(.9) rotate(4deg)}
+.card[data-offset="-2"]{z-index:1;transform:translateX(-190%) scale(.78) rotate(-7deg);opacity:.8}
+.card[data-offset="2"]{z-index:1;transform:translateX(190%) scale(.78) rotate(7deg);opacity:.8}
+.icon{flex-shrink:0;margin-bottom:4px}
+.card strong{font-size:23px;line-height:1.12;font-weight:600}
+.card>span{font-size:16px;line-height:1.35}
+.cardArrow{margin-top:auto}
+.previous,.next{position:absolute;top:42%;width:46px;height:46px;border-radius:50%;border:1px solid #ffe5ac;background:#a83f1270;color:#fff;display:grid;place-items:center;cursor:pointer;z-index:5}
+.previous{left:2%}.next{right:2%}
+.scene button:focus-visible,.scene a:focus-visible{outline:3px solid #fff;outline-offset:5px}
+.detail{position:absolute;inset:28px 28px 28px auto;width:440px;max-width:calc(100% - 56px);padding:36px;background:#fff9ee;color:#231910;z-index:8;overflow:auto;border-radius:8px;box-shadow:0 20px 80px #0006}
+.detail h3{font-size:28px;padding-right:24px;line-height:1.15;margin-bottom:18px}
+.detail p,.detail li{font-size:14px;line-height:1.6}
+.detail h4{margin:24px 0 10px}.detail ul{padding-left:20px}.detail li+li{margin-top:8px}
+.detail a{display:flex;align-items:center;justify-content:space-between;background:#211a16;color:#fff!important;padding:16px;margin-top:24px;border-radius:8px}
+.close{position:absolute;right:14px;top:14px;border:0;background:transparent;cursor:pointer;color:inherit}
+@media(max-width:1100px){.card{width:190px;left:calc(50% - 95px);padding:20px}.card strong{font-size:20px}.card>span{font-size:14px}.copy h3{font-size:42px}}
+@media(max-width:700px){.scene{min-height:900px}.background{object-position:58% center}.shade{background:linear-gradient(#240700bb,transparent 60%,#24070066)}.copy{width:100%;padding:30px 24px}.copy h3{font-size:40px}.copy>p:not(.eyebrow){max-width:280px;font-size:14px}.eyebrow{font-size:9px}.explore{padding:12px 20px;margin-top:16px}.carousel{bottom:35px;height:260px}.card{width:190px;height:260px;padding:20px}.card strong{font-size:20px}.card[data-offset="-1"]{transform:translateX(-105%) scale(.85)}.card[data-offset="1"]{transform:translateX(105%) scale(.85)}.card[data-offset="-2"],.card[data-offset="2"]{visibility:hidden;pointer-events:none}.previous,.next{background:#54200d;top:43%}.detail{inset:16px;width:auto;max-width:none;padding:30px 24px}}
+@media(prefers-reduced-motion:reduce){.card{transition:none}}
