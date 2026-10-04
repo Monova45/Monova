@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, ArrowLeft, ArrowRight, X, Globe, ShoppingBag, PanelsTopLeft, Smartphone, Users, Rocket, Bot, FileSearch, ChartColumn, Workflow, BellRing, CalendarClock, Palette, MousePointer2, Route, TabletSmartphone, Search, Plug, Waypoints, Braces, CircleCheck, Lightbulb, ShieldCheck, Network, Activity, BookOpen, Layers, PenTool } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, ArrowRight, X, Globe, ShoppingBag, PanelsTopLeft, Smartphone, Users, Rocket, Bot, FileSearch, ChartColumn, Workflow, BellRing, CalendarClock, Palette, MousePointer2, Route, TabletSmartphone, Search, Plug, Waypoints, Braces, CircleCheck, Lightbulb, ShieldCheck, Network, Activity, BookOpen, Layers, PenTool, AppWindow, Brain, Settings, Brush } from "lucide-react";
 import styles from "./services-fire.module.css";
 const serviceIcons = {
-  web: { main: Globe, solutions: [Globe, ShoppingBag, PanelsTopLeft], deliverables: [TabletSmartphone, Search, Plug] },
+  web: { main: AppWindow, solutions: [Globe, ShoppingBag, PanelsTopLeft], deliverables: [TabletSmartphone, Search, Plug] },
   apps: { main: Smartphone, solutions: [Smartphone, Users, Rocket], deliverables: [Waypoints, Braces, CircleCheck] },
-  ai: { main: Bot, solutions: [Bot, FileSearch, ChartColumn], deliverables: [Lightbulb, Plug, ShieldCheck] },
-  automation: { main: Workflow, solutions: [Workflow, BellRing, CalendarClock], deliverables: [Route, Network, Activity] },
-  brand: { main: Palette, solutions: [Palette, MousePointer2, Route], deliverables: [BookOpen, PenTool, Layers] },
+  ai: { main: Brain, solutions: [Bot, FileSearch, ChartColumn], deliverables: [Lightbulb, Plug, ShieldCheck] },
+  automation: { main: Settings, solutions: [Workflow, BellRing, CalendarClock], deliverables: [Route, Network, Activity] },
+  brand: { main: Brush, solutions: [Palette, MousePointer2, Route], deliverables: [BookOpen, PenTool, Layers] },
 };
 const services = [
   { id: "web", name: "Desarrollo Web", color: "#ff5106", ink: "#000000", accent: "#000000", tint: "#ffffff", text: "Tu negocio, abierto al mundo.", detail: "Sitios y plataformas que combinan una identidad propia con una experiencia rápida y clara en cada dispositivo.", solutions: ["Sitios corporativos y landing pages", "Tiendas online y catálogos", "Plataformas y portales a medida"], deliverables: ["Diseño adaptable a móvil", "SEO técnico y analítica", "Formularios e integraciones"] },
@@ -26,9 +26,15 @@ export function ServicesScene({ contact }: { contact: string }) {
   const explore = useRef<HTMLButtonElement>(null);
   const current = services[selected];
   useEffect(() => { if (expanded) detail.current?.focus({ preventScroll: true }); }, [expanded]);
+  const [hovering, setHovering] = useState(false);
+  useEffect(() => {
+    if (expanded || hovering || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setSelected(value => (value + 1) % services.length), 3800);
+    return () => window.clearInterval(timer);
+  }, [expanded, hovering]);
   const close = () => { setExpanded(false); explore.current?.focus({ preventScroll: true }); };
   return <div className={styles.scene} onKeyDown={event => { if (event.key === "Escape" && expanded) close(); }}>
-    <Image className={styles.background} src="/assets/monova-services-fire.png" alt="Gato Monova con traje de esqueleto sobre un escenario naranja luminoso" fill sizes="100vw" />
+    <div className={styles.mascot}><Image src="/assets/monova-services-skeleton.png" alt="Gato Monova con traje de esqueleto guiñando un ojo" fill sizes="(max-width: 700px) 80vw, 40vw" /></div>
     <div className={styles.shade} />
     <div className={styles.copy}>
       <p className={styles.eyebrow}>IDEAS QUE CREAN UN MUNDO MEJOR</p>
@@ -36,25 +42,29 @@ export function ServicesScene({ contact }: { contact: string }) {
       <p>Creamos soluciones digitales que impulsan personas, marcas y negocios hacia un futuro más grande.</p>
       <button ref={explore} className={styles.explore} onClick={() => setExpanded(true)} aria-expanded={expanded} aria-controls="service-details">Explorar <ArrowRight size={22}/></button>
     </div>
-    <div className={styles.carousel} aria-label="Servicios">
+    <div className={styles.carousel} aria-label="Servicios" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setHovering(false); }}>
       <button className={styles.previous} onClick={() => { setSelected((selected + 4) % 5); setExpanded(false); }} aria-label="Servicio anterior" title="Servicio anterior"><ArrowLeft/></button>
       <div className={styles.cards}>
         {services.map((service,index) => {
           const offset = (index - selected + 7) % 5 - 2;
           const Icon = serviceIcons[service.id as keyof typeof serviceIcons].main;
           return <button key={service.id} className={styles.card} data-offset={offset} aria-pressed={selected === index} aria-label={selected === index ? `Ver detalles de ${service.name}` : `Seleccionar ${service.name}`} onClick={() => { if (selected === index) setExpanded(true); else {setSelected(index); setExpanded(false);} }}>
-            <Icon className={styles.icon} size={30}/><strong>{service.name}</strong><span>{service.text}</span><ArrowRight className={styles.cardArrow} size={22}/>
+            <span className={styles.iconTile}><Icon size={30} strokeWidth={1.8}/></span><strong>{service.name}</strong><span className={styles.cardText}>{service.text}</span><span className={styles.cardArrow}><ArrowRight size={20}/></span>
           </button>;
         })}
       </div>
       <button className={styles.next} onClick={() => {setSelected((selected + 1) % 5); setExpanded(false);}} aria-label="Servicio siguiente" title="Servicio siguiente"><ArrowRight/></button>
     </div>
-    {expanded && <div ref={detail} tabIndex={-1} id="service-details" className={styles.detail} aria-labelledby="service-title">
-      <button className={styles.close} onClick={close} aria-label="Cerrar detalles" title="Cerrar detalles"><X/></button>
-      <h3 id="service-title">{current.name}</h3><p>{current.detail}</p>
-      <h4>Lo que podemos crear juntos</h4><ul>{current.solutions.map(item => <li key={item}>{item}</li>)}</ul>
-      <h4>Entregables</h4><ul>{current.deliverables.map(item => <li key={item}>{item}</li>)}</ul>
-      <a href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, me interesa el servicio de ${current.name}. Quiero conversar sobre mi proyecto.`)}`} target="_blank" rel="noopener noreferrer">Cuéntanos tu idea <ArrowUpRight size={20}/></a>
-    </div>}
+    {expanded && <div className={styles.backdrop} onClick={close} aria-hidden="true" />}
+    {expanded && (() => { const icons = serviceIcons[current.id as keyof typeof serviceIcons]; const MainIcon = icons.main; return <div ref={detail} tabIndex={-1} id="service-details" className={styles.detail} role="dialog" aria-labelledby="service-title">
+      <button className={styles.close} onClick={close} aria-label="Cerrar detalles" title="Cerrar detalles"><X size={20}/></button>
+      <div className={styles.detailHead}><span className={styles.detailIcon}><MainIcon size={30} strokeWidth={1.8}/></span><div><p className={styles.detailKicker}>SERVICIO {String(selected + 1).padStart(2, "0")} / 05</p><h3 id="service-title">{current.name}</h3></div></div>
+      <p className={styles.detailLead}>{current.detail}</p>
+      <h4>Lo que podemos crear juntos</h4>
+      <ul className={styles.solutionList}>{current.solutions.map((item, index) => { const ItemIcon = icons.solutions[index]; return <li key={item}><span><ItemIcon size={18}/></span>{item}</li>; })}</ul>
+      <h4>Entregables</h4>
+      <ul className={styles.deliverableList}>{current.deliverables.map((item, index) => { const ItemIcon = icons.deliverables[index]; return <li key={item}><ItemIcon size={16}/>{item}</li>; })}</ul>
+      <a className={styles.detailCta} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, me interesa el servicio de ${current.name}. Quiero conversar sobre mi proyecto.`)}`} target="_blank" rel="noopener noreferrer"><span>Cuéntanos tu idea</span><span className={styles.detailCtaIcon}><ArrowUpRight size={20}/></span></a>
+    </div>; })()}
   </div>;
 }

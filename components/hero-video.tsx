@@ -17,7 +17,7 @@ export function HeroVideo() {
   return <div className={styles.heroMedia}>
     <Image className={styles.heroPoster} src="/assets/monova-hero-light.png" alt="" fill priority sizes="100vw" />
     <video ref={videoRef} className={`${styles.heroImage} ${playing ? styles.heroImagePlaying : ""}`} autoPlay muted loop playsInline preload="auto" poster="/assets/monova-hero-light.png" onPlaying={() => setPlaying(true)} aria-label="Video de presentación de Monova">
-      <source src="/assets/monova-hero-cinematic.mp4" type="video/mp4" />
+      <source src="/assets/monova-hero-halloween.mp4" type="video/mp4" />
     </video>
   </div>;
 }

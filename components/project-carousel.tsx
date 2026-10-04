@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, Rocket, Zap, Blend, Pause, Play } from "lucide-react";
 import styles from "./project-arc.module.css";
@@ -9,20 +9,30 @@ type Project = { name: string; category: string; description: string; image: str
 
 export function ProjectCarousel({ projects }: { projects: Project[] }) {
   const [paused, setPaused] = useState(false);
+  const [out, setOut] = useState(false);
+  const scene = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = scene.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { setOut(true); observer.disconnect(); } }, { threshold: 0.25 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   const cards: Project[] = [...projects,
     { name: "Desarrollo Web", category: "MONOVA / SERVICIOS", description: "Sitios y plataformas a medida.", image: "", asset: "/assets/services-scene-web.jpg", url: "#servicios" },
     { name: "Inteligencia Artificial", category: "MONOVA / SERVICIOS", description: "Soluciones inteligentes para tu negocio.", image: "", asset: "/assets/services-scene-ai.jpg", url: "#servicios" },
   ];
+  const slots = Array.from({ length: Math.max(16, cards.length) }, (_, index) => ({ project: cards[index % cards.length], duplicate: index >= cards.length }));
   return <div className={styles.portfolio}>
-    <div className={styles.scene}>
-      <div className={styles.projects} data-paused={paused}>
-        {cards.map(project => <a key={project.name} href={project.url} target={project.asset ? undefined : "_blank"} rel="noopener noreferrer" className={styles.project} aria-label={`Ver ${project.name}${project.asset ? "" : " (abre en otra pestaña)"}`}>
+    <div ref={scene} className={styles.scene}>
+      <div className={styles.projects} data-paused={paused} data-out={out}>
+        {slots.map(({ project, duplicate }, index) => <div key={index} className={styles.slot} data-duplicate={duplicate} aria-hidden={duplicate || undefined} style={{ "--a": `${(360 / slots.length) * index}deg`, "--i": index } as React.CSSProperties}><a href={project.url} tabIndex={duplicate ? -1 : undefined} target={project.asset ? undefined : "_blank"} rel="noopener noreferrer" className={styles.project} aria-label={`Ver ${project.name}${project.asset ? "" : " (abre en otra pestaña)"}`}>
           <Image src={project.asset ?? `/assets/project-${project.image === "drokex" ? "drokex-updated" : project.image === "tuma" ? "tuma-site" : project.image}.${project.image === "peluvi" ? "jpg" : "png"}`} alt={project.description} fill sizes="(max-width: 700px) 45vw, 18vw" />
           <div className={styles.caption}><span>{project.category}</span><strong>{project.name}</strong><ArrowUpRight size={18} aria-hidden="true" /></div>
-        </a>)}
+        </a></div>)}
       </div>
       <button className={styles.motionControl} type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Activar movimiento del arco" : "Pausar movimiento del arco"} title={paused ? "Activar movimiento" : "Pausar movimiento"}>{paused ? <Play size={17}/> : <Pause size={17}/>}</button>
-      <div className={styles.mascot}><Image src="/assets/monova-mummy-cat.png" alt="El gato de Monova vestido de momia, con sus audífonos blancos y naranjas" fill sizes="(max-width: 700px) 70vw, 30vw" /></div>
+      <div className={styles.mascot}><video src="/assets/monova-mummy-walk.mp4" poster="/assets/monova-mummy-cat.png" autoPlay muted loop playsInline preload="auto" aria-label="El gato de Monova vestido de momia caminando hacia el frente, con sus audífonos blancos y naranjas" /></div>
       <div className={styles.signature}><Image src="/assets/monova-logo.png" alt="MONOVA" width={2172} height={724} sizes="(max-width: 700px) 75vw, 38vw" /><p>Ideas que funcionan<span>.</span></p></div>
     </div>
     <div className={styles.values}>

@@ -35,10 +35,22 @@ export function AgencyHome() {
       <ProjectCarousel projects={projects} />
       <div className={styles.portfolioFooter}><span>EL PRÓXIMO GRAN PROYECTO PUEDE SER EL TUYO.</span><a href={contact} target="_blank" rel="noreferrer">Vamos a crearlo <ArrowRight size={22}/></a></div>
     </section>
+    <section className={styles.promo} aria-labelledby="promo-title">
+      <a className={styles.promoCard} href={`${contact.split("?")[0]}?text=${encodeURIComponent("Hola Monova, quiero aprovechar el 15% de descuento de Halloween en la implementación de mi web.")}`} target="_blank" rel="noreferrer" aria-label="15% de descuento en tu nueva web, solo en octubre por Halloween. Escríbenos por WhatsApp (abre en otra pestaña)">
+        <Image className={styles.promoBg} src="/assets/monova-halloween-banner.jpg" alt="El gato de Monova disfrazado de vampiro entre calabazas bajo la luna llena" fill sizes="100vw" />
+        <div className={styles.promoCopy}>
+          <p className={styles.promoPercent}>15%</p>
+          <div>
+            <h2 id="promo-title">en tu nueva web.<br/>Lánzala este Halloween<span>.</span></h2>
+            <p className={styles.promoPill}>Solo en octubre · Escríbenos hoy 🎃</p>
+          </div>
+        </div>
+      </a>
+    </section>
     <section className={`${styles.section} ${styles.services}`} id="servicios"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>CAPACIDADES</p><h2>Tecnología, diseño y<br/>automatización para crecer mejor<span>.</span></h2></div><p className={styles.sideNote}>SOLUCIONES REALES<br/>PARA DESAFÍOS REALES.</p></div><ServicesScene contact={contact}/></section>
     <section className={styles.method}><div><p className={styles.eyebrow}>NUESTRO MÉTODO</p><h2>Del concepto<br/>a la conversión<span>.</span></h2></div>{[{title:"Descubrimos",text:"Entendemos tu negocio, usuarios y oportunidades.",icon:Search},{title:"Diseñamos",text:"Convertimos ideas en estrategias y experiencias.",icon:PenTool},{title:"Construimos",text:"Desarrollamos soluciones escalables y robustas.",icon:Code2},{title:"Optimizamos",text:"Medimos, iteramos y hacemos crecer.",icon:ChartNoAxesColumnIncreasing}].map((s,i)=><article key={s.title}><div><span>0{i+1}</span><s.icon size={26}/></div><h3>{s.title}</h3><p>{s.text}</p></article>)}</section>
     <section className={styles.about} id="nosotros">
-      <div className={styles.office}><Image src="/assets/monova-about-dinosaur.png" alt="Gato de Monova con disfraz de dinosaurio y una tablet en su estudio tecnológico" fill sizes="(max-width: 700px) 100vw, 55vw"/><span>IDEAS QUE COBRAN VIDA</span></div>
+      <div className={styles.office}><Image src="/assets/monova-about-team-real.png" alt="Una persona con buzo de Monova trabaja en su portátil mientras el gato Monova, con disfraz de dinosaurio, le ayuda a conectar mensajes en paneles flotantes" fill sizes="(max-width: 700px) 100vw, 55vw"/><span>IDEAS QUE COBRAN VIDA</span></div>
       <div className={styles.aboutCopy}><p className={styles.eyebrow}>MUCHO GUSTO, SOMOS MONOVA</p><h2>Buenas ideas.<br/>Personas curiosas.<br/><span>Grandes posibilidades.</span></h2><p>Nos gusta hacer las preguntas correctas, imaginar lo que sigue y construirlo contigo. Unimos estrategia, diseño y tecnología para darle forma a eso que tienes en mente.</p><div className={styles.aboutPillars}><span>01 / Pensamos contigo</span><span>02 / Diseñamos con intención</span><span>03 / Hacemos que funcione</span></div><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Conozcámonos</span><ArrowUpRight size={18}/></a></div>
     </section>
     <section className={styles.contact} id="contacto"><div><p className={styles.eyebrow}>HABLEMOS</p><h2>¿Tienes una idea?<br/>Hagámosla funcionar<span>.</span></h2></div><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={18}/></a></section>
