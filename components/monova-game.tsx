@@ -620,6 +620,8 @@ export function MonovaGame({ contact }: { contact: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inputRef = useRef<Input>({ left: false, right: false, jump: false, down: false, throw: false });
   const gameRef = useRef<Game | null>(null);
+  const touchPointers = useRef(new Map<number, keyof Input>());
+  const [pressed, setPressed] = useState<Partial<Input>>({});
   const [mode, setMode] = useState<Mode>("title");
   const [finalScore, setFinalScore] = useState(0);
   // On phones the game takes over the whole screen while playing.
@@ -728,12 +730,31 @@ export function MonovaGame({ contact }: { contact: string }) {
     return () => { cancelAnimationFrame(frame); window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("blur", blur); };
   }, []);
 
-  const hold = (key: keyof Input) => ({
-    onPointerDown: (event: React.PointerEvent) => { event.preventDefault(); (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId); inputRef.current[key] = true; },
-    onPointerUp: () => { inputRef.current[key] = false; },
-    onPointerCancel: () => { inputRef.current[key] = false; },
-    onContextMenu: (event: React.MouseEvent) => event.preventDefault(),
-  });
+  const syncTouch = () => {
+    const next: Partial<Input> = {};
+    for (const key of touchPointers.current.values()) next[key] = true;
+    for (const key of Object.keys(inputRef.current) as (keyof Input)[]) inputRef.current[key] = !!next[key];
+    setPressed(next);
+  };
+  const releaseTouch = (event: React.PointerEvent) => {
+    if (touchPointers.current.delete(event.pointerId)) syncTouch();
+  };
+  const onTouchDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    touchPointers.current.set(event.pointerId, event.currentTarget.dataset.control as keyof Input);
+    syncTouch();
+  };
+  const onTouchMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const key = touchPointers.current.get(event.pointerId);
+    if (key !== "left" && key !== "right" && key !== "down") return;
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLButtonElement>("button[data-control]");
+    const direction = target?.dataset.control;
+    if (direction === "left" || direction === "right" || direction === "down") {
+      touchPointers.current.set(event.pointerId, direction);
+      syncTouch();
+    }
+  };
 
   return <div className={styles.wrap} data-immersive={immersive}>
     <div className={styles.screen}>
@@ -764,15 +785,15 @@ export function MonovaGame({ contact }: { contact: string }) {
       {mode === "play" && <button type="button" className={styles.pause} onClick={togglePause} aria-label="Pausar">II</button>}
       {immersive && <button type="button" className={styles.exit} onClick={exitImmersive} aria-label="Salir de pantalla completa"><X size={18}/></button>}
     </div>
-    {immersive && <div className={styles.touch} aria-hidden="true">
+    {immersive && <div className={styles.touch} role="group" aria-label="Controles táctiles">
       <div className={styles.dpad}>
-        <button type="button" className={styles.dLeft} {...hold("left")}><ChevronLeft size={34} strokeWidth={2.6}/></button>
-        <button type="button" className={styles.dDown} {...hold("down")}><ChevronDown size={26} strokeWidth={2.6}/></button>
-        <button type="button" className={styles.dRight} {...hold("right")}><ChevronRight size={34} strokeWidth={2.6}/></button>
+        <button type="button" className={styles.dLeft} aria-label="Mover a la izquierda" data-control="left" data-pressed={!!pressed.left} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><ChevronLeft size={34} strokeWidth={2.6}/></button>
+        <button type="button" className={styles.dDown} aria-label="Bajar de plataforma" data-control="down" data-pressed={!!pressed.down} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><ChevronDown size={26} strokeWidth={2.6}/></button>
+        <button type="button" className={styles.dRight} aria-label="Mover a la derecha" data-control="right" data-pressed={!!pressed.right} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><ChevronRight size={34} strokeWidth={2.6}/></button>
       </div>
       <div className={styles.actions}>
-        <button type="button" className={styles.throw} {...hold("throw")}><span>🎃</span><small>LANZAR</small></button>
-        <button type="button" className={styles.jumpButton} {...hold("jump")}><ChevronUp size={34} strokeWidth={2.8}/><small>SALTAR</small></button>
+        <button type="button" className={styles.throw} aria-label="Lanzar calabaza" data-control="throw" data-pressed={!!pressed.throw} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><span>🎃</span><small>LANZAR</small></button>
+        <button type="button" className={styles.jumpButton} aria-label="Saltar" data-control="jump" data-pressed={!!pressed.jump} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><ChevronUp size={34} strokeWidth={2.8}/><small>SALTAR</small></button>
       </div>
     </div>}
     <ul className={styles.keys}>

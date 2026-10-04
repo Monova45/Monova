@@ -59,22 +59,24 @@
 .wrap[data-immersive="true"]{position:fixed;inset:0;z-index:1000;width:100%;height:100%;overflow:hidden;max-width:none;margin:0;display:flex;flex-direction:column;background:#0b0610;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);touch-action:none;overscroll-behavior:none}
 .wrap[data-immersive="true"] .canvas{width:100%;max-width:100%}
 .wrap[data-immersive="true"] .screen{flex:none;width:100%;max-width:100%;margin:0;border:0;border-radius:0;box-shadow:none}
-.touch{flex:1;min-width:0;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 12px 20px;user-select:none;-webkit-user-select:none;touch-action:none;-webkit-touch-callout:none}
-.touch button{display:grid;place-items:center;border:1px solid #ffffff26;background:#ffffff12;color:#fff;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer;transition:background .08s,transform .08s}
-.touch button:active{background:#ff5106;border-color:#ff8a2a;transform:scale(.94)}
-.touch small{display:block;font:800 9px Arial,Helvetica,sans-serif;letter-spacing:1.2px;margin-top:2px;opacity:.85}
-.dpad{--p:min(44vw,184px);position:relative;flex:none;width:var(--p);height:calc(var(--p) * .74)}
-.dpad::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--p) * .5);border-radius:999px;background:#ffffff0a;border:1px solid #ffffff17}
-.touch .dLeft,.touch .dRight{position:absolute;top:calc(var(--p) * .04);width:calc(var(--p) * .42);height:calc(var(--p) * .42);border-radius:50%}
-.touch .dLeft{left:calc(var(--p) * .04)}
-.touch .dRight{right:calc(var(--p) * .04)}
-.touch .dDown{position:absolute;left:50%;bottom:0;width:calc(var(--p) * .28);height:calc(var(--p) * .28);border-radius:50%;transform:translateX(-50%)}
-.touch .dDown:active{transform:translateX(-50%) scale(.94)}
-.actions{--a:min(21vw,88px);position:relative;flex:none;width:calc(var(--a) * 1.95);height:calc(var(--a) * 1.45)}
-.actions button{position:absolute;border-radius:50%}
-.actions .jumpButton{right:0;top:0;width:var(--a);height:var(--a);background:#ff5106;border-color:#ff8a2a;box-shadow:0 8px 22px #ff510655}
-.actions .throw{left:0;bottom:0;width:calc(var(--a) * .82);height:calc(var(--a) * .82);background:#ffffff12;border:2px solid #ff8a2a}
-.actions .throw span{font-size:calc(var(--a) * .26);line-height:1}
+.touch{flex:1;min-height:180px;min-width:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px clamp(12px,4vw,24px) 24px;user-select:none;-webkit-user-select:none;touch-action:none;-webkit-touch-callout:none;background:linear-gradient(180deg,#130c1c,#0b0610)}
+.touch button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px solid #ffffff30;background:#292330;color:#fff;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer;box-shadow:0 5px 0 #0006;transition:background .08s,transform .08s}
+.touch button[data-pressed="true"]{background:#ff782e;border-color:#ffd6aa;transform:translateY(3px);box-shadow:0 2px 0 #0006}
+.touch button:focus-visible{outline:3px solid #ffd23f;outline-offset:3px}
+.touch small{display:block;font:800 10px Arial,Helvetica,sans-serif;letter-spacing:.7px}
+.dpad{flex:1;max-width:200px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.touch .dLeft,.touch .dRight{height:clamp(64px,19vw,84px);border-radius:22px}
+.touch .dLeft{grid-column:1;grid-row:1}
+.touch .dRight{grid-column:2;grid-row:1}
+.touch .dDown{grid-column:1 / -1;grid-row:2;height:48px;border-radius:16px}
+.actions{flex:1;max-width:200px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
+.actions button{width:100%;height:clamp(80px,24vw,104px);border-radius:26px}
+.actions .jumpButton{background:#ff5106;border-color:#ff9b60;box-shadow:0 5px 0 #9f3003,0 8px 22px #ff510633;transform:translateY(-14px)}
+.actions .jumpButton[data-pressed="true"]{transform:translateY(-11px);background:#ff782e;box-shadow:0 2px 0 #9f3003}
+.actions .throw{border-color:#ffad62;transform:translateY(14px)}
+.actions .throw[data-pressed="true"]{transform:translateY(17px)}
+.actions .throw span{font-size:28px;line-height:1}
+.wrap[data-immersive="true"] .pause,.wrap[data-immersive="true"] .exit{width:44px;height:44px}
 @media(orientation:landscape){
   .wrap[data-immersive="true"]{flex-direction:row;align-items:center;justify-content:center}
   .wrap[data-immersive="true"] .screen{width:auto;height:100%}
@@ -82,7 +84,10 @@
   .wrap[data-immersive="true"] .touch{position:absolute;inset:auto 0 0 0;padding:0 14px 14px;pointer-events:none;flex:none}
   .wrap[data-immersive="true"] .touch>div{pointer-events:auto}
   .wrap[data-immersive="true"] .touch button:not(.jumpButton){background:#0b0610aa}
-  .dpad{--p:min(36vh,150px)}
-  .actions{--a:min(20vh,78px)}
+  .dpad,.actions{flex:none;width:170px}
+  .touch .dLeft,.touch .dRight{height:56px}
+  .touch .dDown{height:44px}
+  .actions button{height:72px}
+  .wrap[data-immersive="true"] .touch{min-height:0}
 }
 @media(prefers-reduced-motion:reduce){.touch button{transition:none}}
