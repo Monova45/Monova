@@ -347,3 +347,4 @@
   .page .heroCopy{padding-right:var(--gutter)}
   .page .heroBottom{left:auto;right:auto;width:auto;margin-left:var(--gutter);margin-right:var(--gutter)}
 }
+@media(max-width:700px){.page .header nav{flex-wrap:wrap;gap:10px 18px;padding:12px var(--gutter)}}

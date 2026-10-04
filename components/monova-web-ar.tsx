@@ -95,7 +95,7 @@ export function MonovaWebAR() {
   }, []);
 
   return <>
-    <button type="button" className={styles.launcher} onClick={startCamera} aria-label="Abrir Monova AR"><span className={styles.launcherIcon}><Camera size={23} strokeWidth={1.9}/><span>AR</span></span><span className={styles.launcherText}>Explora Monova en AR</span></button>
+    <button type="button" className={styles.launcher} onClick={startCamera} aria-label="Explora Monova en AR" title="Explora Monova en AR"><span className={styles.launcherIcon}><Camera size={24} strokeWidth={1.9}/></span></button>
     {open && <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="monova-ar-title">
       <video ref={videoRef} className={styles.camera} autoPlay muted playsInline aria-hidden="true" />
       {status !== "ready" && <div className={styles.preview} aria-hidden="true" />}
