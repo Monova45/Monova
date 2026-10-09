@@ -102,7 +102,7 @@ export default function DigitalDrop() {
         <h1>DIGITAL<br /><span>DROP.</span></h1>
         <p className={styles.lede}>La ciudad está infectada.<br />Tú eres la última línea de código.</p>
         <div className={styles.cta}>
-          <button className={styles.primary} disabled={!ready || (online && !isHost)} onClick={deploy}>{!ready ? 'CARGANDO…' : online && !isHost ? 'ESPERANDO ANFITRIÓN' : isHost ? <>INICIAR · {lobby.length}/{MAX_PLAYERS} <b>↗</b></> : <>DESPLEGAR <b>↗</b></>}</button>
+          <button className={styles.primary} disabled={!ready || (online && !isHost)} onClick={deploy}>{!ready ? 'CARGANDO…' : online && !isHost ? 'ESPERANDO ANFITRIÓN' : isHost ? <>INICIAR · {lobby.length} JUGADOR{lobby.length > 1 ? 'ES' : ''} <b>↗</b></> : <>DESPLEGAR <b>↗</b></>}</button>
           <div className={styles.dropAt}><small>{online ? `SALA ${code}` : 'ATERRIZAJE'}</small><strong>{online ? `${lobby.length} AGENTE${lobby.length > 1 ? 'S' : ''}` : districts[spawn]}</strong></div>
         </div>
         <div className={styles.links}>{['MULTIJUGADOR', 'ZONA', 'AGENTE', 'ARSENAL', 'AJUSTES', 'CONTROLES'].map(p => <button key={p} data-active={panel === p} onClick={() => togglePanel(p)}>{p}</button>)}</div>
@@ -118,8 +118,9 @@ export default function DigitalDrop() {
             {online && <div className={styles.modes}>{([['pvp', 'BATALLA', 'Todos contra todos · último en pie gana'], ['coop', 'CO-OP', 'Equipo contra los Bugs']] as const).map(([id, label, detail]) =>
               <button key={id} data-active={matchMode === id} disabled={!isHost} onClick={() => { sfx.ui(); setMatchMode(id); }}><b>{label}</b><small>{detail}</small></button>)}</div>}
             {netStatus && <small className={styles.netStatus}>{netStatus}</small>}
+            {online && <small className={styles.netStatus} style={{ color: 'var(--muted)' }}>{matchMode === 'pvp' && lobby.length < 2 ? 'BATALLA NECESITA MÍNIMO 2 JUGADORES · SOLO SE JUGARÁ CO-OP' : `DE 2 A ${MAX_PLAYERS} JUGADORES · PUEDES INICIAR CUANDO QUIERAS`}</small>}
             {online && (isHost
-              ? <button className={styles.primary} style={{ width: '100%', marginTop: 12 }} disabled={!ready} onClick={() => { sfx.ui(); deploy(); }}>INICIAR PARTIDA · {lobby.length}/{MAX_PLAYERS} <b>↗</b></button>
+              ? <button className={styles.primary} style={{ width: '100%', marginTop: 12 }} disabled={!ready} onClick={() => { sfx.ui(); deploy(); }}>INICIAR CON {lobby.length} JUGADOR{lobby.length > 1 ? 'ES' : ''} <b>↗</b></button>
               : <p className={styles.waitHost}><i />ESPERANDO A QUE {(lobby.find(p => p.slot === 0)?.name || 'EL ANFITRIÓN').toUpperCase()} INICIE LA PARTIDA</p>)}
             {online && <div className={styles.roster}>{Array.from({ length: MAX_PLAYERS }, (_, i) => { const p = lobby.find(x => x.slot === i); return <div key={i} data-empty={!p}><i style={{ background: slotColors[i] }} /><span>{p ? p.name || 'AGENTE' : 'ESPERANDO…'}</span><small>{p ? (i === 0 ? 'ANFITRIÓN' : p.id === net.id ? 'TÚ' : 'LISTO') : ''}{p && i === 0 && p.id === net.id ? ' · TÚ' : ''}</small></div>; })}</div>}
           </>}
