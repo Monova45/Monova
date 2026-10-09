@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import NextImage from "next/image";
+import { GameScoreShare } from "./game-score-share";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, X } from "lucide-react";
 import styles from "./monova-game.module.css";
 
@@ -836,6 +837,7 @@ export function MonovaGame({ contact }: { contact: string }) {
           <small>{finalScore.toLocaleString("es-CO")} puntos</small>
           <strong className={styles.endPitch}>¡Cada punto cuenta! Mejora tu puntaje y compite por una web 100% gratis.</strong>
           <a className={styles.titleStart} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, participé en el juego de Halloween y conseguí ${finalScore} puntos. Quiero saber más sobre el concurso por una web 100% gratis.`)}`} target="_blank" rel="noreferrer">Subir puntaje</a>
+          <GameScoreShare score={finalScore} />
           <button type="button" className={styles.endReplay} onClick={startOrResume}>{mode === "win" ? "Jugar otra vez" : "Reintentar"}</button>
         </div>
       </div>}

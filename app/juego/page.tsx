@@ -21,6 +21,12 @@ export default function GamePage() {
       <p>Este Halloween, juega con Monova y compite por una web 100% gratis. Supera las 3 montañas, derrota zombies y fantasmas y consigue tu mejor puntaje.</p>
     </section>
     <MonovaGame contact={contact} />
+    <section className={styles.contestRanking} aria-labelledby="ranking-title">
+      <p className={styles.kicker}>EL RETO ESTÁ ABIERTO</p>
+      <h2 id="ranking-title">El primer lugar está por escribirse.</h2>
+      <p>Aún no hay puntajes publicados. Juega, envía tu resultado con «Subir puntaje» y reta a tus amigos.</p>
+      <div className={styles.rankingEmpty}><span aria-hidden="true">🏆</span><strong>Tu nombre podría estar aquí</strong><p>La clasificación mostrará los puntajes validados por Monova. Compartir una tarjeta no registra tu participación: envía tu resultado por WhatsApp.</p></div>
+    </section>
     <section className={styles.cta}>
       <div><h2>Tu mejor puntaje puede ganar</h2><p>Una web 100% gratis está en juego. Escríbenos para conocer los detalles del concurso.</p></div>
       <a href={contact} target="_blank" rel="noreferrer">Consultar el concurso <ArrowUpRight size={18}/></a>

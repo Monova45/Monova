@@ -33,3 +33,53 @@
 @media(max-width:700px){.portfolio{padding:12px 0 28px}.scene{aspect-ratio:auto;display:flex;flex-direction:column}.mascot{position:relative;left:auto;top:auto;width:70%;height:350px;align-self:center;order:0}.signature{position:relative;left:auto;top:auto;width:80%;align-self:center;order:1;margin-top:-15px;margin-bottom:30px}.signature img{max-height:100px}.signature p{font-size:22px}.projects{position:relative;inset:auto;left:auto;top:auto;width:auto;height:auto;animation:none;display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gutter,20px);margin:0 calc(-1 * var(--gutter,20px));padding:6px var(--gutter,20px) 18px;order:2;scrollbar-width:none;-webkit-overflow-scrolling:touch}.projects::-webkit-scrollbar{display:none}.slot{position:relative;inset:auto;margin:0;flex:0 0 72%;width:auto;height:auto;aspect-ratio:4/5;scroll-snap-align:start;transform:none!important;opacity:1;transition:none}.slot[data-duplicate="true"]{display:none}.scene{overflow:visible;border-radius:0}.caption strong{font-size:18px}.values{grid-template-columns:1fr;margin:32px 24px 0;gap:20px}.values>div{padding:0;gap:16px}.values>div+div{border-left:0;border-top:1px solid #eee;padding-top:20px}.values h3{margin-bottom:4px!important}}
 @media(max-width:700px){.projects{animation:none}.motionControl{display:none}}
 @media(prefers-reduced-motion:reduce){.project,.slot{transition:none}.projects{animation:none}.motionControl{display:none}}
+
+/* Image-led covers with project-specific framing. */
+.project{background:#18211f;border-radius:18px;border:1px solid #ffffff50}
+.project img{object-fit:cover;object-position:50% 25%;transform:scale(1.12)}
+.project::after{inset:0;background:linear-gradient(180deg,#0000 38%,#0004 62%,#000e 100%)}
+.project[data-brand="kliniu"] img{object-position:50% 16%;transform:scale(1.25)}
+.project[data-brand="drokex"] img{object-position:50% 30%;transform:scale(1.22)}
+.project[data-brand="unipars"] img{object-position:75% 26%;transform:scale(1.3)}
+.project[data-brand="4ustudio"] img{object-position:70% 32%;transform:scale(1.24)}
+.project[data-brand="tuma"] img{object-position:58% 35%;transform:scale(1.22)}
+.project[data-brand="geu"] img{object-position:65% 36%;transform:scale(1.35)}
+.project[data-brand="peluvi"] img{object-position:center;transform:scale(1.05)}
+.project[data-brand="lorigine"] img{object-position:50% 34%;transform:scale(1.22)}
+.caption{padding:14px 12px}.caption span{font-size:8px;text-transform:uppercase;letter-spacing:1.3px;opacity:.8;margin-bottom:7px}.caption strong{font-size:19px;letter-spacing:-.6px;line-height:1.02;font-weight:750}.caption svg{width:14px;bottom:17px;opacity:.85}
+@media(max-width:700px){.caption{padding:22px}.caption strong{font-size:30px}.caption span{font-size:10px}.caption svg{right:20px;bottom:25px;width:20px}}
+
+/* Peluvi poster pilot: oversized wordmark and uninterrupted mascot artwork. */
+.project[data-brand="peluvi"]{container-type:inline-size;background:#28103d;border:1px solid #d4a5ff55}
+.project[data-brand="peluvi"] img{top:19%!important;height:81%!important;object-fit:cover;object-position:center 48%;transform:none;mask-image:linear-gradient(transparent,#000 12%)}
+.project[data-brand="peluvi"]::after{inset:0;background:linear-gradient(0deg,#230c3be6,transparent 24%,transparent);pointer-events:none}
+.peluviPosterTitle{position:absolute;top:7%;left:8%;right:8%;text-align:center;color:#f5d8ff;z-index:2}
+.peluviPosterTitle>span{display:block;font-size:4.6cqw;letter-spacing:.14em;font-weight:700;margin-bottom:2%}
+.peluviPosterTitle>strong{display:block;font-family:Arial,Helvetica,sans-serif;font-weight:900;font-size:29cqw;line-height:.88;letter-spacing:-.085em}
+.peluviPosterTitle>strong>span{display:inline-block;vertical-align:top;font-size:6cqw;letter-spacing:0;margin-top:4%;margin-left:3%}
+.project[data-brand="peluvi"] .caption{padding:8%;display:flex;align-items:center;justify-content:space-between}
+.project[data-brand="peluvi"] .caption>strong{display:none}
+.project[data-brand="peluvi"] .caption>span{font-size:5cqw;letter-spacing:.08em;margin:0;color:#f5d8ff}
+.project[data-brand="peluvi"] .caption>svg{position:static;width:10cqw;height:10cqw;padding:2cqw;border:1px solid #f5d8ff70;border-radius:50%;color:#f5d8ff}
+
+/* Brand posters: original vector artwork, no website screenshots. */
+.project:not([data-brand="peluvi"]){container-type:inline-size;--poster-ink:#173f39;background:#d5f3ed;color:var(--poster-ink)}
+.project[data-brand="drokex"]{background:#101e1b;--poster-ink:#d8ffad}
+.project[data-brand="unipars"]{background:#09283c;--poster-ink:#ffb77b}
+.project[data-brand="4ustudio"]{background:#271329;--poster-ink:#ffcf96}
+.project[data-brand="tuma"]{background:#eee0cd;--poster-ink:#744930}
+.project[data-brand="geu"]{background:#d9e6ee;--poster-ink:#163f61}
+.project[data-brand="lorigine"]{background:#1f382a;--poster-ink:#f2dfac}
+.project:not([data-brand="peluvi"]) img.posterArtwork{top:24%!important;height:71%!important;object-fit:contain;object-position:center;transform:none}
+.project:not([data-brand="peluvi"])::after{display:none}
+.posterTitle{position:absolute;top:8%;left:7%;right:7%;text-align:center;color:var(--poster-ink);z-index:2}
+.posterTitle>span{display:block;font-size:4.5cqw;letter-spacing:.13em;font-weight:700;margin-bottom:5%}
+.posterTitle>strong{display:block;font:850 20cqw/.95 Arial,Helvetica,sans-serif;letter-spacing:-.06em;text-wrap:balance}
+.project[data-brand="4ustudio"] .posterTitle>strong{font-size:14cqw;max-width:90%;margin:auto}
+.project[data-brand="geu"] .posterTitle>strong{font-size:15cqw}
+.project[data-brand="tuma"] .posterTitle>strong,.project[data-brand="lorigine"] .posterTitle>strong{font-family:Georgia,serif;font-weight:400}
+.project[data-brand="tuma"] .posterTitle>strong{font-size:27cqw}
+.project:not([data-brand="peluvi"]) .caption{padding:8%;display:flex;align-items:center;justify-content:space-between;color:var(--poster-ink)}
+.project:not([data-brand="peluvi"]) .caption>strong{display:none}
+.project:not([data-brand="peluvi"]) .caption>span{font-size:4.6cqw;letter-spacing:.08em;margin:0}
+.project:not([data-brand="peluvi"]) .caption>svg{position:static;width:10cqw;height:10cqw;padding:2cqw;border:1px solid currentColor;border-radius:50%}

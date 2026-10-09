@@ -23,10 +23,12 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
   return <div className={styles.portfolio}>
     <div ref={scene} className={styles.scene}>
       <div className={styles.projects} data-paused={paused} data-out={out}>
-        {slots.map(({ project, duplicate }, index) => <div key={index} className={styles.slot} data-duplicate={duplicate} aria-hidden={duplicate || undefined} style={{ "--a": `${(360 / slots.length) * index}deg`, "--i": index } as React.CSSProperties}><a href={project.url} tabIndex={duplicate ? -1 : undefined} target={project.asset ? undefined : "_blank"} rel="noopener noreferrer" className={styles.project} aria-label={`Ver ${project.name}${project.asset ? "" : " (abre en otra pestaña)"}`}>
-          <Image src={project.asset ?? `/assets/project-${project.image === "drokex" ? "drokex-updated" : project.image === "tuma" ? "tuma-site" : project.image}.${project.image === "peluvi" ? "jpg" : "png"}`} alt={project.description} fill sizes="(max-width: 700px) 45vw, 18vw" />
-          <div className={styles.caption}><span>{project.category}</span><strong>{project.name}</strong><ArrowUpRight size={18} aria-hidden="true" /></div>
-        </a></div>)}
+        {slots.map(({ project, duplicate }, index) => {
+          return <div key={index} className={styles.slot} data-duplicate={duplicate} aria-hidden={duplicate || undefined} style={{ "--a": `${(360 / slots.length) * index}deg`, "--i": index } as React.CSSProperties}><a href={project.url} tabIndex={duplicate ? -1 : undefined} target={project.asset ? undefined : "_blank"} rel="noopener noreferrer" className={styles.project} data-brand={project.image} aria-label={`Ver ${project.name}${project.asset ? "" : " (abre en otra pestaña)"}`}>
+          {project.image === "peluvi" ? <Image src="/assets/project-peluvi.jpg" alt={project.description} fill sizes="(max-width: 700px) 70vw, 18vw" /> : <Image className={styles.posterArtwork} src={`/assets/posters/${project.image}.svg`} alt={project.description} fill sizes="(max-width: 700px) 70vw, 18vw" />}
+          <div className={project.image === "peluvi" ? styles.peluviPosterTitle : styles.posterTitle} aria-hidden="true"><span>{({ kliniu: "ESPACIOS QUE BRILLAN", drokex: "SIN FRONTERAS", unipars: "SIEMPRE EN MARCHA", "4ustudio": "ENCUENTRA TU SONIDO", tuma: "OBJETOS CON ALMA", geu: "PRECISIÓN INDUSTRIAL", peluvi: "SU MUNDO, MÁS FELIZ", lorigine: "BELLEZA NATURAL" } as Record<string, string>)[project.image]}</span><strong>{project.image === "peluvi" ? <>peluvi<span>®</span></> : project.name}</strong></div>
+          <div className={styles.caption}><span>{project.category.split(" · ")[0]}</span><strong>{project.name}</strong><ArrowUpRight size={18} aria-hidden="true" /></div>
+        </a></div>; })}
       </div>
       <button className={styles.motionControl} type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Activar movimiento del arco" : "Pausar movimiento del arco"} title={paused ? "Activar movimiento" : "Pausar movimiento"}>{paused ? <Play size={17}/> : <Pause size={17}/>}</button>
       <div className={styles.mascot}><video src="/assets/monova-mummy-walk.mp4" poster="/assets/monova-mummy-cat.png" autoPlay muted loop playsInline preload="auto" aria-label="El gato de Monova vestido de momia caminando hacia el frente, con sus audífonos blancos y naranjas" /></div>
