@@ -25,6 +25,7 @@ type State = {
   unlocked: number[]; opened: number[]; ability: number; cooldown: number; reload: number; notice: string; noticeId: number; prompt: string; outside: boolean;
   feed: { id: number; text: string }[]; shots: number; hits: number; round: number; spawn: number; muted: boolean; quality: boolean; sensitivity: number;
   respawn: number; deaths: number; playerName: string; netStatus: string; lobby: { id: string; name: string; slot: number }[];
+  matchMode: 'pvp' | 'coop'; winner: string; placement: number; pkills: number; alive: number; spectating: string;
   start: () => void; notify: (text: string) => void; pushFeed: (text: string) => void;
 };
 
@@ -32,9 +33,9 @@ let feedId = 0;
 export const useDrop = create<State>((set) => ({
   phase: 'menu', hp: 100, shield: 100, ammo: 20, weapon: 0, kills: 0, time: 0, radius: 48, credits: 0, unlocked: [0], opened: [], ability: 0, cooldown: 0, reload: 0,
   notice: '', noticeId: 0, prompt: '', outside: false, feed: [], shots: 0, hits: 0, round: 0, spawn: 0, muted: false, quality: true, sensitivity: 1,
-  respawn: 0, deaths: 0, playerName: '', netStatus: '', lobby: [],
+  respawn: 0, deaths: 0, playerName: '', netStatus: '', lobby: [], matchMode: 'pvp', winner: '', placement: 0, pkills: 0, alive: 0, spectating: '',
   start: () => set(s => ({ phase: 'play', hp: 100, shield: 100, ammo: 20, weapon: 0, kills: 0, time: 0, radius: 48, credits: 0, unlocked: [0], opened: [], cooldown: 0, reload: 0,
-    notice: 'CÁPSULA EN CAÍDA · PROTECCIÓN ACTIVA', noticeId: s.noticeId + 1, prompt: '', outside: false, feed: [], shots: 0, hits: 0, respawn: 0, deaths: 0, round: s.round + 1 })),
+    notice: 'CÁPSULA EN CAÍDA · PROTECCIÓN ACTIVA', noticeId: s.noticeId + 1, prompt: '', outside: false, feed: [], shots: 0, hits: 0, respawn: 0, deaths: 0, winner: '', placement: 0, pkills: 0, alive: 0, spectating: '', round: s.round + 1 })),
   notify: text => set(s => ({ notice: text, noticeId: s.noticeId + 1 })),
   pushFeed: text => set(s => ({ feed: [...s.feed.slice(-3), { id: ++feedId, text }] })),
 }));

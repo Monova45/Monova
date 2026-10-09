@@ -11,7 +11,7 @@ import { PostFX } from './effects';
 import { Hud } from './hud';
 import { sfx } from './audio';
 import { TOTAL_BUGS, abilities, districts, grade, useDrop, weapons } from './state';
-import { DEFAULT_CODE, MAX_PLAYERS, joinRoom, leaveRoom, net, onNet, send, slotColors } from './net';
+import { DEFAULT_CODE, MAX_PLAYERS, joinRoom, leaveRoom, net, onNet, send, setMatchMode, slotColors } from './net';
 import { RemotePlayers } from './remote';
 import styles from './game.module.css';
 
@@ -50,21 +50,25 @@ function Lighting({ quality }: { quality: boolean }) {
 export default function DigitalDrop() {
   const phase = useDrop(s => s.phase), round = useDrop(s => s.round), spawn = useDrop(s => s.spawn), muted = useDrop(s => s.muted), quality = useDrop(s => s.quality);
   const ability = useDrop(s => s.ability), sensitivity = useDrop(s => s.sensitivity);
-  const lobby = useDrop(s => s.lobby), netStatus = useDrop(s => s.netStatus), playerName = useDrop(s => s.playerName);
+  const lobby = useDrop(s => s.lobby), netStatus = useDrop(s => s.netStatus), playerName = useDrop(s => s.playerName), matchMode = useDrop(s => s.matchMode);
   const [panel, setPanel] = useState('');
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState(DEFAULT_CODE);
   const online = lobby.length > 0, isHost = online && net.mode === 'host';
   const deploy = () => {
     if (online && !isHost) return;
-    if (isHost) send({ t: 'start', spawn: useDrop.getState().spawn });
+    if (isHost) {
+      // Battle royale needs at least two agents; a lone host plays co-op.
+      const mode = lobby.length > 1 ? matchMode : 'coop';
+      useDrop.setState({ matchMode: mode }); send({ t: 'start', spawn: useDrop.getState().spawn, mode });
+    }
     useDrop.getState().start(); lock();
   };
   useEffect(() => {
     try { const saved = localStorage.getItem('monova-drop-name'); if (saved) useDrop.setState({ playerName: saved }); } catch {}
     return onNet(msg => {
       if (msg.t !== 'start') return;
-      useDrop.setState({ spawn: msg.spawn }); useDrop.getState().start();
+      useDrop.setState({ spawn: msg.spawn, matchMode: msg.mode }); useDrop.getState().start();
       useDrop.getState().notify('PARTIDA INICIADA · HAZ CLIC PARA ACTIVAR LA CÁMARA');
     });
   }, []);
@@ -87,7 +91,7 @@ export default function DigitalDrop() {
     <div className={styles.vignette} />
     <header className={styles.header}>
       <Link href="/">MONOVA<span>/ 3D</span></Link>
-      <span>DIGITAL DROP · {online ? `CO-OP · SALA ${code} · ${lobby.length}/${MAX_PLAYERS}` : 'SINGLE PLAYER'}</span>
+      <span>DIGITAL DROP · {online ? `${matchMode === 'pvp' ? 'BATALLA' : 'CO-OP'} · SALA ${code} · ${lobby.length}/${MAX_PLAYERS}` : 'SINGLE PLAYER'}</span>
       <button onClick={() => { if (phase === 'play') { useDrop.setState({ phase: 'pause' }); document.exitPointerLock?.(); } else toMenu(); }}>{phase === 'menu' ? 'MENÚ' : 'PAUSA'}</button>
     </header>
 
@@ -103,14 +107,16 @@ export default function DigitalDrop() {
         </div>
         <div className={styles.links}>{['MULTIJUGADOR', 'ZONA', 'AGENTE', 'ARSENAL', 'AJUSTES', 'CONTROLES'].map(p => <button key={p} data-active={panel === p} onClick={() => togglePanel(p)}>{p}</button>)}</div>
         {panel && <div className={styles.panel}>
-          {panel === 'MULTIJUGADOR' && <><h3>MULTIJUGADOR · CO-OP</h3>
-            <p>Hasta {MAX_PLAYERS} agentes contra la infección. Comparte el código con tu equipo; quien entra primero es el anfitrión y elige la zona.</p>
+          {panel === 'MULTIJUGADOR' && <><h3>MULTIJUGADOR</h3>
+            <p>Hasta {MAX_PLAYERS} agentes. Comparte el código; quien entra primero es el anfitrión y elige el modo. En BATALLA cada uno cae en un distrito distinto.</p>
             <div className={styles.mpForm}>
               <label>NOMBRE<input value={playerName} maxLength={14} placeholder="AGENTE" disabled={online} onChange={e => setName(e.target.value.toUpperCase())} /></label>
               <label>CÓDIGO<input value={code} maxLength={8} inputMode="numeric" disabled={online} onChange={e => setCode(e.target.value.replace(/\s/g, ''))} /></label>
             </div>
             {online ? <button className={styles.wide} onClick={() => { sfx.ui(); leaveRoom(); }}>SALIR DE LA SALA</button>
               : <button className={styles.wide} disabled={!code || netStatus === 'CONECTANDO…'} onClick={() => { sfx.ui(); void joinRoom(code, playerName || 'AGENTE'); }}>{netStatus === 'CONECTANDO…' ? 'CONECTANDO…' : 'UNIRSE A LA SALA'}</button>}
+            {online && <div className={styles.modes}>{([['pvp', 'BATALLA', 'Todos contra todos · último en pie gana'], ['coop', 'CO-OP', 'Equipo contra los Bugs']] as const).map(([id, label, detail]) =>
+              <button key={id} data-active={matchMode === id} disabled={!isHost} onClick={() => { sfx.ui(); setMatchMode(id); }}><b>{label}</b><small>{detail}</small></button>)}</div>}
             {netStatus && <small className={styles.netStatus}>{netStatus}</small>}
             {online && (isHost
               ? <button className={styles.primary} style={{ width: '100%', marginTop: 12 }} disabled={!ready} onClick={() => { sfx.ui(); deploy(); }}>INICIAR PARTIDA · {lobby.length}/{MAX_PLAYERS} <b>↗</b></button>
@@ -146,7 +152,21 @@ export default function DigitalDrop() {
 
 function Results({ won, onRetry, onMenu, waiting }: { won: boolean; onRetry: () => void; onMenu: () => void; waiting: boolean }) {
   const kills = useDrop(s => s.kills), credits = useDrop(s => s.credits), time = useDrop(s => s.time), shots = useDrop(s => s.shots), hits = useDrop(s => s.hits), hp = useDrop(s => s.hp);
+  const pvp = useDrop(s => s.matchMode) === 'pvp' && net.mode !== 'solo', winner = useDrop(s => s.winner), placement = useDrop(s => s.placement), pkills = useDrop(s => s.pkills);
   const accuracy = shots ? hits / shots : 0, rank = grade(kills, accuracy, hp, won);
+  if (pvp) return <div className={styles.overlay} data-result={won ? 'win' : 'over'}>
+    <p className={styles.eyebrow}>MONOVA / DIGITAL DROP · BATALLA</p>
+    <h2>{won ? 'ÚLTIMO EN PIE.' : 'ELIMINADO.'}</h2>
+    <p>{won ? '¡Ganaste la batalla! IDEAS THAT WORK.' : `Ganador: ${winner || 'AGENTE'}`}</p>
+    <div className={styles.results}>
+      <div className={styles.rank}><small>PUESTO</small><strong data-rank={won ? 'S' : 'A'}>#{won ? 1 : placement || 2}</strong></div>
+      <div><small>ELIMINACIONES</small><strong>{pkills}</strong></div>
+      <div><small>BUGS</small><strong>{kills}</strong></div>
+      <div><small>PRECISIÓN</small><strong>{Math.round(accuracy * 100)}<em>%</em></strong></div>
+      <div><small>TIEMPO</small><strong>{Math.floor(time)}<em>s</em></strong></div>
+    </div>
+    <div className={styles.overlayActions}><button className={styles.primary} disabled={waiting} onClick={onRetry}>{waiting ? 'ESPERANDO ANFITRIÓN' : 'REVANCHA'}</button><button onClick={onMenu}>MENÚ</button></div>
+  </div>;
   return <div className={styles.overlay} data-result={won ? 'win' : 'over'}>
     <p className={styles.eyebrow}>MONOVA / DIGITAL DROP · {won ? 'MISIÓN CUMPLIDA' : 'MISIÓN FALLIDA'}</p>
     <h2>{won ? 'SYSTEM CLEAN.' : 'CONEXIÓN PERDIDA.'}</h2>

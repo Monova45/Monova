@@ -179,6 +179,18 @@
 .waitHost{display:flex;align-items:center;gap:10px;margin:12px 0 0!important;padding:12px;border:1px dashed #ffffff30;font-size:10px;letter-spacing:2px;color:var(--accent-hot)!important}
 .waitHost i{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;animation:pulse 1.2s infinite}
 
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.modes button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:10px 12px}
+.modes button b{font-size:12px;letter-spacing:3px}
+.modes button small{font-size:9px;color:var(--muted);letter-spacing:0}
+.modes button[data-active="true"]{border-color:var(--accent);background:#ff7a0016}
+.modes button[data-active="true"] b{color:var(--accent)}
+.modes button:disabled{cursor:default;opacity:1}
+.modes button:disabled:not([data-active="true"]){opacity:.4}
+.spectate{position:absolute;bottom:150px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 24px;background:var(--glass);border:1px solid #ff3b3b66}
+.spectate small{font-size:9px;letter-spacing:4px;color:#ff8a7a}
+.spectate strong{font-size:14px;letter-spacing:3px}
+
 /* Overlays */
 .overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;background:radial-gradient(ellipse at center,#0a1422dd,#04070cf2);backdrop-filter:blur(6px);animation:fadeIn .4s ease both}
 .overlay h2{font-family:var(--display);font-size:clamp(44px,7vw,110px);letter-spacing:-.05em;line-height:.9;margin:8px 0;font-weight:900}

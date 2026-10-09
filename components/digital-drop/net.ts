@@ -8,13 +8,14 @@ export const MAX_PLAYERS = 5;
 export const DEFAULT_CODE = '4321';
 export const slotColors = ['#ff8737', '#2fd4ff', '#b45cff', '#5dff9d', '#ffd23f'];
 
+export type MatchMode = 'pvp' | 'coop';
 export type LobbyPlayer = { id: string; name: string; slot: number };
 export type PlayerSnapshot = { id: string; x: number; y: number; z: number; yaw: number; hp: number; alive: boolean; w: number };
 export type Msg =
   | { t: 'hello'; name: string }
   | { t: 'full' }
-  | { t: 'lobby'; players: LobbyPlayer[] }
-  | { t: 'start'; spawn: number }
+  | { t: 'lobby'; players: LobbyPlayer[]; mode: MatchMode }
+  | { t: 'start'; spawn: number; mode: MatchMode }
   | { t: 'state'; s: PlayerSnapshot }
   | { t: 'shot'; id: string; from: number[]; to: number[]; w: number }
   | { t: 'hit'; bug: number; dmg: number; by: string }
@@ -22,7 +23,10 @@ export type Msg =
   | { t: 'kill'; bug: number; by: string }
   | { t: 'orb'; p: number[]; v: number[] }
   | { t: 'end'; result: 'win' | 'over' }
-  | { t: 'bye'; id: string };
+  | { t: 'bye'; id: string }
+  | { t: 'pvp'; target: string; dmg: number; by: string; x: number; z: number }
+  | { t: 'down'; id: string; by: string }
+  | { t: 'winner'; id: string };
 
 /** Remote players, mutated in place by the network layer and read every frame by the renderer. */
 export type Remote = PlayerSnapshot & { name: string; slot: number; seen: number; target: { x: number; y: number; z: number } };
@@ -62,12 +66,12 @@ function applyLobby(players: LobbyPlayer[]) {
 }
 
 function receive(msg: Msg, from?: string) {
-  if (msg.t === 'lobby') applyLobby(msg.players);
+  if (msg.t === 'lobby') { applyLobby(msg.players); useDrop.setState({ matchMode: msg.mode }); }
   if (msg.t === 'state') {
     const r = remotes.get(msg.s.id);
     if (r) { Object.assign(r, { yaw: msg.s.yaw, hp: msg.s.hp, alive: msg.s.alive, w: msg.s.w, seen: performance.now() }); r.target = { x: msg.s.x, y: msg.s.y, z: msg.s.z }; if (r.y < -40) { r.x = msg.s.x; r.y = msg.s.y; r.z = msg.s.z; } }
   }
-  if (net.mode === 'host' && from && (msg.t === 'state' || msg.t === 'shot')) clients.forEach((c, id) => id !== from && c.open && c.send(msg));
+  if (net.mode === 'host' && from && (msg.t === 'state' || msg.t === 'shot' || msg.t === 'pvp' || msg.t === 'down')) clients.forEach((c, id) => id !== from && c.open && c.send(msg));
   listeners.forEach(fn => fn(msg));
 }
 
@@ -80,7 +84,7 @@ function hostConnection(conn: DataConnection) {
       const slot = [1, 2, 3, 4].find(n => !used.has(n)) ?? 4;
       clients.set(conn.peer, conn);
       remotes.set(conn.peer, { id: conn.peer, name: msg.name.slice(0, 14) || `AGENTE ${slot + 1}`, slot, x: 0, y: -50, z: 0, yaw: 0, hp: 100, alive: true, w: 0, seen: 0, target: { x: 0, y: -50, z: 0 } });
-      const players = lobby(); applyLobby(players); send({ t: 'lobby', players });
+      const players = lobby(); applyLobby(players); send({ t: 'lobby', players, mode: useDrop.getState().matchMode });
       useDrop.getState().pushFeed(`${msg.name.toUpperCase()} SE UNIÓ`);
       return;
     }
@@ -90,7 +94,7 @@ function hostConnection(conn: DataConnection) {
     if (!clients.has(conn.peer)) return;
     const name = remotes.get(conn.peer)?.name ?? 'AGENTE';
     clients.delete(conn.peer); remotes.delete(conn.peer);
-    const players = lobby(); applyLobby(players); send({ t: 'lobby', players }); send({ t: 'bye', id: conn.peer });
+    const players = lobby(); applyLobby(players); send({ t: 'lobby', players, mode: useDrop.getState().matchMode }); send({ t: 'bye', id: conn.peer });
     useDrop.getState().pushFeed(`${name.toUpperCase()} SALIÓ`);
   };
   conn.on('close', drop); conn.on('error', drop);
@@ -150,6 +154,12 @@ export async function joinRoom(code: string, name: string) {
     if (type === 'unavailable-id') return joinRoom(code, name);
     leaveRoom(false); status(type === 'network' || type === 'server-error' ? 'SIN CONEXIÓN AL SERVIDOR DE SALAS' : 'NO SE PUDO CONECTAR');
   }
+}
+
+/** Host-only: switch between battle royale and co-op and tell the lobby. */
+export function setMatchMode(mode: MatchMode) {
+  useDrop.setState({ matchMode: mode });
+  if (net.mode === 'host') send({ t: 'lobby', players: lobby(), mode });
 }
 
 export function leaveRoom(reset = true) {

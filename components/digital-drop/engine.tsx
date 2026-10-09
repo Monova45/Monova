@@ -31,7 +31,7 @@ export function Engine() {
   const wall = useRef<THREE.Mesh>(null), shieldMesh = useRef<THREE.Mesh>(null), scanMesh = useRef<THREE.Mesh>(null), lids = useRef<(THREE.Group | null)[]>([]), beacons = useRef<(THREE.Mesh | null)[]>([]);
   const keys = useRef(new Set<string>());
   const mouse = useRef({ yaw: 0, pitch: .18, fire: false, aim: false });
-  const timer = useRef({ fire: 0, reload: 0, flush: 0, shield: 0, boost: 0, scan: 0, flash: 0, hurtSound: 0, landed: false, fallSpeed: 0, protect: PROTECTION, sync: 0, bugSync: 0, dead: false, respawn: 0, ended: false });
+  const timer = useRef({ fire: 0, reload: 0, flush: 0, shield: 0, boost: 0, scan: 0, flash: 0, hurtSound: 0, landed: false, fallSpeed: 0, protect: PROTECTION, sync: 0, bugSync: 0, dead: false, respawn: 0, ended: false, lastBy: '', watching: '' });
   const run = useRef({ hp: 100, shield: 100, kills: 0, time: 0, cooldown: 0, outside: false, prompt: '' });
   const opened = useRef(new Set<number>());
   // Bugs get tougher with more players; every peer derives the same value from the lobby size.
@@ -45,7 +45,13 @@ export function Engine() {
   const kindColors = useMemo(() => kinds.map(k => new THREE.Color(k.color).multiplyScalar(4)), []);
   const firewall = useMemo(() => firewallMaterial(), []);
   const slot = useDrop.getState().lobby.find(p => p.id === net.id)?.slot ?? 0;
-  const spawn = useMemo(() => { const [x, z] = spawns[useDrop.getState().spawn]; return [x + (slot % 3 - 1) * 2.5, z + (slot > 2 ? 2.5 : 0)]; }, [slot]);
+  // Battle royale: online + PvP mode. Each player drops into a different district; co-op drops the squad together.
+  const pvp = net.mode !== 'solo' && useDrop.getState().matchMode === 'pvp';
+  const spawn = useMemo(() => {
+    if (pvp) { const [x, z] = spawns[slot % spawns.length]; return [x - 2, z + 2]; }
+    const [x, z] = spawns[useDrop.getState().spawn]; return [x + (slot % 3 - 1) * 2.5, z + (slot > 2 ? 2.5 : 0)];
+  }, [slot, pvp]);
+  const incoming = useRef<{ dmg: number; by: string; x: number; z: number }[]>([]);
   const killBug = useRef<(i: number, by: string) => void>(() => {});
   const finish = (result: 'win' | 'over') => {
     if (timer.current.ended) return;
@@ -109,6 +115,14 @@ export function Engine() {
       });
       if (msg.t === 'orb' && net.mode === 'client') orbs.current.push({ p: new THREE.Vector3().fromArray(msg.p), v: new THREE.Vector3().fromArray(msg.v), life: 3 });
       if (msg.t === 'end') finish(msg.result);
+      if (msg.t === 'pvp' && msg.target === net.id) incoming.current.push(msg);
+      if (msg.t === 'down') {
+        const victim = msg.id === net.id ? 'TÚ' : remotes.get(msg.id)?.name ?? 'AGENTE', killer = msg.by === net.id ? 'TÚ' : remotes.get(msg.by)?.name ?? 'LA INFECCIÓN';
+        useDrop.getState().pushFeed(`${killer} ▸ ${victim}`.toUpperCase());
+        if (msg.by === net.id && msg.id !== net.id) { emitHud('kill'); sfx.kill(); useDrop.setState(st => ({ pkills: st.pkills + 1, credits: st.credits + 150 })); }
+        const r = remotes.get(msg.id); if (r) { r.alive = false; burst(r.x, r.y, r.z, 50, '#ff8737', 10, .2); shockwave(r.x, .1, r.z, '#ff3b3b', 6); }
+      }
+      if (msg.t === 'winner') { useDrop.setState({ winner: msg.id === net.id ? useDrop.getState().playerName || 'TÚ' : remotes.get(msg.id)?.name ?? 'AGENTE' }); finish(msg.id === net.id ? 'win' : 'over'); }
     });
     return () => {
       offNet();
@@ -154,7 +168,10 @@ export function Engine() {
 
     // Over-the-shoulder camera with collision, FOV kicks and shake.
     const distance = m.aim ? 2.6 : 5.2, shoulder = m.aim ? .75 : 1;
-    const target = tmp.target.set(p.x, p.y + .9, p.z).addScaledVector(right, shoulder);
+    const watched = t.dead && pvp ? [...remotes.values()].find(x => x.alive && x.y > -40) : undefined;
+    if (watched?.name !== t.watching) { t.watching = watched?.name ?? ''; useDrop.setState({ spectating: t.watching }); }
+    const focus = watched ?? p;
+    const target = tmp.target.set(focus.x, focus.y + .9, focus.z).addScaledVector(right, shoulder);
     const back = tmp.cam.set(Math.sin(m.yaw) * Math.cos(m.pitch), Math.sin(m.pitch), Math.cos(m.yaw) * Math.cos(m.pitch));
     const hit = world.castRay(new rapier.Ray(target, back), distance, true, undefined, undefined, undefined, body.current ?? undefined);
     const desired = target.clone().addScaledVector(back, hit ? Math.max(.6, hit.timeOfImpact - .25) : distance);
@@ -166,16 +183,20 @@ export function Engine() {
     if (Math.abs(cam.fov - fov) > .05) { cam.fov = THREE.MathUtils.damp(cam.fov, fov, 10, dt); cam.updateProjectionMatrix(); }
 
     // Damage helper: shield first, then health, with screen feedback.
-    const damage = (amount: number, fromX?: number, fromZ?: number) => {
+    const damage = (amount: number, fromX?: number, fromZ?: number, by?: string) => {
       if (t.shield > 0 || t.protect > 0 || t.dead) return;
+      if (by) t.lastBy = by;
       const next = absorbDamage(r.hp, r.shield, amount); r.hp = next.hp; r.shield = next.shield;
       screen.hurt = Math.min(1, screen.hurt + amount / 18); screen.shake = Math.max(screen.shake, amount / 30);
       if (fromX !== undefined && fromZ !== undefined) emitHud('hurt', Math.atan2(fromX - p.x, fromZ - p.z) - m.yaw);
       if (t.hurtSound <= 0) { sfx.hurt(); t.hurtSound = .25; }
     };
 
-    // Firewall.
-    const radius = firewallRadius(r.time), outside = Math.hypot(p.x, p.z) > radius;
+    // Hits from other players arrive through the network and are applied by the victim.
+    incoming.current.splice(0).forEach(h => damage(h.dmg, h.x, h.z, h.by));
+
+    // Firewall (closes faster in battle royale to force encounters).
+    const radius = firewallRadius(r.time * (pvp ? 1.5 : 1)), outside = Math.hypot(p.x, p.z) > radius;
     if (outside) { damage(dt * 10); screen.hurt = Math.max(screen.hurt, .25); }
     if (outside !== r.outside) { r.outside = outside; useDrop.setState({ outside }); }
     if (p.y < -8) r.hp = 0;
@@ -184,9 +205,14 @@ export function Engine() {
     if (r.hp <= 0 && !t.dead && online) {
       t.dead = true; t.respawn = RESPAWN; useDrop.setState(st => ({ deaths: st.deaths + 1 }));
       burst(p.x, p.y, p.z, 50, '#ff8737', 10, .2); shockwave(p.x, .1, p.z, '#ff3b3b', 6); sfx.lose();
-      s.notify('AGENTE CAÍDO · REDESPLIEGUE EN CURSO');
+      if (pvp) {
+        const placement = 1 + [...remotes.values()].filter(x => x.alive && x.y > -40).length;
+        useDrop.setState({ placement }); send({ t: 'down', id: net.id, by: t.lastBy });
+        useDrop.getState().pushFeed(`${t.lastBy ? (remotes.get(t.lastBy)?.name ?? 'AGENTE') : 'LA INFECCIÓN'} ▸ TÚ`.toUpperCase());
+        s.notify(`ELIMINADO · PUESTO #${placement} · MODO ESPECTADOR`);
+      } else s.notify('AGENTE CAÍDO · REDESPLIEGUE EN CURSO');
     }
-    if (t.dead) {
+    if (t.dead && !pvp) {
       t.respawn -= dt;
       if (t.respawn <= 0) {
         t.dead = false; t.landed = false; t.protect = 4; r.hp = 70; r.shield = 50;
@@ -233,6 +259,12 @@ export function Engine() {
           const rel = tmp.v.set(b.x - origin.x, b.y - origin.y, b.z - origin.z), along = rel.dot(aim);
           if (along > 0 && along < nearest && rel.addScaledVector(aim, -along).length() < kinds[b.kind].scale * 1.15) { nearest = along; index = i; }
         });
+        let victim: string | undefined;
+        if (pvp) remotes.forEach(x => {
+          if (!x.alive || x.y < -40) return;
+          const rel = tmp.v.set(x.x - origin.x, x.y + .15 - origin.y, x.z - origin.z), along = rel.dot(aim);
+          if (along > 0 && along < nearest && rel.addScaledVector(aim, -along).length() < .7) { nearest = along; index = -1; victim = x.id; }
+        });
         const impact = tmp.cam.copy(origin).addScaledVector(aim, nearest);
         const gun = tmp.target.set(.44, -.1, -.65).applyAxisAngle(UP, cat.current?.rotation.y ?? m.yaw).add(p as THREE.Vector3Like);
         tracer(gun, impact, w.color, s.weapon === 4 ? .07 : s.weapon === 2 ? .09 : .035);
@@ -253,9 +285,13 @@ export function Engine() {
           const lethal = enemy.hp <= w.damage * (s.weapon === 3 ? 1.5 : 1);
           hurtBug(enemy, w.damage * (s.weapon === 3 ? 1.5 : 1));
           if (!lethal) { sfx.hit(); emitHud('hit'); }
+        } else if (victim) {
+          hits++; burst(impact.x, impact.y, impact.z, 10, '#ff3b3b', 5); sfx.hit(); emitHud('hit');
+          send({ t: 'pvp', target: victim, dmg: w.damage, by: net.id, x: round1(p.x), z: round1(p.z) });
         } else if (wallHit) { burst(impact.x, impact.y, impact.z, 6, w.color, 4, .1); sfx.impact(); }
         if (s.weapon === 2) {
           shockwave(impact.x, Math.max(.15, impact.y), impact.z, w.color, 5); burst(impact.x, impact.y, impact.z, 20, w.color, 9);
+          if (pvp) remotes.forEach(x => { if (x.id !== victim && x.alive && Math.hypot(x.x - impact.x, x.z - impact.z) < 3.5) send({ t: 'pvp', target: x.id, dmg: 30, by: net.id, x: round1(p.x), z: round1(p.z) }); });
           bugs.current.forEach(b => { if (b !== bugs.current[index] && b.hp > 0 && Math.hypot(b.x - impact.x, b.z - impact.z) < 5) hurtBug(b, 45); });
         }
         if (online) send({ t: 'shot', id: net.id, from: gun.toArray().map(round1), to: impact.toArray().map(round1), w: s.weapon });
@@ -381,7 +417,7 @@ export function Engine() {
 
     // HUD sync at 10 Hz (and immediately on kills) instead of every frame.
     radar.x = p.x; radar.z = p.z; radar.yaw = m.yaw;
-    radar.mates = [...remotes.values()].filter(x => x.alive && x.y > -40).map(x => ({ x: x.x, z: x.z, slot: x.slot }));
+    radar.mates = pvp ? [] : [...remotes.values()].filter(x => x.alive && x.y > -40).map(x => ({ x: x.x, z: x.z, slot: x.slot }));
     if (online) {
       t.sync -= dt; t.bugSync -= dt;
       if (t.sync <= 0) { t.sync = 1 / 15; send({ t: 'state', s: { id: net.id, x: round1(p.x), y: round1(p.y), z: round1(p.z), yaw: Math.round(m.yaw * 100) / 100, hp: Math.round(r.hp), alive: !t.dead, w: s.weapon } }); }
@@ -390,10 +426,16 @@ export function Engine() {
     t.flush -= dt;
     const solo = matchResult(r.hp, r.kills, radius);
     const wiped = online && authority && t.dead && [...remotes.values()].every(x => !x.alive);
-    const result = online ? (r.kills >= TOTAL_BUGS && radius <= 8 ? 'win' : wiped ? 'over' : null) : solo;
+    const result = pvp ? null : online ? (r.kills >= TOTAL_BUGS && radius <= 8 ? 'win' : wiped ? 'over' : null) : solo;
+    // Battle royale: the host declares the last agent standing.
+    const standing = [...(t.dead ? [] : [net.id]), ...[...remotes.values()].filter(x => x.alive).map(x => x.id)];
+    if (pvp && authority && r.time > 4 && standing.length <= 1 && !t.ended) {
+      const id = standing[0] ?? t.lastBy ?? net.id;
+      send({ t: 'winner', id }); useDrop.setState({ winner: id === net.id ? s.playerName || 'TÚ' : remotes.get(id)?.name ?? 'AGENTE' }); finish(id === net.id ? 'win' : 'over');
+    }
     if (t.flush <= 0 || r.kills !== s.kills || result) {
       t.flush = .1;
-      useDrop.setState({ hp: Math.max(0, r.hp), shield: r.shield, time: r.time, radius, kills: r.kills, cooldown: r.cooldown, reload: t.reload > 0 ? 1 - t.reload / 1.3 : 0, respawn: t.dead ? Math.ceil(t.respawn) : 0 });
+      useDrop.setState({ hp: Math.max(0, r.hp), shield: r.shield, time: r.time, radius, kills: r.kills, cooldown: r.cooldown, reload: t.reload > 0 ? 1 - t.reload / 1.3 : 0, respawn: t.dead && !pvp ? Math.ceil(t.respawn) : 0, alive: standing.length });
     }
     if (result) { if (online && authority) send({ t: 'end', result }); finish(result); }
   });

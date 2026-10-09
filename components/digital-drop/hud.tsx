@@ -110,10 +110,12 @@ function Team() {
   const lobby = useDrop(s => s.lobby);
   const [, tick] = useState(0);
   useEffect(() => { const id = setInterval(() => tick(n => n + 1), 250); return () => clearInterval(id); }, []);
+  const rivals = useDrop(s => s.matchMode) === 'pvp';
   const mates = lobby.filter(p => p.id !== net.id);
   if (!mates.length) return null;
   return <div className={styles.team}>{mates.map(p => {
     const r = remotes.get(p.id), hp = r?.hp ?? 0, down = !r?.alive;
+    if (rivals) return <div key={p.id} data-down={down}><i style={{ background: slotColors[p.slot] }} /><span>{p.name || 'AGENTE'}</span><b>{down ? 'CAÍDO' : 'VIVO'}</b></div>;
     return <div key={p.id} data-down={down}><i style={{ background: slotColors[p.slot] }} /><span>{p.name || 'AGENTE'}</span><b>{down ? 'CAÍDO' : Math.ceil(hp)}</b><em><u style={{ width: `${down ? 0 : hp}%`, background: slotColors[p.slot] }} /></em></div>;
   })}</div>;
 }
@@ -122,12 +124,14 @@ export function Hud() {
   const hp = useDrop(s => s.hp), shield = useDrop(s => s.shield), kills = useDrop(s => s.kills), time = useDrop(s => s.time), radius = useDrop(s => s.radius);
   const weapon = useDrop(s => s.weapon), ammo = useDrop(s => s.ammo), unlocked = useDrop(s => s.unlocked), ability = useDrop(s => s.ability), cooldown = useDrop(s => s.cooldown);
   const notice = useDrop(s => s.notice), noticeId = useDrop(s => s.noticeId), prompt = useDrop(s => s.prompt), outside = useDrop(s => s.outside), feed = useDrop(s => s.feed), credits = useDrop(s => s.credits);
-  const respawn = useDrop(s => s.respawn);
-  const w = weapons[weapon], closing = Math.max(0, (radius - 8) / .23);
+  const respawn = useDrop(s => s.respawn), alive = useDrop(s => s.alive), spectating = useDrop(s => s.spectating), lobbySize = useDrop(s => s.lobby.length);
+  const pvp = useDrop(s => s.matchMode) === 'pvp' && net.mode !== 'solo';
+  const w = weapons[weapon], closing = Math.max(0, (radius - 8) / .23 / (pvp ? 1.5 : 1));
   return <div className={styles.hud}>
     <DamageLayer />
     <div className={styles.objective}>
-      <div><small>BUGS</small><strong>{TOTAL_BUGS - kills}</strong><span>/ {TOTAL_BUGS}</span></div>
+      {pvp ? <div><small>VIVOS</small><strong>{alive}</strong><span>/ {lobbySize}</span></div>
+        : <div><small>BUGS</small><strong>{TOTAL_BUGS - kills}</strong><span>/ {TOTAL_BUGS}</span></div>}
       <div className={styles.divider} />
       <div><small>FIREWALL</small><strong>{Math.round(radius)}<em>m</em></strong><span>{closing > 0 ? clock(closing) : 'CERRADO'}</span></div>
       <div className={styles.divider} />
@@ -136,6 +140,7 @@ export function Hud() {
     {outside && <div className={styles.warning}>⚠ FUERA DEL FIREWALL · REGRESA A LA ZONA SEGURA</div>}
     <Minimap />
     <Team />
+    {pvp && hp <= 0 && <div className={styles.spectate}><small>ELIMINADO · MODO ESPECTADOR</small><strong>{spectating ? `VIENDO A ${spectating.toUpperCase()}` : 'ESPERANDO RESULTADO'}</strong></div>}
     {respawn > 0 && <div className={styles.respawn}><small>AGENTE CAÍDO</small><strong>{respawn}</strong><span>REDESPLIEGUE EN CURSO · TU EQUIPO SIGUE LUCHANDO</span></div>}
     <div className={styles.feed}>{feed.map(f => <p key={f.id}>{f.text}</p>)}</div>
     <Crosshair />
