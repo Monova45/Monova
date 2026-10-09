@@ -129,7 +129,7 @@ export default function DigitalDrop() {
                 <button className={styles.wide} disabled={busy} onClick={() => { sfx.ui(); void createRoom().then(c => { if (c) setCode(c); }); }}>{netStatus === 'CREANDO SALA…' ? 'CREANDO…' : 'CREAR SALA NUEVA'}</button>
               </div>}
             {online && !isHost && <small className={styles.netStatus} style={{ color: 'var(--muted)' }}>MODO ELEGIDO POR EL ANFITRIÓN</small>}
-            {online && <div className={styles.modes}>{([['pvp', 'BATALLA', 'Todos contra todos · último en pie gana'], ['coop', 'CO-OP', 'Equipo contra los Bugs']] as const).map(([id, label, detail]) =>
+            {online && <div className={styles.modes}>{([['pvp', 'BATALLA', 'Solo jugadores, sin Bugs · último en pie gana'], ['coop', 'CO-OP', 'Equipo contra los Bugs']] as const).map(([id, label, detail]) =>
               <button key={id} data-active={matchMode === id} disabled={!isHost} onClick={() => { sfx.ui(); setMatchMode(id); }}><b>{label}</b><small>{detail}</small></button>)}</div>}
             {netStatus && <small className={styles.netStatus}>{netStatus}</small>}
             {online && <small className={styles.netStatus} style={{ color: 'var(--muted)' }}>{matchMode === 'pvp' && lobby.length < 2 ? 'BATALLA NECESITA MÍNIMO 2 JUGADORES · SOLO SE JUGARÁ CO-OP' : `DE 2 A ${MAX_PLAYERS} JUGADORES · PUEDES INICIAR CUANDO QUIERAS`}</small>}
@@ -176,7 +176,6 @@ function Results({ won, onRetry, onMenu, waiting }: { won: boolean; onRetry: () 
     <div className={styles.results}>
       <div className={styles.rank}><small>PUESTO</small><strong data-rank={won ? 'S' : 'A'}>#{won ? 1 : placement || 2}</strong></div>
       <div><small>ELIMINACIONES</small><strong>{pkills}</strong></div>
-      <div><small>BUGS</small><strong>{kills}</strong></div>
       <div><small>PRECISIÓN</small><strong>{Math.round(accuracy * 100)}<em>%</em></strong></div>
       <div><small>TIEMPO</small><strong>{Math.floor(time)}<em>s</em></strong></div>
     </div>

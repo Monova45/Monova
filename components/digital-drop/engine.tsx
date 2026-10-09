@@ -36,8 +36,10 @@ export function Engine() {
   const opened = useRef(new Set<number>());
   // Bugs get tougher with more players; every peer derives the same value from the lobby size.
   const hpScale = 1 + .35 * Math.max(0, useDrop.getState().lobby.length - 1);
+  // Battle royale is players only: Bugs start dead, so they never render, move, attack or show on the radar.
+  const noBugs = net.mode !== 'solo' && useDrop.getState().matchMode === 'pvp';
   const bugs = useRef<Bug[]>(Array.from({ length: TOTAL_BUGS }, (_, i) => {
-    const x = Math.cos(i * 2.4) * (16 + i), z = Math.sin(i * 2.4) * (16 + i), hp = kinds[i % 4].hp * hpScale;
+    const x = Math.cos(i * 2.4) * (16 + i), z = Math.sin(i * 2.4) * (16 + i), hp = noBugs ? 0 : kinds[i % 4].hp * hpScale;
     return { x, z, tx: x, tz: z, y: 0, hp, max: hp, kind: i % 4, attack: 1 + i * .1, melee: 0, flash: 0, dying: -1, phase: i * 1.7 };
   }));
   const orbs = useRef<Orb[]>([]);
@@ -71,7 +73,7 @@ export function Engine() {
       if (mine) { emitHud('kill'); screen.shake = Math.max(screen.shake, .25); useDrop.setState(st => ({ credits: st.credits + 50 })); useDrop.getState().pushFeed(`${enemyKinds[b.kind]} ELIMINADO · +50`); }
       else useDrop.getState().pushFeed(`${(remotes.get(by)?.name ?? 'ALIADO').toUpperCase()} ▸ ${enemyKinds[b.kind]}`);
     };
-    radar.bugs = bugs.current.map(b => ({ x: b.x, z: b.z, alive: true }));
+    radar.bugs = bugs.current.map(b => ({ x: b.x, z: b.z, alive: b.hp > 0 }));
     const switchWeapon = (n: number) => {
       const s = useDrop.getState(); if (!s.unlocked.includes(n) || n === s.weapon) return;
       useDrop.setState({ weapon: n, ammo: 0 }); s.notify(`${weapons[n].name.toUpperCase()} · RECARGANDO`); timer.current.reload = 0; sfx.ui();
