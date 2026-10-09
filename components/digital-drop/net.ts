@@ -66,7 +66,7 @@ function applyLobby(players: LobbyPlayer[]) {
 }
 
 function receive(msg: Msg, from?: string) {
-  if (msg.t === 'lobby') { applyLobby(msg.players); useDrop.setState({ matchMode: msg.mode }); }
+  if (msg.t === 'lobby') { applyLobby(msg.players); useDrop.setState({ matchMode: msg.mode ?? 'pvp' }); }
   if (msg.t === 'state') {
     const r = remotes.get(msg.s.id);
     if (r) { Object.assign(r, { yaw: msg.s.yaw, hp: msg.s.hp, alive: msg.s.alive, w: msg.s.w, seen: performance.now() }); r.target = { x: msg.s.x, y: msg.s.y, z: msg.s.z }; if (r.y < -40) { r.x = msg.s.x; r.y = msg.s.y; r.z = msg.s.z; } }

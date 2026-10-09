@@ -68,7 +68,7 @@ export default function DigitalDrop() {
     try { const saved = localStorage.getItem('monova-drop-name'); if (saved) useDrop.setState({ playerName: saved }); } catch {}
     return onNet(msg => {
       if (msg.t !== 'start') return;
-      useDrop.setState({ spawn: msg.spawn, matchMode: msg.mode }); useDrop.getState().start();
+      useDrop.setState({ spawn: msg.spawn, matchMode: msg.mode ?? 'pvp' }); useDrop.getState().start();
       useDrop.getState().notify('PARTIDA INICIADA · HAZ CLIC PARA ACTIVAR LA CÁMARA');
     });
   }, []);
@@ -115,6 +115,7 @@ export default function DigitalDrop() {
             </div>
             {online ? <button className={styles.wide} onClick={() => { sfx.ui(); leaveRoom(); }}>SALIR DE LA SALA</button>
               : <button className={styles.wide} disabled={!code || netStatus === 'CONECTANDO…'} onClick={() => { sfx.ui(); void joinRoom(code, playerName || 'AGENTE'); }}>{netStatus === 'CONECTANDO…' ? 'CONECTANDO…' : 'UNIRSE A LA SALA'}</button>}
+            {online && !isHost && <small className={styles.netStatus} style={{ color: 'var(--muted)' }}>MODO ELEGIDO POR EL ANFITRIÓN</small>}
             {online && <div className={styles.modes}>{([['pvp', 'BATALLA', 'Todos contra todos · último en pie gana'], ['coop', 'CO-OP', 'Equipo contra los Bugs']] as const).map(([id, label, detail]) =>
               <button key={id} data-active={matchMode === id} disabled={!isHost} onClick={() => { sfx.ui(); setMatchMode(id); }}><b>{label}</b><small>{detail}</small></button>)}</div>}
             {netStatus && <small className={styles.netStatus}>{netStatus}</small>}
