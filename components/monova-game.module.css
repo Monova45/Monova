@@ -91,3 +91,18 @@
   .wrap[data-immersive="true"] .touch{min-height:0}
 }
 @media(prefers-reduced-motion:reduce){.touch button{transition:none}}
+
+/* Locally hosted arcade lettering for the Halloween contest. */
+@font-face{font-family:MonovaArcade;src:url('/fonts/jersey-10.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+.intro h1,.titleCopy h2,.titlePromo,.titleStart,.cta h2{font-family:MonovaArcade,Impact,sans-serif;font-weight:400;letter-spacing:.01em}
+.intro h1{font-size:clamp(42px,6vw,76px);line-height:.95}
+.titleCopy{max-width:410px;gap:12px}
+.titleCopy h2{font-size:clamp(34px,5.7vw,66px);line-height:.86;color:#fff;text-shadow:2px 2px 0 #180b19,4px 4px 0 #180b19,5px 6px 0 #8d270b; -webkit-text-stroke:1px #180b19;paint-order:stroke fill}
+.titleCopy h2 span{display:block;color:#ffb323;text-shadow:2px 2px 0 #8b2508,4px 4px 0 #4c1208,6px 6px 0 #140918}
+.titleCopy p{font-size:clamp(9px,1.1vw,12px);letter-spacing:3px;color:#ffb52e}
+.titlePromo{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:0;background:none;border-radius:0;box-shadow:none;line-height:1}
+.titlePromo>span{font-size:clamp(23px,3.2vw,36px);color:#fff;text-shadow:2px 3px 0 #180b19}
+.titlePromo>b{display:block;padding:7px 12px 9px;color:#ffe95b;background:linear-gradient(180deg,#ff8618,#ee4006);border:2px solid #ffd741;border-radius:5px;font-size:clamp(30px,4.5vw,52px);font-weight:400;white-space:nowrap;text-shadow:2px 2px 0 #a83200,3px 4px 0 #7d2200;box-shadow:3px 4px 0 #741d07,0 0 18px #ff69094d}
+.titleStart{font-size:clamp(21px,2.5vw,28px);line-height:1;padding:11px 24px;background:linear-gradient(#ff9226,#ff5106);color:#fff;border:2px solid #ffc343;border-radius:7px;text-shadow:1px 2px 0 #ab3309;box-shadow:3px 4px 0 #6e200c}
+.cta h2{font-size:clamp(28px,3vw,38px)}
+@media(max-width:560px){.titleCopy{gap:8px;min-width:0}.titleCopy h2{font-size:clamp(29px,7vw,40px)}.titleCopy p{font-size:8px;letter-spacing:1.5px}.titlePromo>span{font-size:23px}.titlePromo>b{font-size:clamp(25px,6.2vw,34px);padding:5px 7px}.titleStart{font-size:21px;padding:9px 13px}.titleMascot{max-width:32%}.titleCopy a.titleStart{font-size:20px}}

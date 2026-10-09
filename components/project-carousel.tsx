@@ -18,10 +18,7 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
-  const cards: Project[] = [...projects,
-    { name: "Desarrollo Web", category: "MONOVA / SERVICIOS", description: "Sitios y plataformas a medida.", image: "", asset: "/assets/services-scene-web.jpg", url: "#servicios" },
-    { name: "Inteligencia Artificial", category: "MONOVA / SERVICIOS", description: "Soluciones inteligentes para tu negocio.", image: "", asset: "/assets/services-scene-ai.jpg", url: "#servicios" },
-  ];
+  const cards = projects;
   const slots = Array.from({ length: Math.max(16, cards.length) }, (_, index) => ({ project: cards[index % cards.length], duplicate: index >= cards.length }));
   return <div className={styles.portfolio}>
     <div ref={scene} className={styles.scene}>

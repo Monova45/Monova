@@ -5,9 +5,9 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { MonovaGame } from "@/components/monova-game";
 import styles from "@/components/monova-game.module.css";
 
-export const metadata: Metadata = { title: "Juega con Monova", description: "Ayuda a Monova a limpiar la montaña de zombies, calabazas y fantasmas este Halloween." };
+export const metadata: Metadata = { title: "Concurso Halloween | Gana una web con Monova", description: "Haz el mejor puntaje en el juego de Halloween de Monova y compite por una web 100% gratis. Supera las 3 montañas y demuestra lo que puedes lograr." };
 
-const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent("Hola Monova, jugué Juega con Monova y quiero conversar sobre un proyecto.")}`;
+const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent("Hola Monova, quiero conocer los detalles del concurso de Halloween para ganar una web 100% gratis.")}`;
 
 export default function GamePage() {
   return <main className={styles.page}>
@@ -17,13 +17,13 @@ export default function GamePage() {
     </header>
     <section className={styles.intro}>
       <p className={styles.kicker}>EDICIÓN HALLOWEEN 🎃</p>
-      <h1>Juega con <span>Monova</span></h1>
-      <p>Corre, salta entre las rocas y lanza calabazas para limpiar la montaña de zombies y fantasmas. También puedes caerles encima.</p>
+      <h1>Haz el mejor puntaje y <span>gana una web</span></h1>
+      <p>Este Halloween, juega con Monova y compite por una web 100% gratis. Supera las 3 montañas, derrota zombies y fantasmas y consigue tu mejor puntaje.</p>
     </section>
     <MonovaGame contact={contact} />
     <section className={styles.cta}>
-      <div><h2>¿Te divertiste?</h2><p>Imagina lo que podemos crear para tu marca.</p></div>
-      <a href={contact} target="_blank" rel="noreferrer">Hablemos <ArrowUpRight size={18}/></a>
+      <div><h2>Tu mejor puntaje puede ganar</h2><p>Una web 100% gratis está en juego. Escríbenos para conocer los detalles del concurso.</p></div>
+      <a href={contact} target="_blank" rel="noreferrer">Consultar el concurso <ArrowUpRight size={18}/></a>
     </section>
   </main>;
 }

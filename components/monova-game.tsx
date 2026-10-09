@@ -468,31 +468,89 @@ function makeBackground() {
   return canvas;
 }
 
-// Each ledge is the top of a rock pillar that drops to the ground, like the reference.
+// Haunted masonry follows the existing collision surfaces exactly.
 function drawMountain(ctx: CanvasRenderingContext2D, game: Game) {
   const rock = levelConfig(game).rock;
   const ground = game.ground;
-  const bottom = game.camY + H;
+  const bottom = Math.min(ground, game.camY + H);
   const ledges = game.platforms.filter(p => !p.ground && p.y < bottom).sort((a, b) => a.y - b.y);
   for (const p of ledges) {
-    const h = ground - p.y;
-    ctx.fillStyle = rock.base;
-    ctx.fillRect(p.x, p.y, p.w, h);
-    ctx.fillStyle = rock.face;
-    ctx.fillRect(p.x + 2, p.y + 4, p.w - 6, h - 4);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(p.x, p.y, p.w, ground - p.y);
+    ctx.clip();
     ctx.fillStyle = rock.shade;
-    ctx.fillRect(p.x + p.w - 4, p.y + 2, 4, h - 2);
-    ctx.fillStyle = rock.base;
-    for (let x = p.x + 8; x < p.x + p.w - 8; x += 10) ctx.fillRect(x, p.y + 8, 1, Math.min(h - 10, bottom - p.y));
-    ctx.fillStyle = rock.top;
-    ctx.fillRect(p.x, p.y, p.w, 3);
-    ctx.fillStyle = rock.shine;
-    ctx.fillRect(p.x + 1, p.y, p.w - 6, 1);
+    ctx.fillRect(p.x, p.y, p.w, ground - p.y);
+    // Staggered stone blocks, chipped corners and deterministic cracks.
+    const firstRow = Math.max(0, Math.floor((game.camY - p.y - 5) / 11));
+    for (let row = firstRow; p.y + 5 + row * 11 < bottom; row++) {
+      const y = p.y + 5 + row * 11;
+      for (let col = -1; col * 20 < p.w; col++) {
+        const x = p.x + col * 20 + (row % 2 ? 10 : 0);
+        const variant = Math.abs(row * 7 + col * 13 + p.x) % 5;
+        ctx.fillStyle = variant === 0 ? rock.face : rock.base;
+        ctx.fillRect(x + 1, y + 1, 18, 9);
+        ctx.fillStyle = rock.face;
+        ctx.fillRect(x + 2, y + 1, 15, 1);
+        ctx.fillStyle = rock.shade;
+        ctx.fillRect(x + 17, y + 7, 2, 3);
+        if (variant === 2) {
+          ctx.fillRect(x + 7, y + 2, 1, 3);
+          ctx.fillRect(x + 8, y + 5, 2, 1);
+          ctx.fillRect(x + 9, y + 6, 1, 3);
+        }
+      }
+    }
+    // Recessed gothic windows with amber light, safely below the ledge.
+    for (let y = p.y + 18; y < bottom - 20; y += 55) {
+      if (y + 22 < game.camY) continue;
+      const x = Math.round(p.x + p.w / 2 - 5);
+      ctx.fillStyle = '#211329';
+      ctx.fillRect(x - 2, y + 4, 14, 20);
+      ctx.fillRect(x, y + 1, 10, 23);
+      ctx.fillRect(x + 3, y - 2, 4, 4);
+      ctx.fillStyle = '#ff6a16';
+      ctx.fillRect(x + 1, y + 5, 8, 16);
+      ctx.fillStyle = '#ffd15a';
+      ctx.fillRect(x + 2, y + 6, 2, 13);
+      ctx.fillStyle = '#342033';
+      ctx.fillRect(x + 4, y + 3, 2, 19);
+      ctx.fillRect(x, y + 12, 10, 2);
+    }
+    ctx.fillStyle = '#211329';
+    ctx.fillRect(p.x, p.y + 3, p.w, 3);
+    ctx.fillStyle = '#aa431e';
+    ctx.fillRect(p.x, p.y + 1, p.w, 2);
+    ctx.fillStyle = '#ffb347';
+    ctx.fillRect(p.x, p.y, p.w, 1);
+    // Hanging moss and a small cobweb at each exposed corner.
+    for (let x = p.x + 5; x < p.x + p.w - 3; x += 17) {
+      ctx.fillStyle = '#50604c';
+      ctx.fillRect(x, p.y + 4, 3, 3 + (x % 5));
+      ctx.fillStyle = '#788056';
+      ctx.fillRect(x, p.y + 4, 1, 3);
+    }
+    ctx.strokeStyle = '#c8b8d680';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(p.x + 2, p.y + 6); ctx.lineTo(p.x + 15, p.y + 6);
+    ctx.moveTo(p.x + 2, p.y + 6); ctx.lineTo(p.x + 2, p.y + 19);
+    ctx.moveTo(p.x + 2, p.y + 6); ctx.lineTo(p.x + 12, p.y + 16);
+    ctx.moveTo(p.x + 2, p.y + 12); ctx.lineTo(p.x + 6, p.y + 10); ctx.lineTo(p.x + 8, p.y + 6);
+    ctx.moveTo(p.x + 2, p.y + 18); ctx.lineTo(p.x + 10, p.y + 14); ctx.lineTo(p.x + 14, p.y + 6);
+    ctx.stroke();
+    ctx.restore();
   }
-  ctx.fillStyle = "#2a1530";
+  ctx.fillStyle = '#211329';
   ctx.fillRect(0, ground, W, Math.max(40, game.camY + H - ground));
-  ctx.fillStyle = "#5a2a3a";
+  ctx.fillStyle = '#ffad39';
   ctx.fillRect(0, ground, W, 2);
+  ctx.fillStyle = '#a63a19';
+  ctx.fillRect(0, ground + 2, W, 3);
+  for (let x = 0; x < W; x += 16) {
+    ctx.fillStyle = '#4b354e';
+    ctx.fillRect(x + 1, ground + 6, 14, 8);
+  }
 }
 
 // Monova's projectile: a tiny spinning jack-o'-lantern.
@@ -763,10 +821,10 @@ export function MonovaGame({ contact }: { contact: string }) {
         <NextImage className={styles.titleMascot} src="/assets/game/monova-promo.png" width={361} height={520} alt="Monova disfrazado de calabaza saludando" priority />
         <div className={styles.titleCopy}>
           <p>EDICIÓN HALLOWEEN 🎃</p>
-          <h2>Juega con <span>Monova</span></h2>
-          <small>Limpia 3 montañas de zombies, calabazas y fantasmas.</small>
-          <strong className={styles.titlePromo}>15% OFF en tu nueva web este octubre</strong>
-          <button type="button" className={styles.titleStart} onClick={startOrResume}>Jugar</button>
+          <h2>Haz el mejor <span>puntaje</span></h2>
+          <small>Supera las 3 montañas y compite por una web para tu marca.</small>
+          <strong className={styles.titlePromo}><span>y gana una web</span><b>100% GRATIS</b></strong>
+          <button type="button" className={styles.titleStart} onClick={startOrResume}>Entrar al juego</button>
           <em>o presiona Enter</em>
         </div>
       </div>}
@@ -774,10 +832,10 @@ export function MonovaGame({ contact }: { contact: string }) {
         <NextImage className={styles.titleMascot} src="/assets/game/monova-promo.png" width={361} height={520} alt="Monova disfrazado de calabaza saludando" />
         <div className={styles.titleCopy}>
           <p>{mode === "win" ? "¡LAS 3 MONTAÑAS LIMPIAS! 🎃" : "FIN DEL JUEGO"}</p>
-          <h2>{mode === "win" ? <>¡Ganaste<span>!</span></> : <>¡Casi lo <span>logras!</span></>}</h2>
+          <h2>{mode === "win" ? <>¡Reto <span>completado!</span></> : <>¡Casi lo <span>logras!</span></>}</h2>
           <small>{finalScore.toLocaleString("es-CO")} puntos</small>
-          <strong className={styles.endPitch}>¿Listo para hacer tu propio proyecto? Comunícate con nosotros.</strong>
-          <a className={styles.titleStart} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, ${mode === "win" ? "gané" : "jugué"} Juega con Monova (${finalScore} puntos) y estoy listo para hacer mi propio proyecto.`)}`} target="_blank" rel="noreferrer">Hablemos por WhatsApp</a>
+          <strong className={styles.endPitch}>¡Cada punto cuenta! Mejora tu puntaje y compite por una web 100% gratis.</strong>
+          <a className={styles.titleStart} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, participé en el juego de Halloween y conseguí ${finalScore} puntos. Quiero saber más sobre el concurso por una web 100% gratis.`)}`} target="_blank" rel="noreferrer">Subir puntaje</a>
           <button type="button" className={styles.endReplay} onClick={startOrResume}>{mode === "win" ? "Jugar otra vez" : "Reintentar"}</button>
         </div>
       </div>}
