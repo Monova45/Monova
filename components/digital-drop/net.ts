@@ -156,6 +156,27 @@ export async function joinRoom(code: string, name: string) {
   }
 }
 
+/** Creates a fresh room with a random 4-digit code and hosts it. Returns the code, or '' on failure. */
+export async function createRoom(): Promise<string> {
+  leaveRoom(false);
+  status('CREANDO SALA…');
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = String(1000 + Math.floor(Math.random() * 9000));
+    try {
+      const h = await createPeer(roomId(code)); peer = h;
+      net.mode = 'host'; net.id = h.id;
+      h.on('connection', hostConnection);
+      applyLobby(lobby());
+      status(`ANFITRIÓN · SALA ${code}`);
+      return code;
+    } catch (err) {
+      if ((err as { type?: string }).type === 'unavailable-id') continue;
+      leaveRoom(false); status('SIN CONEXIÓN AL SERVIDOR DE SALAS'); return '';
+    }
+  }
+  leaveRoom(false); status('NO SE PUDO CREAR LA SALA'); return '';
+}
+
 /** Host-only: switch between battle royale and co-op and tell the lobby. */
 export function setMatchMode(mode: MatchMode) {
   useDrop.setState({ matchMode: mode });

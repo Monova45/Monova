@@ -11,7 +11,7 @@ import { PostFX } from './effects';
 import { Hud } from './hud';
 import { sfx } from './audio';
 import { TOTAL_BUGS, abilities, districts, grade, useDrop, weapons } from './state';
-import { DEFAULT_CODE, MAX_PLAYERS, joinRoom, leaveRoom, net, onNet, send, setMatchMode, slotColors } from './net';
+import { DEFAULT_CODE, MAX_PLAYERS, createRoom, joinRoom, leaveRoom, net, onNet, send, setMatchMode, slotColors } from './net';
 import { RemotePlayers } from './remote';
 import styles from './game.module.css';
 
@@ -51,10 +51,15 @@ export default function DigitalDrop() {
   const phase = useDrop(s => s.phase), round = useDrop(s => s.round), spawn = useDrop(s => s.spawn), muted = useDrop(s => s.muted), quality = useDrop(s => s.quality);
   const ability = useDrop(s => s.ability), sensitivity = useDrop(s => s.sensitivity);
   const lobby = useDrop(s => s.lobby), netStatus = useDrop(s => s.netStatus), playerName = useDrop(s => s.playerName), matchMode = useDrop(s => s.matchMode);
-  const [panel, setPanel] = useState('');
+  // Invite links (/3d?sala=1234) open the lobby with the code already filled in.
+  const [invited] = useState(() => new URLSearchParams(location.search).get('sala')?.slice(0, 8) ?? '');
+  const [panel, setPanel] = useState(invited ? 'MULTIJUGADOR' : '');
   const [ready, setReady] = useState(false);
-  const [code, setCode] = useState(DEFAULT_CODE);
-  const online = lobby.length > 0, isHost = online && net.mode === 'host';
+  const [code, setCode] = useState(invited || DEFAULT_CODE);
+  const [copied, setCopied] = useState('');
+  const copy = (text: string, what: string) => { void navigator.clipboard?.writeText(text).then(() => { setCopied(what); setTimeout(() => setCopied(''), 1800); }); };
+  const inviteLink = () => `${location.origin}/3d?sala=${encodeURIComponent(code)}`;
+  const online = lobby.length > 0, isHost = online && net.mode === 'host', busy = netStatus === 'CONECTANDO…' || netStatus === 'CREANDO SALA…';
   const deploy = () => {
     if (online && !isHost) return;
     if (isHost) {
@@ -113,8 +118,16 @@ export default function DigitalDrop() {
               <label>NOMBRE<input value={playerName} maxLength={14} placeholder="AGENTE" disabled={online} onChange={e => setName(e.target.value.toUpperCase())} /></label>
               <label>CÓDIGO<input value={code} maxLength={8} inputMode="numeric" disabled={online} onChange={e => setCode(e.target.value.replace(/\s/g, ''))} /></label>
             </div>
+            {online && <div className={styles.share}>
+              <div><small>CÓDIGO DE LA SALA</small><strong>{code}</strong></div>
+              <button onClick={() => copy(code, 'code')}>{copied === 'code' ? '¡COPIADO!' : 'COPIAR CÓDIGO'}</button>
+              <button onClick={() => copy(inviteLink(), 'link')}>{copied === 'link' ? '¡COPIADO!' : 'COPIAR ENLACE'}</button>
+            </div>}
             {online ? <button className={styles.wide} onClick={() => { sfx.ui(); leaveRoom(); }}>SALIR DE LA SALA</button>
-              : <button className={styles.wide} disabled={!code || netStatus === 'CONECTANDO…'} onClick={() => { sfx.ui(); void joinRoom(code, playerName || 'AGENTE'); }}>{netStatus === 'CONECTANDO…' ? 'CONECTANDO…' : 'UNIRSE A LA SALA'}</button>}
+              : <div className={styles.roomActions}>
+                <button className={styles.wide} disabled={!code || busy} onClick={() => { sfx.ui(); void joinRoom(code, playerName || 'AGENTE'); }}>{netStatus === 'CONECTANDO…' ? 'CONECTANDO…' : 'UNIRSE CON CÓDIGO'}</button>
+                <button className={styles.wide} disabled={busy} onClick={() => { sfx.ui(); void createRoom().then(c => { if (c) setCode(c); }); }}>{netStatus === 'CREANDO SALA…' ? 'CREANDO…' : 'CREAR SALA NUEVA'}</button>
+              </div>}
             {online && !isHost && <small className={styles.netStatus} style={{ color: 'var(--muted)' }}>MODO ELEGIDO POR EL ANFITRIÓN</small>}
             {online && <div className={styles.modes}>{([['pvp', 'BATALLA', 'Todos contra todos · último en pie gana'], ['coop', 'CO-OP', 'Equipo contra los Bugs']] as const).map(([id, label, detail]) =>
               <button key={id} data-active={matchMode === id} disabled={!isHost} onClick={() => { sfx.ui(); setMatchMode(id); }}><b>{label}</b><small>{detail}</small></button>)}</div>}
