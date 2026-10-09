@@ -142,12 +142,12 @@ export async function joinRoom(code: string, name: string) {
   try {
     // Try to join an existing host first; if nobody holds the room id, claim it and host.
     const p = await createPeer(); peer = p;
-    try { await becomeClient(p, code, name); status(`CONECTADO · SALA ${code}`); return; }
+    try { await becomeClient(p, code, name); useDrop.setState({ roomCode: code }); status(`CONECTADO · SALA ${code}`); return; }
     catch { p.destroy(); }
     const h = await createPeer(roomId(code)); peer = h;
     net.mode = 'host'; net.id = h.id;
     h.on('connection', hostConnection);
-    applyLobby(lobby());
+    applyLobby(lobby()); useDrop.setState({ roomCode: code });
     status(`ANFITRIÓN · SALA ${code}`);
   } catch (err) {
     const type = (err as { type?: string }).type;
@@ -166,7 +166,7 @@ export async function createRoom(): Promise<string> {
       const h = await createPeer(roomId(code)); peer = h;
       net.mode = 'host'; net.id = h.id;
       h.on('connection', hostConnection);
-      applyLobby(lobby());
+      applyLobby(lobby()); useDrop.setState({ roomCode: code });
       status(`ANFITRIÓN · SALA ${code}`);
       return code;
     } catch (err) {
@@ -187,7 +187,7 @@ export function leaveRoom(reset = true) {
   clients.forEach(c => c.close()); clients.clear(); host?.close(); host = undefined;
   peer?.destroy(); peer = undefined; remotes.clear();
   net.mode = 'solo'; net.id = '';
-  useDrop.setState({ lobby: [], ...(reset ? { netStatus: '' } : {}) });
+  useDrop.setState({ lobby: [], roomCode: '', ...(reset ? { netStatus: '' } : {}) });
 }
 
 if (typeof window !== 'undefined') window.addEventListener('beforeunload', () => leaveRoom());

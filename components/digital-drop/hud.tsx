@@ -89,6 +89,50 @@ function Bar({ value, tone }: { value: number; tone: 'hp' | 'shield' }) {
   </div>;
 }
 
+/** Heading strip: cardinal points and district bearings slide as the camera turns. */
+function Compass() {
+  const strip = useRef<HTMLDivElement>(null), label = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    let frame = 0;
+    const tick = () => {
+      frame = requestAnimationFrame(tick);
+      // yaw 0 faces -Z (north on the minimap); heading grows clockwise.
+      const heading = ((-radar.yaw * 180 / Math.PI) % 360 + 360) % 360;
+      if (strip.current) strip.current.style.transform = `translateX(${-heading * 4}px)`;
+      if (label.current) label.current.textContent = String(Math.round(heading) % 360).padStart(3, '0');
+    };
+    tick(); return () => cancelAnimationFrame(frame);
+  }, []);
+  const marks = [];
+  for (let d = -180; d <= 540; d += 15) {
+    const n = ((d % 360) + 360) % 360;
+    marks.push(<i key={d} style={{ left: d * 4 }} data-major={n % 45 === 0}>{n === 0 ? 'N' : n === 90 ? 'E' : n === 180 ? 'S' : n === 270 ? 'O' : n % 45 === 0 ? n : ''}</i>);
+  }
+  return <div className={styles.compass}><div ref={strip}>{marks}</div><span ref={label}>000</span></div>;
+}
+
+/** Center banner for eliminations and match events. */
+function Banner() {
+  const [banner, setBanner] = useState<{ id: number; text: string; tone: string } | null>(null);
+  useEffect(() => {
+    let id = 0;
+    const show = (e: Event) => { const { text, tone } = (e as CustomEvent<{ text: string; tone: string }>).detail; setBanner({ id: ++id, text, tone }); };
+    hudBus.addEventListener('banner', show); return () => hudBus.removeEventListener('banner', show);
+  }, []);
+  if (!banner) return null;
+  return <div key={banner.id} className={styles.banner} data-tone={banner.tone}><small>{banner.tone === 'kill' ? 'ELIMINACIÓN' : 'SISTEMA'}</small><strong>{banner.text}</strong></div>;
+}
+
+/** Opening title card shown during the drop. */
+function MatchIntro({ pvp, players }: { pvp: boolean; players: number }) {
+  const spawn = useDrop(s => s.spawn);
+  return <div className={styles.intro}>
+    <small>{pvp ? 'MODO BATALLA' : players > 1 ? 'CO-OP' : 'CAMPAÑA'}</small>
+    <strong>{pvp ? `${players} AGENTES · 1 GANADOR` : `ELIMINA ${TOTAL_BUGS} BUGS`}</strong>
+    <span>{pvp ? 'ÚLTIMO EN PIE GANA · EL FIREWALL SE CIERRA' : `ATERRIZAJE · ${districts[spawn]}`}</span>
+  </div>;
+}
+
 /** Kill streak callouts: kills within 3 s of each other chain into a combo. */
 function Streak() {
   const [streak, setStreak] = useState<{ id: number; n: number } | null>(null);
@@ -143,6 +187,9 @@ export function Hud() {
     {pvp && hp <= 0 && <div className={styles.spectate}><small>ELIMINADO · MODO ESPECTADOR</small><strong>{spectating ? `VIENDO A ${spectating.toUpperCase()}` : 'ESPERANDO RESULTADO'}</strong></div>}
     {respawn > 0 && <div className={styles.respawn}><small>AGENTE CAÍDO</small><strong>{respawn}</strong><span>REDESPLIEGUE EN CURSO · TU EQUIPO SIGUE LUCHANDO</span></div>}
     <div className={styles.feed}>{feed.map(f => <p key={f.id}>{f.text}</p>)}</div>
+    <Compass />
+    <Banner />
+    {time < 4 && <MatchIntro pvp={pvp} players={Math.max(1, lobbySize)} />}
     <Crosshair />
     <Streak />
     {notice && <p key={noticeId} className={styles.notice}>{notice}</p>}
@@ -158,6 +205,7 @@ export function Hud() {
     <div className={styles.weapon}>
       <div className={styles.ammo}><strong data-low={ammo <= w.ammo * .25}>{ammo}</strong><span>/ {w.ammo}</span></div>
       <p style={{ color: w.color }}>{w.name.toUpperCase()}</p>
+      {ammo <= w.ammo * .25 && <div className={styles.lowAmmo}>{ammo === 0 ? 'SIN ENERGÍA · R' : 'ENERGÍA BAJA'}</div>}
       <div className={styles.slots}>{weapons.map((x, i) => <div key={x.name} data-active={weapon === i} data-locked={!unlocked.includes(i)}><kbd>{i + 1}</kbd><small>{unlocked.includes(i) ? x.short : '· · ·'}</small></div>)}</div>
     </div>
   </div>;

@@ -8,7 +8,7 @@ import { CombatEffects, burst, resetEffects, screen, shockwave, tracer } from '.
 import { firewallMaterial } from './materials';
 import { absorbDamage, firewallRadius, matchResult } from './systems';
 import { sfx } from './audio';
-import { TOTAL_BUGS, emitHud, enemyKinds, radar, spawns, useDrop, weapons } from './state';
+import { TOTAL_BUGS, emitBanner, emitHud, enemyKinds, radar, spawns, useDrop, weapons } from './state';
 import { net, onNet, remotes, send } from './net';
 
 const kinds = [
@@ -121,7 +121,8 @@ export function Engine() {
       if (msg.t === 'down') {
         const victim = msg.id === net.id ? 'TÚ' : remotes.get(msg.id)?.name ?? 'AGENTE', killer = msg.by === net.id ? 'TÚ' : remotes.get(msg.by)?.name ?? 'LA INFECCIÓN';
         useDrop.getState().pushFeed(`${killer} ▸ ${victim}`.toUpperCase());
-        if (msg.by === net.id && msg.id !== net.id) { emitHud('kill'); sfx.kill(); useDrop.setState(st => ({ pkills: st.pkills + 1, credits: st.credits + 150 })); }
+        useDrop.setState(st => ({ eliminated: [...st.eliminated, { id: msg.id, name: victim === 'TÚ' ? st.playerName || 'TÚ' : victim, by: msg.by }] }));
+        if (msg.by === net.id && msg.id !== net.id) { emitHud('kill'); emitBanner(`ELIMINASTE A ${victim}`.toUpperCase()); sfx.kill(); useDrop.setState(st => ({ pkills: st.pkills + 1, credits: st.credits + 150 })); }
         const r = remotes.get(msg.id); if (r) { r.alive = false; burst(r.x, r.y, r.z, 50, '#ff8737', 10, .2); shockwave(r.x, .1, r.z, '#ff3b3b', 6); }
       }
       if (msg.t === 'winner') { useDrop.setState({ winner: msg.id === net.id ? useDrop.getState().playerName || 'TÚ' : remotes.get(msg.id)?.name ?? 'AGENTE' }); finish(msg.id === net.id ? 'win' : 'over'); }
@@ -209,7 +210,8 @@ export function Engine() {
       burst(p.x, p.y, p.z, 50, '#ff8737', 10, .2); shockwave(p.x, .1, p.z, '#ff3b3b', 6); sfx.lose();
       if (pvp) {
         const placement = 1 + [...remotes.values()].filter(x => x.alive && x.y > -40).length;
-        useDrop.setState({ placement }); send({ t: 'down', id: net.id, by: t.lastBy });
+        useDrop.setState(st => ({ placement, eliminated: [...st.eliminated, { id: net.id, name: st.playerName || 'TÚ', by: t.lastBy }] })); send({ t: 'down', id: net.id, by: t.lastBy });
+        emitBanner(`ELIMINADO POR ${t.lastBy ? remotes.get(t.lastBy)?.name ?? 'AGENTE' : 'EL FIREWALL'}`.toUpperCase(), 'info');
         useDrop.getState().pushFeed(`${t.lastBy ? (remotes.get(t.lastBy)?.name ?? 'AGENTE') : 'LA INFECCIÓN'} ▸ TÚ`.toUpperCase());
         s.notify(`ELIMINADO · PUESTO #${placement} · MODO ESPECTADOR`);
       } else s.notify('AGENTE CAÍDO · REDESPLIEGUE EN CURSO');

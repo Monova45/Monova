@@ -16,9 +16,9 @@ export function Showroom({ quality }: { quality: boolean }) {
   }), []);
   useFrame(({ camera, clock, pointer }, dt) => {
     const t = clock.elapsedTime;
-    look.camera.set(9 + Math.sin(t * .12) * .6 + pointer.x * .9, 4.3 + pointer.y * .5, 14);
+    look.camera.set(7.5 + Math.sin(t * .12) * .6 + pointer.x * .9, 4.3 + pointer.y * .5, 15);
     camera.position.lerp(look.camera, 1 - Math.exp(-2.5 * dt));
-    look.target.set(1.8 + pointer.x * .3, 2.4, 0); camera.lookAt(look.target);
+    look.target.set(-.6 + pointer.x * .3, 2.6, 0); camera.lookAt(look.target);
     if (cat.current) cat.current.rotation.y = Math.PI - .28 + Math.sin(t * .25) * .15 + pointer.x * .18;
     if (rings.current) rings.current.children.forEach((c, i) => { c.rotation.z = .4 + t * (i - 1 || .5) * .05; });
     if (scan.current) { const k = (t * .45) % 1; scan.current.position.y = .2 + k * 7.5; (scan.current.material as THREE.MeshBasicMaterial).opacity = .35 * (1 - k); }
