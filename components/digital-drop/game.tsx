@@ -112,6 +112,9 @@ export default function DigitalDrop() {
             {online ? <button className={styles.wide} onClick={() => { sfx.ui(); leaveRoom(); }}>SALIR DE LA SALA</button>
               : <button className={styles.wide} disabled={!code || netStatus === 'CONECTANDO…'} onClick={() => { sfx.ui(); void joinRoom(code, playerName || 'AGENTE'); }}>{netStatus === 'CONECTANDO…' ? 'CONECTANDO…' : 'UNIRSE A LA SALA'}</button>}
             {netStatus && <small className={styles.netStatus}>{netStatus}</small>}
+            {online && (isHost
+              ? <button className={styles.primary} style={{ width: '100%', marginTop: 12 }} disabled={!ready} onClick={() => { sfx.ui(); deploy(); }}>INICIAR PARTIDA · {lobby.length}/{MAX_PLAYERS} <b>↗</b></button>
+              : <p className={styles.waitHost}><i />ESPERANDO A QUE {(lobby.find(p => p.slot === 0)?.name || 'EL ANFITRIÓN').toUpperCase()} INICIE LA PARTIDA</p>)}
             {online && <div className={styles.roster}>{Array.from({ length: MAX_PLAYERS }, (_, i) => { const p = lobby.find(x => x.slot === i); return <div key={i} data-empty={!p}><i style={{ background: slotColors[i] }} /><span>{p ? p.name || 'AGENTE' : 'ESPERANDO…'}</span><small>{p ? (i === 0 ? 'ANFITRIÓN' : p.id === net.id ? 'TÚ' : 'LISTO') : ''}{p && i === 0 && p.id === net.id ? ' · TÚ' : ''}</small></div>; })}</div>}
           </>}
           {panel === 'ZONA' && <><h3>PUNTO DE ATERRIZAJE</h3><div className={styles.zones}>{districts.map((d, i) => <button key={d} data-active={spawn === i} onClick={() => { sfx.ui(); useDrop.setState({ spawn: i }); }}><b>{i === 0 ? 'HQ' : `0${i}`}</b><span>{d}<small>{districtInfo[i]}</small></span></button>)}</div></>}

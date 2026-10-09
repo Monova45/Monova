@@ -176,6 +176,9 @@
 .streak small{font-size:10px;letter-spacing:5px;color:#ffd2ad}
 @keyframes streak{0%{opacity:0;transform:translateX(-50%) scale(1.6)}12%{opacity:1;transform:translateX(-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-10px)}}
 
+.waitHost{display:flex;align-items:center;gap:10px;margin:12px 0 0!important;padding:12px;border:1px dashed #ffffff30;font-size:10px;letter-spacing:2px;color:var(--accent-hot)!important}
+.waitHost i{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none;animation:pulse 1.2s infinite}
+
 /* Overlays */
 .overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;background:radial-gradient(ellipse at center,#0a1422dd,#04070cf2);backdrop-filter:blur(6px);animation:fadeIn .4s ease both}
 .overlay h2{font-family:var(--display);font-size:clamp(44px,7vw,110px);letter-spacing:-.05em;line-height:.9;margin:8px 0;font-weight:900}
