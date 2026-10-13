@@ -1,0 +1,124 @@
+[
+  {
+    "asset": "asphalt_04",
+    "page": "https://polyhaven.com/a/asphalt_04",
+    "license": "CC0-1.0",
+    "files": [
+      {
+        "file": "asphalt_04-color.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_04/asphalt_04_diff_1k.jpg",
+        "md5": "729a3299145b25982a48f2f9e05e7f21"
+      },
+      {
+        "file": "asphalt_04-normal.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_04/asphalt_04_nor_gl_1k.jpg",
+        "md5": "a139f278feb78b7ac3136adbe8fe1b43"
+      },
+      {
+        "file": "asphalt_04-roughness.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_04/asphalt_04_rough_1k.jpg",
+        "md5": "a5db0aefcaf7fb3c96b275dba63f0f4e"
+      }
+    ]
+  },
+  {
+    "asset": "concrete_wall_007",
+    "page": "https://polyhaven.com/a/concrete_wall_007",
+    "license": "CC0-1.0",
+    "files": [
+      {
+        "file": "concrete_wall_007-color.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_007/concrete_wall_007_diff_1k.jpg",
+        "md5": "f8a951200ebe1a42ba57ef331d94f8e2"
+      },
+      {
+        "file": "concrete_wall_007-normal.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_007/concrete_wall_007_nor_gl_1k.jpg",
+        "md5": "7d62088fb4f40833226cdb2a09476a58"
+      },
+      {
+        "file": "concrete_wall_007-roughness.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_007/concrete_wall_007_rough_1k.jpg",
+        "md5": "57fc45c0410543a5117bbfab360e040a"
+      }
+    ]
+  },
+  {
+    "asset": "bark_brown_01",
+    "page": "https://polyhaven.com/a/bark_brown_01",
+    "license": "CC0-1.0",
+    "files": [
+      {
+        "file": "bark_brown_01-color.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_01/bark_brown_01_diff_1k.jpg",
+        "md5": "b6d5dcde10b7cd1b36d70cd33a34724a"
+      },
+      {
+        "file": "bark_brown_01-normal.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_01/bark_brown_01_nor_gl_1k.jpg",
+        "md5": "8ae9907be7ce562c11aab619615d30d4"
+      },
+      {
+        "file": "bark_brown_01-roughness.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_01/bark_brown_01_rough_1k.jpg",
+        "md5": "b7a1aa42ecf0b30aba7f587769d13910"
+      }
+    ]
+  },
+  {
+    "asset": "denim_fabric",
+    "page": "https://polyhaven.com/a/denim_fabric",
+    "license": "CC0-1.0",
+    "files": [
+      {
+        "file": "denim_fabric-color.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/denim_fabric/denim_fabric_diff_1k.jpg",
+        "md5": "3835b5e277dd99784bfe68d985da14ae"
+      },
+      {
+        "file": "denim_fabric-normal.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/denim_fabric/denim_fabric_nor_gl_1k.jpg",
+        "md5": "9008fe723671f9cb3e6d0889eab9adb0"
+      },
+      {
+        "file": "denim_fabric-roughness.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/denim_fabric/denim_fabric_rough_1k.jpg",
+        "md5": "7eebb4a6185f2e6805976bc356dd1b41"
+      }
+    ]
+  },
+  {
+    "asset": "leafy_grass",
+    "page": "https://polyhaven.com/a/leafy_grass",
+    "license": "CC0-1.0",
+    "files": [
+      {
+        "file": "leafy_grass-color.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/leafy_grass/leafy_grass_diff_1k.jpg",
+        "md5": "0dbc071e91d6905edfcfbe8eb785a1ab"
+      },
+      {
+        "file": "leafy_grass-normal.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/leafy_grass/leafy_grass_nor_gl_1k.jpg",
+        "md5": "8279e096e204ea326d57a318869f99df"
+      },
+      {
+        "file": "leafy_grass-roughness.jpg",
+        "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/leafy_grass/leafy_grass_rough_1k.jpg",
+        "md5": "05f6bb1383e12b327727d313c5899cf2"
+      }
+    ]
+  },
+  {
+    "asset": "kloppenheim_06_puresky",
+    "page": "https://polyhaven.com/a/kloppenheim_06_puresky",
+    "license": "CC0-1.0",
+    "files": [
+      {
+        "file": "daylight.hdr",
+        "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloppenheim_06_puresky_1k.hdr",
+        "md5": "995d68b1656f26452572645c0ffe898b"
+      }
+    ]
+  }
+]

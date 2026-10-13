@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Billboard, ContactShadows, Sparkles, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { usePbr } from './pbr';
 import { Cat } from './character';
 import { slotColors } from './net';
 
@@ -44,6 +45,7 @@ export function Showroom({ quality, party = [] }: { quality: boolean; party?: { 
   const cat = useRef<THREE.Group>(null), ring = useRef<THREE.Mesh>(null), backdrop = useRef<THREE.Mesh>(null);
   const look = useMemo(() => ({ target: new THREE.Vector3(), camera: new THREE.Vector3() }), []);
   const material = useMemo(() => backdropMaterial(), []);
+  const stage = usePbr('concrete', 4);
   const crowd = party.length > 0;
   useFrame(({ camera, clock, pointer }, dt) => {
     const t = clock.elapsedTime;
@@ -59,7 +61,7 @@ export function Showroom({ quality, party = [] }: { quality: boolean; party?: { 
     <mesh ref={backdrop} material={material} position={[0, 8, -26]}><planeGeometry args={[140, 70]} /></mesh>
     {/* Stage floor: a soft blue disc fading into the backdrop. */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.02, 0]} receiveShadow><circleGeometry args={[40, 64]} /><meshStandardMaterial color="#152731" roughness={.4} metalness={.25} /></mesh>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow><circleGeometry args={[3.2, 64]} /><meshStandardMaterial color="#354b53" roughness={.3} metalness={.45} /></mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow><circleGeometry args={[3.2, 64]} /><meshPhysicalMaterial {...stage} color="#6e7a7e" normalScale={[.25, .25]} roughness={.5} metalness={.3} clearcoat={.3} /></mesh>
     <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} position={[0, .01, 0]}><ringGeometry args={[3.2, 3.5, 64, 1, 0, Math.PI * 1.6]} /><meshBasicMaterial color="#ff8c42" toneMapped={false} /></mesh>
     {[4.4, 5.8, 7.2].map((radius, i) => <mesh key={radius} rotation={[-Math.PI / 2, 0, 0]} position={[0, .008, 0]}><ringGeometry args={[radius, radius + .025, 96]} /><meshBasicMaterial color="#82c8d8" transparent opacity={.35 - i * .08} /></mesh>)}
     {[-1, 1].map(side => <group key={side} position={[side * 7, 4, -7]} rotation={[0, 0, side * -.18]}><mesh><boxGeometry args={[.16, 10, .2]} /><meshBasicMaterial color="#ff9b5e" toneMapped={false} /></mesh><mesh position={[side * .4, 0, 0]}><boxGeometry args={[.035, 10, .2]} /><meshBasicMaterial color="#76cfe1" toneMapped={false} /></mesh></group>)}
@@ -67,8 +69,8 @@ export function Showroom({ quality, party = [] }: { quality: boolean; party?: { 
     {party.slice(0, SPOTS.length).map((p, i) => <Member key={p.id} position={SPOTS[i]} name={p.name || 'AGENTE'} slot={p.slot} />)}
     {quality && <ContactShadows position={[0, .02, 0]} scale={22} blur={2.2} opacity={.45} far={6} color="#0a2a6b" />}
     <Sparkles count={40} scale={[16, 8, 6]} position={[0, 4, -2]} color="#ffffff" size={3} speed={.3} opacity={.7} />
-    <spotLight position={[0, 14, 8]} angle={.55} penumbra={.9} intensity={420} color="#ffffff" castShadow={quality} shadow-mapSize={[1024, 1024]} />
-    <pointLight position={[-6, 5, 4]} color="#7fc0ff" intensity={60} distance={20} />
-    <pointLight position={[6, 5, 4]} color="#ffd9a0" intensity={50} distance={20} />
+    <spotLight position={[0, 14, 8]} angle={.55} penumbra={.9} intensity={180} color="#ffffff" castShadow={quality} shadow-mapSize={[1024, 1024]} />
+    <pointLight position={[-6, 5, 4]} color="#7fc0ff" intensity={38} distance={20} />
+    <pointLight position={[6, 5, 4]} color="#ffd9a0" intensity={32} distance={20} />
   </group>;
 }

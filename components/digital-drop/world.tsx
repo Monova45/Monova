@@ -1,9 +1,10 @@
-import { memo, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Float, Text, Sparkles, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
-import { asphaltTexture, dayFacadeTexture, grassTexture, skyMaterial } from './materials';
+import { canopyTexture, glassTexture } from './materials';
+import { metricBox, usePbr } from './pbr';
 export { Cat } from './character';
 
 const font = '/fonts/jersey-10.ttf';
@@ -14,15 +15,46 @@ const roads = [-36, -12, 12, 36];
 function seeded(seed: number) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 
 function Box({ position, scale, color = '#d9dee6', rotation, cast = true }: { position: [number, number, number]; scale: [number, number, number]; color?: string; rotation?: [number, number, number]; cast?: boolean }) {
-  return <mesh position={position} rotation={rotation} castShadow={cast} receiveShadow><boxGeometry args={scale} /><meshStandardMaterial color={color} roughness={.7} metalness={.05} /></mesh>;
+  const surface = usePbr('concrete');
+  const [w, h, d] = scale;
+  const geometry = useMemo(() => metricBox(w, h, d), [w, h, d]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <mesh position={position} rotation={rotation} castShadow={cast} receiveShadow geometry={geometry}><meshStandardMaterial {...surface} color={color} normalScale={[.45, .45]} roughness={.92} /></mesh>;
 }
 
+const facadeColors = ['#c5b9a5', '#b69780', '#a6b5ae', '#aab7c0', '#c4b496', '#dddcd4', '#a4a3ad', '#8b9da8'];
+
+/** Actual recessed window layers, separate from the mineral facade. Two instanced draws per tower. */
 function Facade({ width, height, depth = width, seed }: { width: number; height: number; depth?: number; seed: number }) {
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ map: dayFacadeTexture(Math.max(2, Math.round(width * 1.1)), Math.max(3, Math.round(height / 1.5)), seed), roughness: .55, metalness: .05 }), [width, height, seed]);
-  return <mesh position={[0, height / 2, 0]} castShadow receiveShadow material={material}><boxGeometry args={[width, height, depth]} /></mesh>;
+  const surface = usePbr('concrete');
+  const geometry = useMemo(() => metricBox(width, height, depth), [width, height, depth]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  const glass = useMemo(() => glassTexture(), []);
+  const windows = useMemo(() => {
+    const list: { position: [number, number, number]; rotation: [number, number, number]; width: number; tint: string }[] = [];
+    const random = seeded(seed * 79 + 1), rows = Math.max(2, Math.floor((height - 1.5) / 2.1));
+    for (let face = 0; face < 4; face++) {
+      const span = face % 2 ? depth : width, columns = Math.max(1, Math.floor(span / 1.35));
+      const angle = face * Math.PI / 2, distance = (face % 2 ? width : depth) / 2 + .025;
+      for (let y = 0; y < rows; y++) for (let x = 0; x < columns; x++) {
+        const lateral = ((x + .5) / columns - .5) * span;
+        list.push({ position: [Math.cos(angle) * lateral + Math.sin(angle) * distance, 2.1 + y * (height - 2.9) / Math.max(1, rows - 1), -Math.sin(angle) * lateral + Math.cos(angle) * distance], rotation: [0, angle, 0], width: span / columns * .66, tint: random() > .8 ? '#d8c7a9' : '#afc5cf' });
+      }
+    }
+    return list;
+  }, [width, height, depth, seed]);
+  return <group>
+    <mesh position={[0, height / 2, 0]} castShadow receiveShadow geometry={geometry}><meshStandardMaterial {...surface} color={facadeColors[seed % facadeColors.length]} normalScale={[.55, .55]} roughness={.95} /></mesh>
+    <Instances limit={windows.length} receiveShadow><boxGeometry args={[1, 1, .09]} /><meshStandardMaterial color="#41494b" metalness={.7} roughness={.4} />
+      {windows.map((w, i) => <Instance key={i} position={w.position} rotation={w.rotation} scale={[w.width + .12, 1.5, 1]} />)}
+    </Instances>
+    <Instances limit={windows.length} receiveShadow><planeGeometry args={[1, 1]} /><meshPhysicalMaterial map={glass} roughness={.16} metalness={.32} clearcoat={1} clearcoatRoughness={.08} envMapIntensity={1.25} />
+      {windows.map((w, i) => <Instance key={i} position={[w.position[0] + Math.sin(w.rotation[1]) * .051, w.position[1], w.position[2] + Math.cos(w.rotation[1]) * .051]} rotation={w.rotation} scale={[w.width, 1.34, 1]} color={w.tint} />)}
+    </Instances>
+  </group>;
 }
 
-const roofColors = ['#d64545', '#3a6fd6', '#2f8f5b', '#e0a32e', '#6b4bd6', '#3d4654'];
+const roofColors = ['#82574b', '#516573', '#53665c', '#9c8762', '#696272', '#454d53'];
 
 function Tower({ x, z, height = 12, width = 5, seed = 1 }: { x: number; z: number; height?: number; width?: number; seed?: number }) {
   const roof = roofColors[seed % roofColors.length];
@@ -75,14 +107,14 @@ function Billboard3D({ position, text, color = '#ff8a1e', rotation = 0, size = 1
 
 function Streets() {
   const lamps = useMemo(() => roads.flatMap(n => Array.from({ length: 8 }, (_, i) => i * 12.5 - 44).flatMap(t => [[n + 4.8, t], [t, n + 4.8]] as [number, number][])), []);
-  const grass = useMemo(() => grassTexture(), []);
-  const roadV = useMemo(() => asphaltTexture('v'), []), roadH = useMemo(() => asphaltTexture('h'), []);
+  const grass = usePbr('grass', 260);
+  const roadV = usePbr('asphalt', 2, 25), roadH = usePbr('asphalt', 25, 2);
   return <>
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[50, 1, 50]} position={[0, -1, 0]} /></RigidBody>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[520, 520]} /><meshStandardMaterial map={grass} roughness={.95} /></mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[520, 520]} /><meshStandardMaterial {...grass} normalScale={[.75, .75]} roughness={1} /></mesh>
     {roads.map(n => <group key={n}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[n, .02, 0]} receiveShadow><planeGeometry args={[8, 100]} /><meshStandardMaterial map={roadV} roughness={.9} /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, .025, n]} receiveShadow><planeGeometry args={[100, 8]} /><meshStandardMaterial map={roadH} roughness={.9} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[n, .02, 0]} receiveShadow><planeGeometry args={[8, 100]} /><meshStandardMaterial {...roadV} normalScale={[.65, .65]} roughness={.9} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, .025, n]} receiveShadow><planeGeometry args={[100, 8]} /><meshStandardMaterial {...roadH} normalScale={[.65, .65]} roughness={.9} /></mesh>
       {[-1, 1].map(k => <group key={k}>
         <Box position={[n + k * 4.6, .07, 0]} scale={[1.2, .14, 100]} color="#cfd3d8" cast={false} />
         <Box position={[0, .07, n + k * 4.6]} scale={[100, .14, 1.2]} color="#cfd3d8" cast={false} />
@@ -119,7 +151,7 @@ function CityDetails() {
     <Instances limit={crossings.length}><boxGeometry args={[1, 1, 1]} /><meshStandardMaterial color="#eee6d2" roughness={.95} />
       {crossings.map(([x, z, turn], i) => <Instance key={i} position={[x, .052, z]} scale={turn ? [1.3, .012, .48] : [.48, .012, 1.3]} />)}
     </Instances>
-    <Instances limit={plants.length}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial roughness={1} flatShading />
+    <Instances limit={plants.length}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial roughness={1} />
       {plants.map((p, i) => <Instance key={i} position={[p.x, p.size * .5, p.z]} scale={[p.size, p.size * .7, p.size]} color={i % 4 === 0 ? '#eacb8e' : '#879774'} />)}
     </Instances>
     {/* Rings make each district recognizable from the airborne deployment. */}
@@ -129,6 +161,8 @@ function CityDetails() {
 
 /** Stylized trees and bushes scattered on grass, skipping roads and districts. */
 function Foliage() {
+  const bark = usePbr('bark', 2, 1);
+  const leaves = useMemo(() => canopyTexture(), []);
   const { trees, bushes } = useMemo(() => {
     const rand = seeded(42), trees: [number, number, number][] = [], bushes: [number, number, number][] = [];
     const blocked: [number, number, number][] = [[0, 7, 11], [-23, -23, 11], [23, -24, 12], [23, 23, 11], [-24, 25, 11]];
@@ -149,36 +183,19 @@ function Foliage() {
     return { trees, bushes };
   }, []);
   return <>
-    <Instances limit={trees.length} castShadow><cylinderGeometry args={[.18, .28, 1, 7]} /><meshStandardMaterial color="#8a5a2b" roughness={.9} />
+    <Instances limit={trees.length} castShadow><cylinderGeometry args={[.18, .28, 1, 12]} /><meshStandardMaterial {...bark} normalScale={[.8, .8]} roughness={1} />
       {trees.map(([x, z, s], i) => <Instance key={i} position={[x, 1 * s, z]} scale={[s, 2 * s, s]} />)}
     </Instances>
-    <Instances limit={trees.length * 2} castShadow><icosahedronGeometry args={[1, 1]} /><meshStandardMaterial roughness={.8} flatShading />
-      {trees.flatMap(([x, z, s], i) => [
-        <Instance key={`a${i}`} position={[x, 2.8 * s, z]} scale={1.6 * s} color={i % 3 ? '#527a57' : '#91a86c'} />,
-        <Instance key={`b${i}`} position={[x + .4 * s, 3.9 * s, z - .2 * s]} scale={1.1 * s} color={i % 2 ? '#8ca864' : '#668a58'} />,
-      ])}
+    <Instances limit={trees.length * 5} castShadow><icosahedronGeometry args={[1, 2]} /><meshStandardMaterial map={leaves} bumpMap={leaves} bumpScale={.06} roughness={1} />
+      {trees.flatMap(([x, z, s], i) => Array.from({ length: 5 }, (_, j) => {
+        const angle = j * 2.4 + i, radius = j === 4 ? .15 : .72;
+        return <Instance key={`${i}-${j}`} position={[x + Math.cos(angle) * radius * s, (j === 4 ? 4 : 2.85 + (j % 2) * .45) * s, z + Math.sin(angle) * radius * s]} rotation={[i * .17, angle, j * .2]} scale={[(j === 4 ? .95 : 1.1) * s, 1.15 * s, s]} color={i % 3 ? '#b4bf97' : '#c6bd8c'} />;
+      }))}
     </Instances>
-    <Instances limit={bushes.length} castShadow receiveShadow><icosahedronGeometry args={[1, 1]} /><meshStandardMaterial roughness={.85} flatShading />
-      {bushes.map(([x, z, s], i) => <Instance key={i} position={[x, .35 * s, z]} scale={[s, .7 * s, s]} color={i % 2 ? '#628158' : '#a0ae72'} />)}
+    <Instances limit={bushes.length} castShadow receiveShadow><icosahedronGeometry args={[1, 2]} /><meshStandardMaterial map={leaves} bumpMap={leaves} bumpScale={.05} roughness={1} />
+      {bushes.map(([x, z, s], i) => <Instance key={i} position={[x, .35 * s, z]} scale={[s, .7 * s, s]} color={i % 2 ? '#a7b392' : '#c4bd98'} />)}
     </Instances>
   </>;
-}
-
-/** Puffy low-poly clouds drifting slowly across the sky. */
-function Clouds() {
-  const group = useRef<THREE.Group>(null);
-  const puffs = useMemo(() => {
-    const rand = seeded(7), list: [number, number, number, number][] = [];
-    for (let c = 0; c < 16; c++) {
-      const a = c / 16 * Math.PI * 2 + rand(), r = 60 + rand() * 80, y = 45 + rand() * 25;
-      for (let p = 0; p < 6; p++) list.push([Math.cos(a) * r + (rand() - .5) * 14, y + rand() * 4, Math.sin(a) * r + (rand() - .5) * 8, 4 + rand() * 5]);
-    }
-    return list;
-  }, []);
-  useFrame((_, dt) => { if (group.current) group.current.rotation.y += dt * .004; });
-  return <group ref={group}><Instances limit={puffs.length}><icosahedronGeometry args={[1, 2]} /><meshStandardMaterial color="#ffffff" roughness={1} emissive="#dfefff" emissiveIntensity={.35} flatShading />
-    {puffs.map(([x, y, z, s], i) => <Instance key={i} position={[x, y, z]} scale={[s * 1.4, s * .8, s]} />)}
-  </Instances></group>;
 }
 
 /** Green hills and distant blue mountains closing the horizon. */
@@ -188,15 +205,13 @@ function Horizon() {
     return Array.from({ length: 28 }, (_, i) => { const a = i / 28 * Math.PI * 2, r = 150 + rand() * 40; return { x: Math.cos(a) * r, z: Math.sin(a) * r, s: 30 + rand() * 30, h: 12 + rand() * 18, far: i % 2 === 0 }; });
   }, []);
   return <>{hills.map((h, i) => <mesh key={i} position={[h.x * (h.far ? 1.25 : 1), -2, h.z * (h.far ? 1.25 : 1)]} scale={[h.s, h.far ? h.h * 2 : h.h, h.s]}>
-    <sphereGeometry args={[1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={h.far ? '#8298ad' : '#809272'} roughness={1} flatShading />
+    <sphereGeometry args={[1, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={h.far ? '#8298ad' : '#809272'} roughness={1} />
   </mesh>)}</>;
 }
 
 export const World = memo(function World() {
-  const sky = useMemo(() => skyMaterial(), []);
+  const concrete = usePbr('concrete');
   return <group>
-    <mesh material={sky}><sphereGeometry args={[400, 32, 16]} /></mesh>
-    <Clouds />
     <Horizon />
     <Streets />
     <Foliage />
@@ -213,15 +228,15 @@ export const World = memo(function World() {
     <Billboard3D position={[-23, 14, -24]} text="</> CODE" color="#1f6fe0" rotation={Math.PI / 4} size={.7} />
     {/* Design lab: white pavilion with a chrome sculpture. */}
     {[-1, 1].map(n => <group key={n}><Tower x={23 + n * 7} z={-29} height={6} width={3} seed={20 + n} />
-      <RigidBody type="fixed"><mesh position={[23 + n * 7, 2, -19]} castShadow receiveShadow><boxGeometry args={[1, 4, 8]} /><meshStandardMaterial color="#f4f6fb" roughness={.4} /></mesh></RigidBody>
+      <RigidBody type="fixed"><mesh position={[23 + n * 7, 2, -19]} castShadow receiveShadow><boxGeometry args={[1, 4, 8]} /><meshStandardMaterial {...concrete} color="#dedbd2" normalScale={[.35, .35]} roughness={.85} /></mesh></RigidBody>
       <Box position={[23 + n * 7.55, 2, -19]} scale={[.05, 3.6, 7.6]} color="#ff7a12" cast={false} /></group>)}
-    <mesh position={[23, 7, -25]} castShadow receiveShadow><boxGeometry args={[18, .45, 13]} /><meshStandardMaterial color="#f4f6fb" roughness={.4} /></mesh>
+    <mesh position={[23, 7, -25]} castShadow receiveShadow><boxGeometry args={[18, .45, 13]} /><meshStandardMaterial {...concrete} color="#dedbd2" normalScale={[.35, .35]} roughness={.85} /></mesh>
     <mesh position={[23, 7.26, -25]}><boxGeometry args={[14, .08, 9]} /><meshStandardMaterial color="#7cc4ff" roughness={.1} metalness={.3} transparent opacity={.85} /></mesh>
     <Float speed={1.2} floatIntensity={.4}><mesh position={[23, 3.7, -23]} rotation={[.4, .5, .2]} castShadow><torusKnotGeometry args={[1.8, .45, 160, 24]} /><meshStandardMaterial color="#ff7a12" metalness={.6} roughness={.2} /></mesh></Float>
     <DistrictSign position={[23, 0, -12]} title="DESIGN LAB" index="02 / CREATE" />
     {/* AI core: reactor plaza. */}
     <group position={[23, 0, 23]}>
-      <mesh position={[0, .2, 0]} receiveShadow><cylinderGeometry args={[6, 7, .4, 64]} /><meshStandardMaterial color="#dfe5ee" roughness={.5} /></mesh>
+      <mesh position={[0, .2, 0]} receiveShadow><cylinderGeometry args={[6, 7, .4, 64]} /><meshStandardMaterial {...concrete} color="#dfe5ee" normalScale={[.35, .35]} roughness={.8} /></mesh>
       <mesh position={[0, .42, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[5.4, 5.8, 96]} /><meshStandardMaterial color="#3a6fd6" roughness={.4} /></mesh>
       <Reactor />
       <Sparkles count={40} scale={[10, 9, 10]} position={[0, 4, 0]} size={5} speed={.4} color="#ffd23f" />
@@ -231,7 +246,7 @@ export const World = memo(function World() {
     {/* Bug zone: corrupted purple patch with floating glitch cubes. */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-24, .03, 25]} receiveShadow><circleGeometry args={[11, 48]} /><meshStandardMaterial color="#5a2f8a" roughness={.9} /></mesh>
     {Array.from({ length: 8 }, (_, i) => <group key={i} position={[-30 + (i % 3) * 6, 0, 18 + Math.floor(i / 3) * 7]}>
-      <RigidBody type="fixed"><mesh position={[0, 2, 0]} castShadow receiveShadow rotation={[0, i * .4, (i % 2 ? .06 : -.05)]}><boxGeometry args={[2, 4, 2]} /><meshStandardMaterial color="#7b4bc4" roughness={.6} /></mesh></RigidBody>
+      <RigidBody type="fixed"><mesh position={[0, 2, 0]} castShadow receiveShadow rotation={[0, i * .4, (i % 2 ? .06 : -.05)]}><boxGeometry args={[2, 4, 2]} /><meshStandardMaterial {...concrete} color="#7b4bc4" normalScale={[.5, .5]} roughness={.85} /></mesh></RigidBody>
       <Float speed={3} floatIntensity={.6} rotationIntensity={.6}><mesh position={[0, 6.5 + i % 3, 0]} rotation={[.2 * i, .4, .25]} castShadow><boxGeometry args={[1.6, 1.6, 1.6]} /><meshStandardMaterial color="#c77dff" emissive="#9d4dff" emissiveIntensity={.5} roughness={.4} /></mesh></Float>
     </group>)}
     <Sparkles count={60} scale={[20, 8, 20]} position={[-24, 4, 25]} size={6} speed={.6} color="#d9a6ff" />

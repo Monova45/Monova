@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { Environment, Lightformer, useProgress } from '@react-three/drei';
 import Link from 'next/link';
+import { PCFShadowMap } from 'three';
 import { Engine } from './engine';
 import { World } from './world';
 import { Showroom } from './showroom';
@@ -29,16 +30,16 @@ function Loader({ ready }: { ready: boolean }) {
 }
 
 /** Daylight rig: warm sun with shadows, sky/grass hemisphere fill and soft image-based reflections. */
-function Lighting({ quality }: { quality: boolean }) {
+function Lighting({ quality, showroom }: { quality: boolean; showroom: boolean }) {
   return <>
-    <hemisphereLight args={['#b9d4ee', '#687452', .9]} />
-    <directionalLight castShadow={quality} position={[-42, 38, 32]} intensity={2.8} color="#ffe0b5" shadow-mapSize={quality ? [2048, 2048] : [512, 512]} shadow-bias={-.0004} shadow-normalBias={.04} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={150} />
-    <directionalLight position={[35, 20, -30]} intensity={1.1} color="#a9d0ff" />
-    <Environment resolution={256} frames={1}>
-      <Lightformer form="rect" intensity={2.4} color="#bfe2ff" position={[0, 10, -12]} scale={[30, 8, 1]} />
-      <Lightformer form="rect" intensity={1.6} color="#fff3dc" position={[-12, 8, 8]} rotation-y={Math.PI / 2} scale={[20, 6, 1]} />
-      <Lightformer form="rect" intensity={1} color="#8cc56a" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[40, 40, 1]} />
-    </Environment>
+    <hemisphereLight args={['#cadbe8', '#80725d', .7]} />
+    <directionalLight castShadow={quality} position={[-42, 38, 32]} intensity={2.4} color="#ffe0b5" shadow-mapSize={quality ? [4096, 4096] : [512, 512]} shadow-bias={-.00012} shadow-normalBias={.035} shadow-radius={3} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={150} />
+    <directionalLight position={[35, 20, -30]} intensity={.35} color="#a9d0ff" />
+    <Suspense fallback={null}>{showroom ? <Environment resolution={256} frames={1}>
+      <Lightformer form="rect" intensity={1.35} color="#bfe2ff" position={[0, 10, -12]} scale={[30, 8, 1]} />
+      <Lightformer form="rect" intensity={1.05} color="#fff3dc" position={[-12, 8, 8]} rotation-y={Math.PI / 2} scale={[20, 6, 1]} />
+      <Lightformer form="rect" intensity={.35} color="#b5ae90" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[40, 40, 1]} />
+    </Environment> : <Environment files="/assets/textures/digital-drop/daylight.hdr" background backgroundIntensity={.8} environmentIntensity={.65} environmentRotation={[0, 2.1, 0]} backgroundRotation={[0, 2.1, 0]} />}</Suspense>
   </>;
 }
 
@@ -71,10 +72,10 @@ export default function DigitalDrop() {
   const party = lobby.filter(p => p.id !== net.id);
 
   return <main id="drop-game" className={styles.game} data-phase={phase} onContextMenu={e => e.preventDefault()} onClick={e => { if (phase === 'play' && !document.pointerLockElement && (e.target as HTMLElement).tagName === 'CANVAS') lock(); }}>
-    <Canvas shadows={quality} flat dpr={quality ? [1, 1.75] : [.75, 1]} camera={{ position: [7.5, 4.3, 15], fov: 50, near: .1, far: 500 }} gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }} onCreated={() => setReady(true)} fallback={<p className={styles.fallback}>Necesitas un navegador compatible con WebGL para jugar.</p>}>
+    <Canvas shadows={quality ? { type: PCFShadowMap } : false} flat dpr={quality ? [1, 1.75] : [.75, 1]} camera={{ position: [7.5, 4.3, 15], fov: 50, near: .1, far: 500 }} gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }} onCreated={() => setReady(true)} fallback={<p className={styles.fallback}>Necesitas un navegador compatible con WebGL para jugar.</p>}>
       <color attach="background" args={[phase === 'menu' ? '#1f6fe0' : '#9fd2ff']} />
-      <fog attach="fog" args={phase === 'menu' ? ['#1f6fe0', 30, 90] : ['#cfcdc4', 60, 220]} />
-      <Lighting quality={quality} />
+      <fog attach="fog" args={phase === 'menu' ? ['#1f6fe0', 30, 90] : ['#c8cdd0', 65, 235]} />
+      <Lighting quality={quality} showroom={phase === 'menu'} />
       <Suspense fallback={null}>
         {phase === 'menu' ? <Showroom quality={quality} party={party} /> : <Physics paused={phase !== 'play' && !online} gravity={[0, -20, 0]}><World /><Engine key={round} /><RemotePlayers /></Physics>}
       </Suspense>

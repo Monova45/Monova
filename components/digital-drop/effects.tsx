@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { Bloom, BrightnessContrast, ChromaticAberration, EffectComposer, HueSaturation, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
+import { Bloom, BrightnessContrast, ChromaticAberration, EffectComposer, HueSaturation, SMAA, SSAO, ToneMapping, Vignette } from '@react-three/postprocessing';
 import { ToneMappingMode, type ChromaticAberrationEffect } from 'postprocessing';
 import * as THREE from 'three';
 
@@ -96,15 +96,16 @@ export function PostFX({ quality }: { quality: boolean }) {
     const k = .00015 + screen.hurt * .0018;
     aberration.current?.offset.set(k, k * .6);
   });
-  if (!quality) return <EffectComposer multisampling={0}><Bloom mipmapBlur intensity={.35} luminanceThreshold={1.2} /><ToneMapping mode={ToneMappingMode.ACES_FILMIC} /><HueSaturation saturation={.04} /></EffectComposer>;
-  return <EffectComposer multisampling={0}>
-    <Bloom mipmapBlur intensity={.3} luminanceThreshold={1.15} luminanceSmoothing={.25} radius={.7} />
+  if (!quality) return <EffectComposer key="performance" multisampling={0}><Bloom mipmapBlur intensity={.18} luminanceThreshold={1.4} /><ToneMapping mode={ToneMappingMode.ACES_FILMIC} /><HueSaturation saturation={-.04} /></EffectComposer>;
+  return <EffectComposer key="epic" multisampling={0} enableNormalPass resolutionScale={.5}>
+    <SSAO samples={12} rings={3} radius={.16} intensity={1.6} luminanceInfluence={.65} bias={.025} />
+    <Bloom mipmapBlur intensity={.18} luminanceThreshold={1.4} luminanceSmoothing={.25} radius={.7} />
     <ChromaticAberration ref={aberration} offset={offset} radialModulation modulationOffset={.25} />
     <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-    {/* Punchy, saturated daylight grade. */}
-    <HueSaturation saturation={.06} />
-    <BrightnessContrast brightness={.01} contrast={.12} />
-    <Vignette offset={.35} darkness={.28} />
+    {/* Neutral film response preserves texture detail in highlights. */}
+    <HueSaturation saturation={-.06} />
+    <BrightnessContrast brightness={0} contrast={.06} />
+    <Vignette offset={.35} darkness={.2} />
     <SMAA />
   </EffectComposer>;
 }

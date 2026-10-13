@@ -1,7 +1,10 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { badgeTexture, furTexture, irisTexture, onesieTexture } from './materials';
+import { HeadFur } from './fur';
+import { useDrop } from './state';
+import { usePbr } from './pbr';
+import { badgeTexture, fiberBump, furTexture, irisTexture, onesieTexture } from './materials';
 
 /** Written by the engine when firing so the blaster kicks back. */
 export const catPose = { recoil: 0 };
@@ -19,6 +22,7 @@ const cream = '#fbe6cc', pink = '#f49aa1', black = '#141414', white = '#f4f1ec',
  * Faces -Z, feet at y = 0, about 2 units tall. `armed` holds the blaster; otherwise it waves and carries the pumpkin bucket.
  */
 function ProceduralCat({ armed = true, local = true }: CatProps) {
+  const quality = useDrop(s => s.quality);
   const root = useRef<THREE.Group>(null), body = useRef<THREE.Group>(null), head = useRef<THREE.Group>(null);
   const leftLeg = useRef<THREE.Group>(null), rightLeg = useRef<THREE.Group>(null), leftArm = useRef<THREE.Group>(null), rightArm = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null), gun = useRef<THREE.Group>(null);
@@ -26,20 +30,21 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
   const worldPosition = useMemo(() => new THREE.Vector3(), []);
   const tailCurve = useMemo(() => new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, .18, .14), new THREE.Vector3(.04, .4, .22), new THREE.Vector3(.13, .61, .16), new THREE.Vector3(.16, .68, .07)]), []);
   const previous = useRef(new THREE.Vector3()), velocity = useRef(0);
+  const fabric = usePbr('fabric', 5, 4);
   const m = useMemo(() => {
     const badge = badgeTexture();
     return {
-      fur: new THREE.MeshPhysicalMaterial({ map: furTexture(), roughness: .86, sheen: .65, sheenColor: '#ffd5a0', sheenRoughness: .85 }),
-      onesie: new THREE.MeshPhysicalMaterial({ map: onesieTexture(), roughness: .72, sheen: .45, sheenColor: '#ffbc75' }),
-      suit: new THREE.MeshStandardMaterial({ color: orange, roughness: .85 }),
-      cream: new THREE.MeshStandardMaterial({ color: cream, roughness: .9 }),
-      pink: new THREE.MeshStandardMaterial({ color: pink, roughness: .6 }),
+      fur: new THREE.MeshPhysicalMaterial({ map: furTexture(), bumpMap: fiberBump('fur'), bumpScale: .022, roughness: .94, sheen: 1, sheenColor: '#ffd5a0', sheenRoughness: .85 }),
+      onesie: new THREE.MeshPhysicalMaterial({ map: onesieTexture(), normalMap: fabric.normalMap, normalScale: new THREE.Vector2(.45, .45), roughnessMap: fabric.roughnessMap, roughness: .95, sheen: .8, sheenRoughness: .9, sheenColor: '#ffbc75' }),
+      suit: new THREE.MeshPhysicalMaterial({ color: orange, normalMap: fabric.normalMap, normalScale: new THREE.Vector2(.4, .4), roughnessMap: fabric.roughnessMap, roughness: .95, sheen: .7, sheenColor: '#f9bf86' }),
+      cream: new THREE.MeshPhysicalMaterial({ color: cream, bumpMap: fiberBump('fur'), bumpScale: .016, roughness: .98, sheen: .9, sheenColor: '#fff2df' }),
+      pink: new THREE.MeshStandardMaterial({ color: pink, bumpMap: fiberBump('ceramic'), bumpScale: .005, roughness: .42 }),
       black: new THREE.MeshStandardMaterial({ color: black, roughness: .7 }),
       gloss: new THREE.MeshStandardMaterial({ color: '#050505', roughness: .08, metalness: .2 }),
       iris: new THREE.MeshPhysicalMaterial({ map: irisTexture(), roughness: .22, clearcoat: 1, clearcoatRoughness: .08 }),
       eyeWhite: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: .2 }),
       shine: new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffffff').multiplyScalar(1.6), toneMapped: false }),
-      shell: new THREE.MeshPhysicalMaterial({ color: white, roughness: .24, metalness: .2, clearcoat: .8, clearcoatRoughness: .18 }),
+      shell: new THREE.MeshPhysicalMaterial({ color: white, bumpMap: fiberBump('ceramic'), bumpScale: .003, roughness: .32, metalness: .12, clearcoat: .85, clearcoatRoughness: .22 }),
       accent: new THREE.MeshStandardMaterial({ color: orange, roughness: .4, emissive: orange, emissiveIntensity: .35 }),
       glow: new THREE.MeshBasicMaterial({ color: new THREE.Color(orange).multiplyScalar(3), toneMapped: false }),
       badge: new THREE.MeshStandardMaterial({ map: badge, roughness: .4, emissiveMap: badge, emissive: '#ffffff', emissiveIntensity: .5 }),
@@ -47,10 +52,11 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
       leaf: new THREE.MeshStandardMaterial({ color: leaf, roughness: .7 }),
       stem: new THREE.MeshStandardMaterial({ color: '#2f6b22', roughness: .8 }),
       stripe: new THREE.MeshStandardMaterial({ color: '#a24f20', roughness: .85 }),
-      trim: new THREE.MeshStandardMaterial({ color: '#53616a', roughness: .32, metalness: .65 }),
+      trim: new THREE.MeshStandardMaterial({ color: '#727d83', bumpMap: fiberBump('ceramic'), bumpScale: .002, roughness: .27, metalness: .9 }),
       pumpkin: new THREE.MeshStandardMaterial({ color: '#ff8a1e', roughness: .55 }),
     };
-  }, []);
+  }, [fabric]);
+  useEffect(() => () => Object.values(m).forEach(material => material.dispose()), [m]);
 
   useFrame(({ clock }, dt) => {
     if (!root.current) return;
@@ -114,6 +120,7 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
     </group>
 
     <group ref={head} position={[0, 1.32, 0]}>
+      {quality && <HeadFur />}
       <mesh castShadow material={m.fur} scale={[1.1, .95, 1]}><sphereGeometry args={[.5, 48, 32]} /></mesh>
       {/* Sculpted cheek tufts create a softer silhouette without hair particles. */}
       {[-1, 1].flatMap(side => [0, 1, 2].map(i => <mesh key={`${side}-tuft-${i}`} castShadow material={i === 2 ? m.cream : m.fur} position={[side * (.43 + i * .014), -.07 - i * .085, -.12]} rotation={[0, 0, side * (1.05 + i * .25)]} scale={[1, 1, .65]}><coneGeometry args={[.09 - i * .01, .19, 12]} /></mesh>))}

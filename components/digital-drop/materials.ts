@@ -167,3 +167,47 @@ export function irisTexture() {
     }
   });
 }
+
+/** Fine directional fibers: a height field rather than painted shading. */
+export function fiberBump(kind: 'fur' | 'ceramic') {
+  const texture = canvasTexture(`micro-${kind}`, 512, 512, g => {
+    let seed = 491;
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    g.fillStyle = '#808080'; g.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < (kind === 'fur' ? 26000 : 14000); i++) {
+      const x = random() * 512, y = random() * 512, value = Math.floor(70 + random() * 115);
+      g.strokeStyle = `rgb(${value},${value},${value})`; g.lineWidth = kind === 'fur' ? .65 : .4;
+      g.beginPath(); g.moveTo(x, y);
+      g.quadraticCurveTo(x + 1.2, y + 2, x + (random() - .5) * 3, y + (kind === 'fur' ? 5 + random() * 9 : 1)); g.stroke();
+    }
+  }, kind === 'fur' ? [3, 2] : [2, 2]);
+  texture.colorSpace = THREE.NoColorSpace;
+  return texture;
+}
+
+/** Soft interior variation behind the physical glass; not a baked reflection. */
+export function glassTexture() {
+  return canvasTexture('architectural-glass', 128, 256, g => {
+    const gradient = g.createLinearGradient(0, 0, 0, 256);
+    gradient.addColorStop(0, '#596c70'); gradient.addColorStop(.5, '#253a43'); gradient.addColorStop(1, '#35454c');
+    g.fillStyle = gradient; g.fillRect(0, 0, 128, 256);
+    g.fillStyle = '#c8bba629'; g.fillRect(8, 12, 26, 235);
+    g.fillStyle = '#0b131a'; g.fillRect(62, 0, 3, 256); g.fillRect(0, 156, 128, 3);
+    g.fillStyle = '#d0d7d333'; g.fillRect(0, 0, 128, 3);
+  });
+}
+
+/** Layered leaves break up the canopy surface at close range. */
+export function canopyTexture() {
+  return canvasTexture('leaf-canopy', 512, 512, g => {
+    let state = 718;
+    const random = () => (state = (state * 16807) % 2147483647) / 2147483647;
+    g.fillStyle = '#34422b'; g.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 5200; i++) {
+      const x = random() * 512, y = random() * 512, a = random() * Math.PI, size = 2 + random() * 5;
+      g.fillStyle = ['#65794b', '#82925b', '#485f37', '#536d43', '#9aa16b'][i % 5];
+      g.beginPath(); g.ellipse(x, y, size, size * .42, a, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#c4c48b44'; g.lineWidth = .5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * size, y + Math.sin(a) * size); g.stroke();
+    }
+  }, [2, 2]);
+}
