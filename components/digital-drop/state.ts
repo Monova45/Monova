@@ -1,12 +1,21 @@
 import { create } from 'zustand';
 import { sfx } from './audio';
 
+/** Fortnite-style rarity tiers used to color weapon cards and inventory slots. */
+export const rarities = {
+  common: { label: 'COMÚN', color: '#8f9aa6', dark: '#4b545e' },
+  uncommon: { label: 'POCO COMÚN', color: '#5fc22c', dark: '#2a6a12' },
+  rare: { label: 'RARO', color: '#3aa0ff', dark: '#174f9c' },
+  epic: { label: 'ÉPICO', color: '#c25bff', dark: '#5f1d9a' },
+  legendary: { label: 'LEGENDARIO', color: '#ffa630', dark: '#a8520c' },
+} as const;
+export type Rarity = keyof typeof rarities;
 export const weapons = [
-  { name: 'Pixel Blaster', short: 'PIXEL', damage: 26, interval: .3, ammo: 20, spread: .012, color: '#ffb35c', rate: 2, power: 2, range: 4 },
-  { name: 'Code Rifle', short: 'RIFLE', damage: 13, interval: .11, ammo: 40, spread: .022, color: '#7fd8ff', rate: 5, power: 1, range: 3 },
-  { name: 'Vector Cannon', short: 'VECTOR', damage: 65, interval: .9, ammo: 6, spread: 0, color: '#ff6a2b', rate: 1, power: 5, range: 3 },
-  { name: 'Bug Destroyer', short: 'DESTROY', damage: 42, interval: .4, ammo: 16, spread: .008, color: '#ff4fa3', rate: 2, power: 4, range: 4 },
-  { name: 'Render Beam', short: 'BEAM', damage: 8, interval: .065, ammo: 80, spread: .004, color: '#d6a5ff', rate: 5, power: 1, range: 5 },
+  { name: 'Pixel Blaster', short: 'PIXEL', damage: 26, interval: .3, ammo: 20, spread: .012, color: '#ffb35c', rate: 2, power: 2, range: 4, rarity: 'common' as Rarity },
+  { name: 'Code Rifle', short: 'RIFLE', damage: 13, interval: .11, ammo: 40, spread: .022, color: '#7fd8ff', rate: 5, power: 1, range: 3, rarity: 'uncommon' as Rarity },
+  { name: 'Vector Cannon', short: 'VECTOR', damage: 65, interval: .9, ammo: 6, spread: 0, color: '#ff6a2b', rate: 1, power: 5, range: 3, rarity: 'legendary' as Rarity },
+  { name: 'Bug Destroyer', short: 'DESTROY', damage: 42, interval: .4, ammo: 16, spread: .008, color: '#ff4fa3', rate: 2, power: 4, range: 4, rarity: 'rare' as Rarity },
+  { name: 'Render Beam', short: 'BEAM', damage: 8, interval: .065, ammo: 80, spread: .004, color: '#d6a5ff', rate: 5, power: 1, range: 5, rarity: 'epic' as Rarity },
 ];
 export const abilities = [
   { name: 'DESIGN MODE', detail: 'Escudo de vectores · 5 s de inmunidad' },
@@ -55,3 +64,18 @@ export const emitHud = (type: 'hit' | 'kill' | 'hurt', detail = 0) => hudBus.dis
 export const emitBanner = (text: string, tone: 'kill' | 'info' = 'kill') => hudBus.dispatchEvent(new CustomEvent('banner', { detail: { text, tone } }));
 /** Live positions for the minimap, written by the engine and drawn by the HUD at display rate. */
 export const radar = { x: 0, z: 0, yaw: 0, bugs: [] as { x: number; z: number; alive: boolean }[], mates: [] as { x: number; z: number; slot: number }[] };
+
+/** Floating damage numbers: the engine projects the hit point to screen space (0..1). */
+export const emitDamage = (x: number, y: number, amount: number, tone: 'hit' | 'crit' | 'shield' = 'hit') => hudBus.dispatchEvent(new CustomEvent('damage', { detail: { x, y, amount, tone } }));
+
+/** Career stats persisted in the browser: total credits, matches, wins and the derived level. */
+export type Career = { credits: number; matches: number; wins: number; kills: number };
+export function loadCareer(): Career {
+  try { return { credits: 0, matches: 0, wins: 0, kills: 0, ...JSON.parse(localStorage.getItem('monova-drop-career') ?? '{}') }; } catch { return { credits: 0, matches: 0, wins: 0, kills: 0 }; }
+}
+export function saveMatch(credits: number, won: boolean, kills: number) {
+  const c = loadCareer(), next = { credits: c.credits + credits, matches: c.matches + 1, wins: c.wins + Number(won), kills: c.kills + kills };
+  try { localStorage.setItem('monova-drop-career', JSON.stringify(next)); } catch {}
+  return next;
+}
+export const levelOf = (credits: number) => ({ level: Math.floor(credits / 500) + 1, progress: (credits % 500) / 500 });

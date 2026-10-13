@@ -369,3 +369,7 @@
 @media(prefers-reduced-motion:reduce){.heroVideoArrow{transition:none}}
 
 .heroVideoPlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;display:flex;align-items:center;gap:10px;padding:14px 22px;border:2px solid #ffc343;border-radius:999px;background:#ff5106;color:white;font:700 15px Arial,sans-serif;cursor:pointer}.heroVideoPlay:focus-visible{outline:3px solid white;outline-offset:4px}
+
+/* The 3D game is desktop-only, so its nav link is hidden on touch and small screens. */
+.desktopOnly{}
+@media (max-width:1023px),(pointer:coarse){.desktopOnly{display:none!important}}

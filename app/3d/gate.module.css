@@ -1,0 +1,10 @@
+.gate{min-height:100svh;overflow-x:hidden;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 20%,#2f7bff 0%,#123f9e 45%,#081a45 100%);color:#fff;font-family:var(--font-body),system-ui,sans-serif}
+.card{width:100%;max-width:420px;text-align:center}
+.badge{display:inline-block;padding:6px 14px;background:#ffe23d;color:#111;font-family:var(--font-display),sans-serif;font-weight:900;font-style:italic;letter-spacing:2px;transform:skewX(-8deg)}
+.card h1{margin:22px 0 14px;font-family:var(--font-display),sans-serif;font-size:clamp(48px,18vw,76px);font-weight:900;font-style:italic;line-height:.85;text-transform:uppercase;text-shadow:0 6px 0 #0a2a6b}
+.card h1 em{color:#ffe23d}
+.card p{margin:0 auto 24px;max-width:320px;font-size:17px;line-height:1.5;color:#dbe7ff}
+.keys{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;margin-bottom:28px}
+.keys kbd{display:grid;place-items:center;width:38px;height:38px;border-radius:8px;background:#fff;color:#123f9e;font-weight:800;box-shadow:0 4px 0 #9fb8e8}
+.keys span{margin-left:8px;font-family:var(--font-display),sans-serif;font-weight:800;font-style:italic;letter-spacing:1px}
+.back{display:inline-block;padding:14px 26px;border:2px solid #ffffff80;color:#fff;font-family:var(--font-display),sans-serif;font-weight:800;font-style:italic;letter-spacing:2px;text-decoration:none;transform:skewX(-8deg)}

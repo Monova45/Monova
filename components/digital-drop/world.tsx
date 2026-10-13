@@ -3,156 +3,240 @@ import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Float, Text, Sparkles, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
-import { groundTexture, skyMaterial, windowTexture } from './materials';
+import { asphaltTexture, dayFacadeTexture, grassTexture, skyMaterial } from './materials';
 export { Cat } from './character';
 
-const light = '#ff8528';
-const neon = (color: string, k = 3) => new THREE.Color(color).multiplyScalar(k);
 const font = '/fonts/jersey-10.ttf';
+const hot = (color: string, k = 3) => new THREE.Color(color).multiplyScalar(k);
+const roads = [-36, -12, 12, 36];
 
-function Box({ position, scale, color = '#232a34', glow = false, intensity = 3 }: { position: [number, number, number]; scale: [number, number, number]; color?: string; glow?: boolean; intensity?: number }) {
-  const c = useMemo(() => neon(color, intensity), [color, intensity]);
-  return <mesh position={position} castShadow={!glow} receiveShadow={!glow}><boxGeometry args={scale} />
-    {glow ? <meshBasicMaterial color={c} toneMapped={false} /> : <meshStandardMaterial color={color} metalness={.65} roughness={.42} />}</mesh>;
+// Deterministic pseudo-random so scenery is identical for every player in a room.
+function seeded(seed: number) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+
+function Box({ position, scale, color = '#d9dee6', rotation, cast = true }: { position: [number, number, number]; scale: [number, number, number]; color?: string; rotation?: [number, number, number]; cast?: boolean }) {
+  return <mesh position={position} rotation={rotation} castShadow={cast} receiveShadow><boxGeometry args={scale} /><meshStandardMaterial color={color} roughness={.7} metalness={.05} /></mesh>;
 }
 
-function Facade({ width, height, depth = width, seed, warm }: { width: number; height: number; depth?: number; seed: number; warm?: number }) {
-  const material = useMemo(() => {
-    const map = windowTexture(Math.max(3, Math.round(width * 2.2)), Math.max(4, Math.round(height * 1.8)), seed, warm);
-    return new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: new THREE.Color('#ffffff'), emissiveIntensity: .9, metalness: .7, roughness: .32, color: '#6d7a89' });
-  }, [width, height, seed, warm]);
+function Facade({ width, height, depth = width, seed }: { width: number; height: number; depth?: number; seed: number }) {
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ map: dayFacadeTexture(Math.max(2, Math.round(width * 1.1)), Math.max(3, Math.round(height / 1.5)), seed), roughness: .55, metalness: .05 }), [width, height, seed]);
   return <mesh position={[0, height / 2, 0]} castShadow receiveShadow material={material}><boxGeometry args={[width, height, depth]} /></mesh>;
 }
 
+const roofColors = ['#d64545', '#3a6fd6', '#2f8f5b', '#e0a32e', '#6b4bd6', '#3d4654'];
+
 function Tower({ x, z, height = 12, width = 5, seed = 1 }: { x: number; z: number; height?: number; width?: number; seed?: number }) {
+  const roof = roofColors[seed % roofColors.length];
   return <group position={[x, 0, z]}>
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[width / 2, height / 2, width / 2]} position={[0, height / 2, 0]} /></RigidBody>
     <Facade width={width} height={height} seed={seed} />
-    <Box position={[0, height + .18, 0]} scale={[width + .35, .35, width + .35]} color="#3c4754" />
-    <Box position={[-width / 2 - .03, height / 2, width / 2 + .03]} scale={[.06, height, .06]} color={light} glow intensity={4} />
-    <Box position={[0, height + .4, -width / 2 - .05]} scale={[width - .4, .06, .06]} color={seed % 2 ? light : '#7fc4ff'} glow />
-    {seed % 3 === 0 && <Beacon position={[0, height + 1.4, 0]} />}
+    {/* Recessed entry, canopy and structural bands give the towers readable scale. */}
+    <Box position={[0, 1.25, -width / 2 - .035]} scale={[width * .48, 2.5, .08]} color="#223847" />
+    <Box position={[0, 2.6, -width / 2 - .35]} scale={[width * .75, .18, .85]} color={roof} />
+    {[-1, 1].map(side => <Box key={side} position={[side * (width / 2 - .12), height / 2, -width / 2 - .04]} scale={[.18, height, .12]} color="#ece6d9" />)}
+    {Array.from({ length: Math.max(1, Math.floor(height / 4)) }, (_, i) => <Box key={i} position={[0, (i + 1) * 3.5, 0]} scale={[width + .13, .12, width + .13]} color="#e4dfd3" cast={false} />)}
+    <Box position={[0, height + .2, 0]} scale={[width + .4, .4, width + .4]} color={roof} />
+    <Box position={[0, .3, 0]} scale={[width + .25, .6, width + .25]} color="#e9e4da" />
+    {width > 2.5 && <><Box position={[width * .2, height + .75, -width * .15]} scale={[1, .7, .8]} color="#c9ced6" /><Box position={[-width * .22, height + .6, width * .2]} scale={[.6, .4, .6]} color="#aeb5bf" /></>}
+    {seed % 3 === 0 && <Antenna position={[0, height + .4, 0]} />}
   </group>;
 }
 
-/** Blinking aviation light on rooftops. */
-function Beacon({ position }: { position: [number, number, number] }) {
-  const mesh = useRef<THREE.Mesh>(null);
+/** Rooftop antenna with a blinking tip. */
+function Antenna({ position }: { position: [number, number, number] }) {
+  const tip = useRef<THREE.Mesh>(null);
   const offset = (position[0] * 7 + position[2] * 3) % 5;
-  useFrame(({ clock }) => { if (mesh.current) mesh.current.scale.setScalar(Math.sin(clock.elapsedTime * 2 + offset) > .6 ? 1 : .2); });
-  return <group position={position}><mesh position={[0, -.6, 0]}><cylinderGeometry args={[.04, .06, 1.2, 6]} /><meshStandardMaterial color="#3c4754" /></mesh>
-    <mesh ref={mesh}><sphereGeometry args={[.13, 10, 8]} /><meshBasicMaterial color={neon('#ff3020', 6)} toneMapped={false} /></mesh></group>;
+  useFrame(({ clock }) => { if (tip.current) tip.current.scale.setScalar(Math.sin(clock.elapsedTime * 2 + offset) > .5 ? 1 : .4); });
+  return <group position={position}><mesh position={[0, 1, 0]} castShadow><cylinderGeometry args={[.05, .08, 2, 6]} /><meshStandardMaterial color="#7a838f" /></mesh>
+    <mesh ref={tip} position={[0, 2.05, 0]}><sphereGeometry args={[.14, 10, 8]} /><meshBasicMaterial color={hot('#ff3b30', 2)} toneMapped={false} /></mesh></group>;
 }
 
+/** Roadside district sign: blue panel, yellow header, on two posts. */
 function DistrictSign({ position, title, index, rotation = 0 }: { position: [number, number, number]; title: string; index: string; rotation?: number }) {
   return <group position={position} rotation={[0, rotation, 0]}>
-    <Box position={[0, 1.7, 0]} scale={[5.2, 2.3, .25]} color="#0c121b" />
-    <Box position={[-2.55, 1.7, .14]} scale={[.06, 2.3, .03]} color={light} glow intensity={4} />
-    <Text font={font} position={[-2.15, 2.1, .15]} anchorX="left" fontSize={.6}>{index}<meshBasicMaterial color={neon('#ffffff', 1.4)} toneMapped={false} /></Text>
-    <Text font={font} position={[-2.15, 1.35, .15]} anchorX="left" fontSize={.46}>{title}<meshBasicMaterial color={neon(light, 2.4)} toneMapped={false} /></Text>
-    <Box position={[0, .3, 0]} scale={[.15, 1, .15]} />
+    {[-2, 2].map(x => <Box key={x} position={[x, 1, 0]} scale={[.18, 2, .18]} color="#5b6470" />)}
+    <Box position={[0, 2.6, 0]} scale={[5.4, 1.9, .2]} color="#1f6fe0" />
+    <Box position={[0, 3.35, .02]} scale={[5.4, .45, .22]} color="#ffd23f" />
+    <Text font={font} position={[0, 3.33, .14]} fontSize={.4} color="#1b1b1b">{index}</Text>
+    <Text font={font} position={[0, 2.4, .12]} fontSize={.68} color="#ffffff" outlineWidth={.02} outlineColor="#0a2a6b">{title}</Text>
   </group>;
 }
 
-/** Floating holographic panel; purely decorative. */
-function Hologram({ position, text, color = light, rotation = 0, size = 1 }: { position: [number, number, number]; text: string; color?: string; rotation?: number; size?: number }) {
+/** Floating billboard panel with a gentle bob. */
+function Billboard3D({ position, text, color = '#ff8a1e', rotation = 0, size = 1 }: { position: [number, number, number]; text: string; color?: string; rotation?: number; size?: number }) {
   const group = useRef<THREE.Group>(null);
   useFrame(({ clock }) => { if (group.current) group.current.position.y = position[1] + Math.sin(clock.elapsedTime * .8 + position[0]) * .25; });
   return <group ref={group} position={position} rotation={[0, rotation, 0]} scale={size}>
-    <mesh><planeGeometry args={[6, 1.8]} /><meshBasicMaterial color={neon(color, .5)} transparent opacity={.12} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} /></mesh>
-    <Box position={[0, .92, 0]} scale={[6, .03, .03]} color={color} glow />
-    <Box position={[0, -.92, 0]} scale={[6, .03, .03]} color={color} glow />
-    <Text font={font} fontSize={.95} position={[0, -.05, .02]}>{text}<meshBasicMaterial color={neon(color, 2.2)} toneMapped={false} side={THREE.DoubleSide} /></Text>
+    <mesh castShadow><boxGeometry args={[6.4, 2, .25]} /><meshStandardMaterial color={color} roughness={.5} /></mesh>
+    <mesh position={[0, 0, .13]}><planeGeometry args={[6, 1.6]} /><meshStandardMaterial color="#ffffff" roughness={.6} /></mesh>
+    <Text font={font} fontSize={.95} position={[0, -.05, .15]} color={color}>{text}</Text>
+    <Text font={font} fontSize={.95} position={[0, -.05, -.14]} rotation={[0, Math.PI, 0]} color="#ffffff">{text}</Text>
   </group>;
 }
 
-const roads = [-36, -12, 12, 36];
-
 function Streets() {
-  const lamps = useMemo(() => roads.flatMap(n => Array.from({ length: 8 }, (_, i) => i * 12.5 - 44).flatMap(t => [[n + 4.6, t], [t, n + 4.6]] as [number, number][])), []);
-  const ground = useMemo(() => groundTexture(), []);
+  const lamps = useMemo(() => roads.flatMap(n => Array.from({ length: 8 }, (_, i) => i * 12.5 - 44).flatMap(t => [[n + 4.8, t], [t, n + 4.8]] as [number, number][])), []);
+  const grass = useMemo(() => grassTexture(), []);
+  const roadV = useMemo(() => asphaltTexture('v'), []), roadH = useMemo(() => asphaltTexture('h'), []);
   return <>
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[50, 1, 50]} position={[0, -1, 0]} /></RigidBody>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[100, 100]} /><meshStandardMaterial map={ground} color="#8c99a8" metalness={.55} roughness={.55} /></mesh>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -.05, 0]}><planeGeometry args={[400, 400]} /><meshStandardMaterial color="#070b12" roughness={.9} /></mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[520, 520]} /><meshStandardMaterial map={grass} roughness={.95} /></mesh>
     {roads.map(n => <group key={n}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[n, .012, 0]} receiveShadow><planeGeometry args={[8, 100]} /><meshStandardMaterial color="#0b1018" metalness={.7} roughness={.3} /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, .014, n]} receiveShadow><planeGeometry args={[100, 8]} /><meshStandardMaterial color="#0b1018" metalness={.7} roughness={.3} /></mesh>
-      {[-1, 1].map(k => <group key={k}><Box position={[n + k * 4, .03, 0]} scale={[.07, .02, 100]} color="#4f7a96" glow intensity={1.2} /><Box position={[0, .03, n + k * 4]} scale={[100, .02, .07]} color="#4f7a96" glow intensity={1.2} /></group>)}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[n, .02, 0]} receiveShadow><planeGeometry args={[8, 100]} /><meshStandardMaterial map={roadV} roughness={.9} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, .025, n]} receiveShadow><planeGeometry args={[100, 8]} /><meshStandardMaterial map={roadH} roughness={.9} /></mesh>
+      {[-1, 1].map(k => <group key={k}>
+        <Box position={[n + k * 4.6, .07, 0]} scale={[1.2, .14, 100]} color="#cfd3d8" cast={false} />
+        <Box position={[0, .07, n + k * 4.6]} scale={[100, .14, 1.2]} color="#cfd3d8" cast={false} />
+        <Box position={[n + k * 3.7, .035, 0]} scale={[.12, .01, 100]} color="#ffd23f" cast={false} />
+        <Box position={[0, .04, n + k * 3.7]} scale={[100, .01, .12]} color="#ffd23f" cast={false} />
+      </group>)}
     </group>)}
-    <Instances limit={260}><boxGeometry args={[1, 1, 1]} /><meshBasicMaterial color={neon('#c7d6e2', 1.3)} toneMapped={false} />
-      {roads.flatMap(n => Array.from({ length: 16 }, (_, i) => [<Instance key={`a${n}${i}`} position={[n, .03, i * 6 - 45]} scale={[.12, .02, 1.6]} />, <Instance key={`b${n}${i}`} position={[i * 6 - 45, .03, n]} scale={[1.6, .02, .12]} />]))}
+    <Instances limit={260} receiveShadow><boxGeometry args={[1, 1, 1]} /><meshStandardMaterial color="#ffffff" roughness={.6} />
+      {roads.flatMap(n => Array.from({ length: 16 }, (_, i) => [<Instance key={`a${n}${i}`} position={[n, .04, i * 6 - 45]} scale={[.16, .01, 2]} />, <Instance key={`b${n}${i}`} position={[i * 6 - 45, .045, n]} scale={[2, .01, .16]} />]))}
     </Instances>
-    <Instances limit={80} castShadow><cylinderGeometry args={[.06, .09, 1, 6]} /><meshStandardMaterial color="#2a333f" metalness={.8} roughness={.3} />
-      {lamps.map(([x, z], i) => <Instance key={i} position={[x, 2.2, z]} scale={[1, 4.4, 1]} />)}
+    <Instances limit={80} castShadow><cylinderGeometry args={[.07, .1, 1, 8]} /><meshStandardMaterial color="#4a525c" roughness={.5} metalness={.4} />
+      {lamps.map(([x, z], i) => <Instance key={i} position={[x, 2.4, z]} scale={[1, 4.8, 1]} />)}
     </Instances>
-    <Instances limit={80}><boxGeometry args={[.5, .08, .22]} /><meshBasicMaterial color={neon('#ffd2a1', 5)} toneMapped={false} />
-      {lamps.map(([x, z], i) => <Instance key={i} position={[x, 4.4, z]} />)}
+    <Instances limit={80}><boxGeometry args={[.7, .18, .35]} /><meshStandardMaterial color="#fffbe8" emissive="#fff3c4" emissiveIntensity={.4} />
+      {lamps.map(([x, z], i) => <Instance key={i} position={[x, 4.85, z]} />)}
     </Instances>
-    {[-1, 1].map(n => <group key={`edge${n}`}><Box position={[n * 49.5, .2, 0]} scale={[.15, .4, 99]} color={light} glow /><Box position={[0, .2, n * 49.5]} scale={[99, .4, .15]} color={light} glow /></group>)}
+    {/* Low wall around the playable square. */}
+    {[-1, 1].map(n => <group key={`edge${n}`}><Box position={[n * 49.6, .35, 0]} scale={[.5, .7, 99.7]} color="#e9e4da" /><Box position={[0, .35, n * 49.6]} scale={[99.7, .7, .5]} color="#e9e4da" /></group>)}
   </>;
 }
 
-function Skyline() {
-  return <>{Array.from({ length: 30 }, (_, i) => {
-    const a = i * Math.PI / 15, r = 68 + (i % 3) * 10, h = 26 + (i * 7) % 5 * 7, w = 6 + i % 3 * 2;
-    return <group key={i} position={[Math.cos(a) * r, -1, Math.sin(a) * r]} rotation={[0, -a, 0]}>
-      <Facade width={w} height={h} seed={i + 40} warm={.4} />
-      <Box position={[w / 2 + .05, h / 2, w / 2 + .05]} scale={[.12, h, .12]} color={i % 4 ? '#4e86b3' : light} glow intensity={2} />
-      {i % 4 === 0 && <Beacon position={[0, h + 1.2, 0]} />}
-    </group>;
-  })}</>;
+
+/** Repeated road markings and planting use instancing to keep draw calls low. */
+function CityDetails() {
+  const crossings = useMemo(() => roads.flatMap(x => roads.flatMap(z => [-1, 1].flatMap(side => Array.from({ length: 6 }, (_, i) => [
+    [x - 2.7 + i * 1.08, z + side * 3.1, 0],
+    [x + side * 3.1, z - 2.7 + i * 1.08, 1],
+  ]).flat()))), []);
+  const plants = useMemo(() => {
+    const random = seeded(812);
+    return Array.from({ length: 480 }, () => ({ x: random() * 96 - 48, z: random() * 96 - 48, size: .1 + random() * .18 })).filter(p => roads.every(r => Math.abs(p.x - r) > 6 && Math.abs(p.z - r) > 6));
+  }, []);
+  return <>
+    <Instances limit={crossings.length}><boxGeometry args={[1, 1, 1]} /><meshStandardMaterial color="#eee6d2" roughness={.95} />
+      {crossings.map(([x, z, turn], i) => <Instance key={i} position={[x, .052, z]} scale={turn ? [1.3, .012, .48] : [.48, .012, 1.3]} />)}
+    </Instances>
+    <Instances limit={plants.length}><icosahedronGeometry args={[1, 0]} /><meshStandardMaterial roughness={1} flatShading />
+      {plants.map((p, i) => <Instance key={i} position={[p.x, p.size * .5, p.z]} scale={[p.size, p.size * .7, p.size]} color={i % 4 === 0 ? '#eacb8e' : '#879774'} />)}
+    </Instances>
+    {/* Rings make each district recognizable from the airborne deployment. */}
+    {[[23, -23, '#ff9659'], [23, 23, '#73c9df'], [-24, 25, '#bc83ed']].map(([x, z, color]) => <mesh key={String(color)} position={[Number(x), .065, Number(z)]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[9.5, 9.62, 64]} /><meshBasicMaterial color={String(color)} transparent opacity={.7} /></mesh>)}
+  </>;
+}
+
+/** Stylized trees and bushes scattered on grass, skipping roads and districts. */
+function Foliage() {
+  const { trees, bushes } = useMemo(() => {
+    const rand = seeded(42), trees: [number, number, number][] = [], bushes: [number, number, number][] = [];
+    const blocked: [number, number, number][] = [[0, 7, 11], [-23, -23, 11], [23, -24, 12], [23, 23, 11], [-24, 25, 11]];
+    const free = (x: number, z: number, margin: number) => roads.every(r => Math.abs(x - r) > 5.6 + margin && Math.abs(z - r) > 5.6 + margin) && blocked.every(([bx, bz, br]) => Math.hypot(x - bx, z - bz) > br);
+    for (let i = 0; i < 900 && trees.length < 70; i++) {
+      const x = rand() * 96 - 48, z = rand() * 96 - 48;
+      if (free(x, z, .6)) trees.push([x, z, .8 + rand() * .7]);
+    }
+    for (let i = 0; i < 900 && bushes.length < 90; i++) {
+      const x = rand() * 96 - 48, z = rand() * 96 - 48;
+      if (free(x, z, 0)) bushes.push([x, z, .5 + rand() * .6]);
+    }
+    // Rolling scenery outside the arena.
+    for (let i = 0; i < 140; i++) {
+      const a = rand() * Math.PI * 2, r = 56 + rand() * 60;
+      trees.push([Math.cos(a) * r, Math.sin(a) * r, 1 + rand() * 1.2]);
+    }
+    return { trees, bushes };
+  }, []);
+  return <>
+    <Instances limit={trees.length} castShadow><cylinderGeometry args={[.18, .28, 1, 7]} /><meshStandardMaterial color="#8a5a2b" roughness={.9} />
+      {trees.map(([x, z, s], i) => <Instance key={i} position={[x, 1 * s, z]} scale={[s, 2 * s, s]} />)}
+    </Instances>
+    <Instances limit={trees.length * 2} castShadow><icosahedronGeometry args={[1, 1]} /><meshStandardMaterial roughness={.8} flatShading />
+      {trees.flatMap(([x, z, s], i) => [
+        <Instance key={`a${i}`} position={[x, 2.8 * s, z]} scale={1.6 * s} color={i % 3 ? '#527a57' : '#91a86c'} />,
+        <Instance key={`b${i}`} position={[x + .4 * s, 3.9 * s, z - .2 * s]} scale={1.1 * s} color={i % 2 ? '#8ca864' : '#668a58'} />,
+      ])}
+    </Instances>
+    <Instances limit={bushes.length} castShadow receiveShadow><icosahedronGeometry args={[1, 1]} /><meshStandardMaterial roughness={.85} flatShading />
+      {bushes.map(([x, z, s], i) => <Instance key={i} position={[x, .35 * s, z]} scale={[s, .7 * s, s]} color={i % 2 ? '#628158' : '#a0ae72'} />)}
+    </Instances>
+  </>;
+}
+
+/** Puffy low-poly clouds drifting slowly across the sky. */
+function Clouds() {
+  const group = useRef<THREE.Group>(null);
+  const puffs = useMemo(() => {
+    const rand = seeded(7), list: [number, number, number, number][] = [];
+    for (let c = 0; c < 16; c++) {
+      const a = c / 16 * Math.PI * 2 + rand(), r = 60 + rand() * 80, y = 45 + rand() * 25;
+      for (let p = 0; p < 6; p++) list.push([Math.cos(a) * r + (rand() - .5) * 14, y + rand() * 4, Math.sin(a) * r + (rand() - .5) * 8, 4 + rand() * 5]);
+    }
+    return list;
+  }, []);
+  useFrame((_, dt) => { if (group.current) group.current.rotation.y += dt * .004; });
+  return <group ref={group}><Instances limit={puffs.length}><icosahedronGeometry args={[1, 2]} /><meshStandardMaterial color="#ffffff" roughness={1} emissive="#dfefff" emissiveIntensity={.35} flatShading />
+    {puffs.map(([x, y, z, s], i) => <Instance key={i} position={[x, y, z]} scale={[s * 1.4, s * .8, s]} />)}
+  </Instances></group>;
+}
+
+/** Green hills and distant blue mountains closing the horizon. */
+function Horizon() {
+  const hills = useMemo(() => {
+    const rand = seeded(99);
+    return Array.from({ length: 28 }, (_, i) => { const a = i / 28 * Math.PI * 2, r = 150 + rand() * 40; return { x: Math.cos(a) * r, z: Math.sin(a) * r, s: 30 + rand() * 30, h: 12 + rand() * 18, far: i % 2 === 0 }; });
+  }, []);
+  return <>{hills.map((h, i) => <mesh key={i} position={[h.x * (h.far ? 1.25 : 1), -2, h.z * (h.far ? 1.25 : 1)]} scale={[h.s, h.far ? h.h * 2 : h.h, h.s]}>
+    <sphereGeometry args={[1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={h.far ? '#8298ad' : '#809272'} roughness={1} flatShading />
+  </mesh>)}</>;
 }
 
 export const World = memo(function World() {
   const sky = useMemo(() => skyMaterial(), []);
   return <group>
-    <mesh material={sky}><sphereGeometry args={[190, 32, 16]} /></mesh>
+    <mesh material={sky}><sphereGeometry args={[400, 32, 16]} /></mesh>
+    <Clouds />
+    <Horizon />
     <Streets />
-    {/* A raised central gateway leaves the playable center open. */}
-    <Tower x={-8} z={7} height={16} width={4} seed={7} /><Tower x={8} z={7} height={16} width={4} seed={8} />
-    <Box position={[0, 15, 7]} scale={[20, 3, 4]} color="#202a36" />
-    <Text font={font} position={[0, 15, 4.95]} fontSize={1.9}>MONOVA<meshBasicMaterial color={neon('#ffffff', 2.2)} toneMapped={false} /></Text>
-    <Box position={[0, 13.55, 4.95]} scale={[19, .1, .05]} color={light} glow intensity={5} />
-    <Box position={[0, 16.45, 4.95]} scale={[19, .05, .05]} color={light} glow intensity={2} />
+    <Foliage />
+    <CityDetails />
+    {/* HQ: raised central gateway in Monova orange. */}
+    <Tower x={-8} z={7} height={16} width={4} seed={4} /><Tower x={8} z={7} height={16} width={4} seed={14} />
+    <Box position={[0, 15, 7]} scale={[20, 3, 4]} color="#ff7a12" />
+    <Text font={font} position={[0, 15, 4.9]} fontSize={2.1} color="#ffffff" outlineWidth={.05} outlineColor="#a33f00">MONOVA</Text>
     <DistrictSign position={[0, 0, 10]} title="HEADQUARTERS" index="M / 00" />
-    <Hologram position={[0, 9, -6]} text="IDEAS THAT WORK" />
-    {/* Code district: server canyon. */}
+    <Billboard3D position={[0, 9, -6]} text="IDEAS THAT WORK" />
+    {/* Code district: blue office canyon. */}
     {[-30, -23, -16].flatMap((x, i) => [-30, -17].map((z, j) => <Tower key={`code${i}${j}`} x={x} z={z} height={8 + i * 3 + j} width={3} seed={i * 2 + j + 11} />))}
     <DistrictSign position={[-23, 0, -12]} title="CODE DISTRICT" index="01 / CODE" />
-    <Hologram position={[-23, 13, -24]} text="</> CODE" color="#7fc4ff" rotation={Math.PI / 4} size={.7} />
-    {/* Design lab: ivory exhibition pavilion and suspended sculpture. */}
+    <Billboard3D position={[-23, 14, -24]} text="</> CODE" color="#1f6fe0" rotation={Math.PI / 4} size={.7} />
+    {/* Design lab: white pavilion with a chrome sculpture. */}
     {[-1, 1].map(n => <group key={n}><Tower x={23 + n * 7} z={-29} height={6} width={3} seed={20 + n} />
-      <RigidBody type="fixed"><mesh position={[23 + n * 7, 2, -19]} castShadow receiveShadow><boxGeometry args={[1, 4, 8]} /><meshStandardMaterial color="#7d8995" metalness={.6} roughness={.3} /></mesh></RigidBody>
-      <Box position={[23 + n * 7.55, 2, -19]} scale={[.04, 3.6, 7.6]} color="#ffe2c4" glow intensity={1.6} /></group>)}
-    <mesh position={[23, 7, -25]} castShadow><boxGeometry args={[18, .45, 13]} /><meshStandardMaterial color="#6f7b88" metalness={.7} roughness={.3} /></mesh>
-    <Box position={[23, 6.74, -25]} scale={[17, .04, 12]} color="#ffe9d2" glow intensity={.45} />
-    <Float speed={1.2} floatIntensity={.4}><mesh position={[23, 3.7, -23]} rotation={[.4, .5, .2]} castShadow><torusKnotGeometry args={[1.8, .45, 160, 24]} /><meshStandardMaterial color="#eef2f6" metalness={1} roughness={.12} /></mesh></Float>
+      <RigidBody type="fixed"><mesh position={[23 + n * 7, 2, -19]} castShadow receiveShadow><boxGeometry args={[1, 4, 8]} /><meshStandardMaterial color="#f4f6fb" roughness={.4} /></mesh></RigidBody>
+      <Box position={[23 + n * 7.55, 2, -19]} scale={[.05, 3.6, 7.6]} color="#ff7a12" cast={false} /></group>)}
+    <mesh position={[23, 7, -25]} castShadow receiveShadow><boxGeometry args={[18, .45, 13]} /><meshStandardMaterial color="#f4f6fb" roughness={.4} /></mesh>
+    <mesh position={[23, 7.26, -25]}><boxGeometry args={[14, .08, 9]} /><meshStandardMaterial color="#7cc4ff" roughness={.1} metalness={.3} transparent opacity={.85} /></mesh>
+    <Float speed={1.2} floatIntensity={.4}><mesh position={[23, 3.7, -23]} rotation={[.4, .5, .2]} castShadow><torusKnotGeometry args={[1.8, .45, 160, 24]} /><meshStandardMaterial color="#ff7a12" metalness={.6} roughness={.2} /></mesh></Float>
     <DistrictSign position={[23, 0, -12]} title="DESIGN LAB" index="02 / CREATE" />
-    {/* AI core: radial reactor and energy ring. */}
+    {/* AI core: reactor plaza. */}
     <group position={[23, 0, 23]}>
-      <mesh position={[0, .2, 0]} receiveShadow><cylinderGeometry args={[6, 7, .4, 64]} /><meshStandardMaterial color="#26313d" metalness={.85} roughness={.25} /></mesh>
-      <mesh position={[0, .42, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[5.6, 5.8, 96]} /><meshBasicMaterial color={neon(light, 4)} toneMapped={false} /></mesh>
+      <mesh position={[0, .2, 0]} receiveShadow><cylinderGeometry args={[6, 7, .4, 64]} /><meshStandardMaterial color="#dfe5ee" roughness={.5} /></mesh>
+      <mesh position={[0, .42, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[5.4, 5.8, 96]} /><meshStandardMaterial color="#3a6fd6" roughness={.4} /></mesh>
       <Reactor />
-      <Sparkles count={60} scale={[10, 9, 10]} position={[0, 4, 0]} size={4} speed={.4} color="#ffb15c" />
-      <pointLight position={[0, 4, 0]} color="#ff7a00" intensity={120} distance={22} decay={2} />
+      <Sparkles count={40} scale={[10, 9, 10]} position={[0, 4, 0]} size={5} speed={.4} color="#ffd23f" />
     </group>
     {[0, 1, 2, 3].map(i => <Tower key={`ai${i}`} x={23 + Math.cos(i * Math.PI / 2) * 8} z={23 + Math.sin(i * Math.PI / 2) * 8} height={6} width={2} seed={30 + i} />)}
     <DistrictSign position={[23, 0, 34]} title="AI CORE" index="03 / THINK" />
-    {/* Corrupted neighborhood: broken silhouettes and violet energy. */}
+    {/* Bug zone: corrupted purple patch with floating glitch cubes. */}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-24, .03, 25]} receiveShadow><circleGeometry args={[11, 48]} /><meshStandardMaterial color="#5a2f8a" roughness={.9} /></mesh>
     {Array.from({ length: 8 }, (_, i) => <group key={i} position={[-30 + (i % 3) * 6, 0, 18 + Math.floor(i / 3) * 7]}>
-      <RigidBody type="fixed"><mesh position={[0, 2, 0]} castShadow receiveShadow rotation={[0, i * .4, (i % 2 ? .06 : -.05)]}><boxGeometry args={[2, 4, 2]} /><meshStandardMaterial color="#2c2638" metalness={.6} roughness={.45} /></mesh></RigidBody>
-      <Box position={[0, 4.05, 0]} scale={[2.05, .05, 2.05]} color="#b45cff" glow intensity={3} />
-      <Float speed={3} floatIntensity={.6} rotationIntensity={.6}><mesh position={[0, 6.5 + i % 3, 0]} rotation={[.2 * i, .4, .25]}><boxGeometry args={[1.6, 1.6, 1.6]} /><meshStandardMaterial color="#3a2d4c" emissive="#9d4dff" emissiveIntensity={.6 + (i % 3) * .5} metalness={.6} roughness={.3} wireframe={i % 3 === 0} /></mesh></Float>
+      <RigidBody type="fixed"><mesh position={[0, 2, 0]} castShadow receiveShadow rotation={[0, i * .4, (i % 2 ? .06 : -.05)]}><boxGeometry args={[2, 4, 2]} /><meshStandardMaterial color="#7b4bc4" roughness={.6} /></mesh></RigidBody>
+      <Float speed={3} floatIntensity={.6} rotationIntensity={.6}><mesh position={[0, 6.5 + i % 3, 0]} rotation={[.2 * i, .4, .25]} castShadow><boxGeometry args={[1.6, 1.6, 1.6]} /><meshStandardMaterial color="#c77dff" emissive="#9d4dff" emissiveIntensity={.5} roughness={.4} /></mesh></Float>
     </group>)}
-    <Sparkles count={70} scale={[20, 8, 20]} position={[-24, 4, 25]} size={5} speed={.6} color="#b26bff" />
-    <pointLight position={[-24, 5, 25]} color="#9d4dff" intensity={90} distance={26} decay={2} />
-    <Hologram position={[-24, 11, 30]} text="ERROR 404" color="#b45cff" rotation={-Math.PI / 4} size={.8} />
+    <Sparkles count={60} scale={[20, 8, 20]} position={[-24, 4, 25]} size={6} speed={.6} color="#d9a6ff" />
+    <Billboard3D position={[-24, 11, 30]} text="ERROR 404" color="#9b4dff" rotation={-Math.PI / 4} size={.8} />
     <DistrictSign position={[-23, 0, 34]} title="BUG ZONE" index="04 / CORRUPT" />
-    {/* Drifting data particles over the whole arena. */}
-    <Sparkles count={160} scale={[90, 18, 90]} position={[0, 8, 0]} size={2.5} speed={.25} opacity={.6} color="#9fc8ea" />
-    {/* Skyline beyond the arena is visual only. */}
-    <Skyline />
   </group>;
 });
 
@@ -160,8 +244,7 @@ function Reactor() {
   const rings = useRef<THREE.Group>(null);
   useFrame((_, dt) => { if (rings.current) { rings.current.rotation.y += dt * .4; rings.current.children.forEach((c, i) => { c.rotation.x += dt * (.3 + i * .2); }); } });
   return <Float speed={2}>
-    <mesh position={[0, 4, 0]}><sphereGeometry args={[1.5, 48, 32]} /><meshBasicMaterial color={neon('#ff9a3c', 3.2)} toneMapped={false} /></mesh>
-    <mesh position={[0, 4, 0]}><sphereGeometry args={[1.85, 32, 24]} /><meshBasicMaterial color={neon(light, .6)} transparent opacity={.15} toneMapped={false} depthWrite={false} /></mesh>
-    <group ref={rings} position={[0, 4, 0]}>{[0, 1, 2].map(i => <mesh key={i} rotation={[i * .8, .4 + i, .4]}><torusGeometry args={[2.8 + i * .5, .05, 8, 96]} /><meshStandardMaterial color="#d4e0eb" metalness={1} roughness={.18} /></mesh>)}</group>
+    <mesh position={[0, 4, 0]} castShadow><sphereGeometry args={[1.5, 48, 32]} /><meshStandardMaterial color="#ffb347" emissive="#ff8a1e" emissiveIntensity={1.4} roughness={.3} /></mesh>
+    <group ref={rings} position={[0, 4, 0]}>{[0, 1, 2].map(i => <mesh key={i} rotation={[i * .8, .4 + i, .4]} castShadow><torusGeometry args={[2.8 + i * .5, .09, 10, 96]} /><meshStandardMaterial color={['#1f6fe0', '#ffd23f', '#ffffff'][i]} roughness={.3} metalness={.3} /></mesh>)}</group>
   </Float>;
 }

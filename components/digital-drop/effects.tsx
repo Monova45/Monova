@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { Bloom, ChromaticAberration, EffectComposer, Noise, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
-import { BlendFunction, ToneMappingMode, type ChromaticAberrationEffect } from 'postprocessing';
+import { Bloom, BrightnessContrast, ChromaticAberration, EffectComposer, HueSaturation, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
+import { ToneMappingMode, type ChromaticAberrationEffect } from 'postprocessing';
 import * as THREE from 'three';
 
 // Pooled, allocation-free effects shared by the engine. Colors above 1 are intentional: they feed the bloom pass.
@@ -90,19 +90,21 @@ export function CombatEffects() {
 
 export function PostFX({ quality }: { quality: boolean }) {
   const aberration = useRef<ChromaticAberrationEffect>(null);
-  const offset = useMemo(() => new THREE.Vector2(.0004, .0004), []);
+  const offset = useMemo(() => new THREE.Vector2(.00015, .00015), []);
   useFrame((_, dt) => {
     screen.hurt = Math.max(0, screen.hurt - dt * 2.5);
-    const k = .0004 + screen.hurt * .006;
+    const k = .00015 + screen.hurt * .0018;
     aberration.current?.offset.set(k, k * .6);
   });
-  if (!quality) return <EffectComposer multisampling={0}><Bloom mipmapBlur intensity={.6} luminanceThreshold={1} /><ToneMapping mode={ToneMappingMode.ACES_FILMIC} /></EffectComposer>;
+  if (!quality) return <EffectComposer multisampling={0}><Bloom mipmapBlur intensity={.35} luminanceThreshold={1.2} /><ToneMapping mode={ToneMappingMode.ACES_FILMIC} /><HueSaturation saturation={.04} /></EffectComposer>;
   return <EffectComposer multisampling={0}>
-    <Bloom mipmapBlur intensity={.85} luminanceThreshold={.95} luminanceSmoothing={.2} radius={.75} />
+    <Bloom mipmapBlur intensity={.3} luminanceThreshold={1.15} luminanceSmoothing={.25} radius={.7} />
     <ChromaticAberration ref={aberration} offset={offset} radialModulation modulationOffset={.25} />
     <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-    <Vignette offset={.28} darkness={.62} />
-    <Noise opacity={.035} blendFunction={BlendFunction.OVERLAY} />
+    {/* Punchy, saturated daylight grade. */}
+    <HueSaturation saturation={.06} />
+    <BrightnessContrast brightness={.01} contrast={.12} />
+    <Vignette offset={.35} darkness={.28} />
     <SMAA />
   </EffectComposer>;
 }

@@ -62,23 +62,28 @@
 .project[data-brand="peluvi"] .caption>span{font-size:5cqw;letter-spacing:.08em;margin:0;color:#f5d8ff}
 .project[data-brand="peluvi"] .caption>svg{position:static;width:10cqw;height:10cqw;padding:2cqw;border:1px solid #f5d8ff70;border-radius:50%;color:#f5d8ff}
 
-/* Brand posters: original vector artwork, no website screenshots. */
-.project:not([data-brand="peluvi"]){container-type:inline-size;--poster-ink:#173f39;background:#d5f3ed;color:var(--poster-ink)}
-.project[data-brand="drokex"]{background:#101e1b;--poster-ink:#d8ffad}
-.project[data-brand="unipars"]{background:#09283c;--poster-ink:#ffb77b}
-.project[data-brand="4ustudio"]{background:#271329;--poster-ink:#ffcf96}
-.project[data-brand="tuma"]{background:#eee0cd;--poster-ink:#744930}
-.project[data-brand="geu"]{background:#d9e6ee;--poster-ink:#163f61}
-.project[data-brand="lorigine"]{background:#1f382a;--poster-ink:#f2dfac}
-.project:not([data-brand="peluvi"]) img.posterArtwork{top:24%!important;height:71%!important;object-fit:contain;object-position:center;transform:none}
-.project:not([data-brand="peluvi"])::after{display:none}
+/* Real project assets, framed as individual brand posters. */
+.project:not([data-brand="peluvi"]){container-type:inline-size;--poster-ink:#173f39;background:#e4f5f1;color:var(--poster-ink)}
+.project[data-brand="drokex"]{background:radial-gradient(ellipse at 50% 65%,#467537,#111c18 75%);--poster-ink:#d8ffad}
+.project[data-brand="unipars"]{background:#f5f5f5;--poster-ink:#24343c}
+.project[data-brand="4ustudio"]{background:#000;--poster-ink:#fff}
+.project[data-brand="tuma"]{background:#e9dfce;--poster-ink:#65432f}
+.project[data-brand="geu"]{background:#071627;--poster-ink:#fff}
+.project[data-brand="lorigine"]{background:#d60780;--poster-ink:#fff}
+.project:not([data-brand="peluvi"]) img.posterArtwork{top:27%!important;height:66%!important;object-fit:contain;object-position:center;transform:none}
+.project[data-brand="kliniu"] img.posterArtwork{top:30%!important;height:62%!important;mix-blend-mode:multiply}
+.project[data-brand="drokex"] img.posterArtwork{top:25%!important;height:71%!important}
+.project[data-brand="unipars"] img.posterArtwork{top:30%!important;height:64%!important;object-fit:cover;object-position:69% center;mix-blend-mode:multiply}
+.project[data-brand="tuma"] img.posterArtwork{top:0!important;height:100%!important;object-fit:cover}
+.project[data-brand="geu"] img.posterArtwork{top:30%!important;height:70%!important;object-fit:cover;object-position:65% center;mask-image:linear-gradient(transparent,#000 20%)}
+.project:not([data-brand="peluvi"])::after{inset:65% 0 0;background:linear-gradient(transparent,#0005)}
+.project[data-brand="kliniu"]::after,.project[data-brand="unipars"]::after,.project[data-brand="4ustudio"]::after,.project[data-brand="lorigine"]::after{display:none}
 .posterTitle{position:absolute;top:8%;left:7%;right:7%;text-align:center;color:var(--poster-ink);z-index:2}
 .posterTitle>span{display:block;font-size:4.5cqw;letter-spacing:.13em;font-weight:700;margin-bottom:5%}
 .posterTitle>strong{display:block;font:850 20cqw/.95 Arial,Helvetica,sans-serif;letter-spacing:-.06em;text-wrap:balance}
-.project[data-brand="4ustudio"] .posterTitle>strong{font-size:14cqw;max-width:90%;margin:auto}
-.project[data-brand="geu"] .posterTitle>strong{font-size:15cqw}
-.project[data-brand="tuma"] .posterTitle>strong,.project[data-brand="lorigine"] .posterTitle>strong{font-family:Georgia,serif;font-weight:400}
-.project[data-brand="tuma"] .posterTitle>strong{font-size:27cqw}
+.project[data-brand="4ustudio"] .posterTitle>strong,.project[data-brand="lorigine"] .posterTitle>strong{display:none}
+.project[data-brand="geu"] .posterTitle>strong{font-size:18cqw}
+.project[data-brand="tuma"] .posterTitle>strong{font-family:Georgia,serif;font-weight:400;font-size:29cqw}
 .project:not([data-brand="peluvi"]) .caption{padding:8%;display:flex;align-items:center;justify-content:space-between;color:var(--poster-ink)}
 .project:not([data-brand="peluvi"]) .caption>strong{display:none}
 .project:not([data-brand="peluvi"]) .caption>span{font-size:4.6cqw;letter-spacing:.08em;margin:0}

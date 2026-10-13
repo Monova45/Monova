@@ -8,7 +8,7 @@ import { CombatEffects, burst, resetEffects, screen, shockwave, tracer } from '.
 import { firewallMaterial } from './materials';
 import { absorbDamage, firewallRadius, matchResult } from './systems';
 import { sfx } from './audio';
-import { TOTAL_BUGS, emitBanner, emitHud, enemyKinds, radar, spawns, useDrop, weapons } from './state';
+import { TOTAL_BUGS, emitBanner, emitDamage, emitHud, enemyKinds, radar, spawns, useDrop, weapons } from './state';
 import { net, onNet, remotes, send } from './net';
 
 const kinds = [
@@ -283,13 +283,17 @@ export function Engine() {
           b.hp -= amount;
           if (b.hp <= 0) killBug.current(i, net.id || 'me');
         };
+        // Project the impact to screen space for the floating damage number.
+        const screenAt = tmp.v.copy(impact).project(cam), sx = (screenAt.x + 1) / 2, sy = (1 - screenAt.y) / 2;
         if (index >= 0) {
           const enemy = bugs.current[index];
+          emitDamage(sx, sy, w.damage * (s.weapon === 3 ? 1.5 : 1), s.weapon === 3 || s.weapon === 2 ? 'crit' : 'hit');
           hits++; burst(impact.x, impact.y, impact.z, 8, kinds[enemy.kind].color, 5);
           const lethal = enemy.hp <= w.damage * (s.weapon === 3 ? 1.5 : 1);
           hurtBug(enemy, w.damage * (s.weapon === 3 ? 1.5 : 1));
           if (!lethal) { sfx.hit(); emitHud('hit'); }
         } else if (victim) {
+          emitDamage(sx, sy, w.damage, (remotes.get(victim)?.hp ?? 100) >= 100 ? 'shield' : 'hit');
           hits++; burst(impact.x, impact.y, impact.z, 10, '#ff3b3b', 5); sfx.hit(); emitHud('hit');
           send({ t: 'pvp', target: victim, dmg: w.damage, by: net.id, x: round1(p.x), z: round1(p.z) });
         } else if (wallHit) { burst(impact.x, impact.y, impact.z, 6, w.color, 4, .1); sfx.impact(); }
@@ -456,7 +460,7 @@ export function Engine() {
       </group>
     </RigidBody>
     <pointLight ref={muzzle} intensity={0} distance={8} decay={2} />
-    <instancedMesh ref={shell} args={[undefined, undefined, TOTAL_BUGS]} castShadow frustumCulled={false}><dodecahedronGeometry args={[1, 0]} /><meshStandardMaterial color="#1a1f28" metalness={.85} roughness={.28} flatShading /></instancedMesh>
+    <instancedMesh ref={shell} args={[undefined, undefined, TOTAL_BUGS]} castShadow frustumCulled={false}><dodecahedronGeometry args={[1, 0]} /><meshStandardMaterial color="#526778" metalness={.45} roughness={.38} flatShading /></instancedMesh>
     <instancedMesh ref={xray} args={[undefined, undefined, TOTAL_BUGS]} frustumCulled={false} renderOrder={10}><dodecahedronGeometry args={[1.05, 0]} /><meshBasicMaterial wireframe transparent opacity={.7} depthTest={false} toneMapped={false} /></instancedMesh>
     <instancedMesh ref={halo} args={[undefined, undefined, TOTAL_BUGS]} frustumCulled={false}><torusGeometry args={[.82, .05, 6, 40]} /><meshBasicMaterial toneMapped={false} /></instancedMesh>
     <instancedMesh ref={eyes} args={[undefined, undefined, TOTAL_BUGS]} frustumCulled={false}><boxGeometry args={[1, 1, 1]} /><meshBasicMaterial toneMapped={false} /></instancedMesh>
@@ -468,9 +472,10 @@ export function Engine() {
     <mesh ref={shieldMesh} visible={false}><icosahedronGeometry args={[1.6, 2]} /><meshBasicMaterial color={new THREE.Color('#ffad42').multiplyScalar(2)} wireframe transparent opacity={.35} toneMapped={false} /></mesh>
     <mesh ref={scanMesh} rotation={[-Math.PI / 2, 0, 0]} visible={false}><ringGeometry args={[.96, 1, 96]} /><meshBasicMaterial color={new THREE.Color('#ff7a00').multiplyScalar(3)} transparent opacity={.7} toneMapped={false} /></mesh>
     {spawns.map(([x, z], i) => <group key={i} position={[x + 3, .45, z]}>
-      <mesh castShadow receiveShadow><boxGeometry args={[1.4, .8, 1]} /><meshStandardMaterial color="#2a3644" metalness={.85} roughness={.25} /></mesh>
+      <mesh castShadow receiveShadow><boxGeometry args={[1.4, .8, 1]} /><meshStandardMaterial color="#d99a2b" metalness={.7} roughness={.3} emissive="#7a4a00" emissiveIntensity={.25} /></mesh>
+      {[-.6, .6].map(x => <mesh key={x} position={[x, 0, 0]}><boxGeometry args={[.1, .84, 1.04]} /><meshStandardMaterial color="#6b3d12" roughness={.6} /></mesh>)}
       <mesh position={[0, 0, -.51]}><boxGeometry args={[1.1, .06, .02]} /><meshBasicMaterial color={new THREE.Color('#ff7a00').multiplyScalar(4)} toneMapped={false} /></mesh>
-      <group ref={el => { lids.current[i] = el; }} position={[0, .4, .55]}><mesh position={[0, .1, -.55]} castShadow><boxGeometry args={[1.5, .2, 1.1]} /><meshStandardMaterial color="#8295a6" metalness={.8} roughness={.25} /></mesh></group>
+      <group ref={el => { lids.current[i] = el; }} position={[0, .4, .55]}><mesh position={[0, .1, -.55]} castShadow><boxGeometry args={[1.5, .2, 1.1]} /><meshStandardMaterial color="#ffc94d" metalness={.75} roughness={.25} emissive="#a86b00" emissiveIntensity={.3} /></mesh></group>
       <mesh ref={el => { beacons.current[i] = el; }} position={[0, 8, 0]}><cylinderGeometry args={[.35, .5, 16, 16, 1, true]} /><meshBasicMaterial color={new THREE.Color('#ff9a3c').multiplyScalar(1.2)} transparent opacity={.1} toneMapped={false} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} /></mesh>
     </group>)}
   </>;

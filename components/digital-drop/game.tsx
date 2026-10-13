@@ -1,8 +1,8 @@
 "use client";
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Environment, Lightformer, Stars, useProgress } from '@react-three/drei';
+import { Environment, Lightformer, useProgress } from '@react-three/drei';
 import Link from 'next/link';
 import { Engine } from './engine';
 import { World } from './world';
@@ -10,34 +10,34 @@ import { Showroom } from './showroom';
 import { PostFX } from './effects';
 import { Hud } from './hud';
 import { sfx } from './audio';
-import { TOTAL_BUGS, grade, useDrop } from './state';
+import { TOTAL_BUGS, grade, saveMatch, useDrop } from './state';
 import { MAX_PLAYERS, net, onNet, send, slotColors } from './net';
-import { MainMenu, controls } from './menu';
-import { Lobby } from './lobby';
+import { Lobby, controls } from './menu';
 import { RemotePlayers } from './remote';
-import styles from './game.module.css';
+import { CoinIcon, CrownIcon, SkullIcon } from './icons';
+import styles from './ui.module.css';
 
 const lock = () => {
   const canvas = document.querySelector('#drop-game canvas') as HTMLCanvasElement | null;
-  void canvas?.requestPointerLock?.()?.catch(() => useDrop.getState().notify('HAZ CLIC EN EL ESCENARIO PARA ACTIVAR LA CÁMARA'));
+  void canvas?.requestPointerLock?.()?.catch(() => useDrop.getState().notify('HAZ CLIC EN LA PANTALLA PARA ACTIVAR LA CÁMARA'));
 };
+
 function Loader({ ready }: { ready: boolean }) {
   const { progress, active } = useProgress();
   const shown = active ? progress : ready ? 100 : 15;
-  return <div className={styles.loader} data-done={ready && !active}><span>MONOVA CITY</span><div><i style={{ width: `${shown}%` }} /></div><small>SINCRONIZANDO {Math.round(shown)}%</small></div>;
+  return <div className={styles.loader} data-done={ready && !active}><b>MONOVA</b><span>DIGITAL DROP</span><div><i style={{ width: `${shown}%` }} /></div><small>CARGANDO {Math.round(shown)}%</small></div>;
 }
 
+/** Daylight rig: warm sun with shadows, sky/grass hemisphere fill and soft image-based reflections. */
 function Lighting({ quality }: { quality: boolean }) {
   return <>
-    <hemisphereLight args={['#9cc4ec', '#1b2230', .9]} />
-    <directionalLight castShadow={quality} position={[-25, 40, 18]} intensity={2.2} color="#c9dcff" shadow-mapSize={quality ? [2048, 2048] : [512, 512]} shadow-bias={-.0004} shadow-normalBias={.04} shadow-camera-left={-55} shadow-camera-right={55} shadow-camera-top={55} shadow-camera-bottom={-55} shadow-camera-far={120} />
-    <directionalLight position={[30, 12, -30]} intensity={.8} color="#ff9a52" />
-    {/* Image-based lighting built from light panels: gives metals something to reflect without loading an HDR file. */}
+    <hemisphereLight args={['#b9d4ee', '#687452', .9]} />
+    <directionalLight castShadow={quality} position={[-42, 38, 32]} intensity={2.8} color="#ffe0b5" shadow-mapSize={quality ? [2048, 2048] : [512, 512]} shadow-bias={-.0004} shadow-normalBias={.04} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={150} />
+    <directionalLight position={[35, 20, -30]} intensity={1.1} color="#a9d0ff" />
     <Environment resolution={256} frames={1}>
-      <Lightformer form="rect" intensity={2} color="#ff8a3d" position={[0, 5, -10]} scale={[20, 2, 1]} />
-      <Lightformer form="rect" intensity={1.4} color="#8ebeff" position={[-10, 8, 6]} rotation-y={Math.PI / 2} scale={[20, 3, 1]} />
-      <Lightformer form="ring" intensity={1.5} color="#ffffff" position={[6, 12, 6]} scale={4} />
-      <Lightformer form="rect" intensity={.6} color="#3b5878" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[40, 40, 1]} />
+      <Lightformer form="rect" intensity={2.4} color="#bfe2ff" position={[0, 10, -12]} scale={[30, 8, 1]} />
+      <Lightformer form="rect" intensity={1.6} color="#fff3dc" position={[-12, 8, 8]} rotation-y={Math.PI / 2} scale={[20, 6, 1]} />
+      <Lightformer form="rect" intensity={1} color="#8cc56a" position={[0, -4, 0]} rotation-x={Math.PI / 2} scale={[40, 40, 1]} />
     </Environment>
   </>;
 }
@@ -45,7 +45,7 @@ function Lighting({ quality }: { quality: boolean }) {
 export default function DigitalDrop() {
   const phase = useDrop(s => s.phase), round = useDrop(s => s.round), quality = useDrop(s => s.quality), muted = useDrop(s => s.muted);
   const lobby = useDrop(s => s.lobby), matchMode = useDrop(s => s.matchMode), roomCode = useDrop(s => s.roomCode);
-  // Invite links (/3d?sala=1234) open the multiplayer section with the code filled in.
+  // Invite links (/3d?sala=1234) open the join box with the code filled in.
   const [invited] = useState(() => new URLSearchParams(location.search).get('sala')?.slice(0, 8) ?? '');
   const [ready, setReady] = useState(false);
   const online = lobby.length > 0, isHost = online && net.mode === 'host';
@@ -56,55 +56,53 @@ export default function DigitalDrop() {
       const mode = lobby.length > 1 ? matchMode : 'coop';
       useDrop.setState({ matchMode: mode }); send({ t: 'start', spawn: useDrop.getState().spawn, mode });
     }
-    sfx.ui(); useDrop.getState().start(); lock();
+    sfx.deploy(); useDrop.getState().start(); lock();
   };
   useEffect(() => {
     try { const saved = localStorage.getItem('monova-drop-name'); if (saved) useDrop.setState({ playerName: saved }); } catch {}
     return onNet(msg => {
       if (msg.t !== 'start') return;
       useDrop.setState({ spawn: msg.spawn, matchMode: msg.mode ?? 'pvp' }); useDrop.getState().start();
-      useDrop.getState().notify('PARTIDA INICIADA · HAZ CLIC PARA ACTIVAR LA CÁMARA');
+      useDrop.getState().notify('¡PARTIDA INICIADA! HAZ CLIC PARA ACTIVAR LA CÁMARA');
     });
   }, []);
   const toMenu = () => { useDrop.setState({ phase: 'menu' }); sfx.drone(false); };
   const resume = () => { useDrop.setState({ phase: 'play' }); lock(); };
+  const party = lobby.filter(p => p.id !== net.id);
 
-  return <main id="drop-game" className={styles.game} data-phase={phase} data-lobby={online && phase === 'menu'} onContextMenu={e => e.preventDefault()} onClick={e => { if (phase === 'play' && !document.pointerLockElement && (e.target as HTMLElement).tagName === 'CANVAS') lock(); }}>
-    <Canvas shadows={quality} flat dpr={quality ? [1, 1.75] : [.75, 1]} camera={{ position: [9, 4.3, 14], fov: 50, near: .1, far: 400 }} gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }} onCreated={() => setReady(true)} fallback={<p className={styles.fallback}>Necesitas un navegador compatible con WebGL para jugar.</p>}>
-      <color attach="background" args={['#070c14']} />
-      <fog attach="fog" args={phase === 'menu' ? ['#070c14', 18, 60] : ['#0a1220', 35, 150]} />
+  return <main id="drop-game" className={styles.game} data-phase={phase} onContextMenu={e => e.preventDefault()} onClick={e => { if (phase === 'play' && !document.pointerLockElement && (e.target as HTMLElement).tagName === 'CANVAS') lock(); }}>
+    <Canvas shadows={quality} flat dpr={quality ? [1, 1.75] : [.75, 1]} camera={{ position: [7.5, 4.3, 15], fov: 50, near: .1, far: 500 }} gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }} onCreated={() => setReady(true)} fallback={<p className={styles.fallback}>Necesitas un navegador compatible con WebGL para jugar.</p>}>
+      <color attach="background" args={[phase === 'menu' ? '#1f6fe0' : '#9fd2ff']} />
+      <fog attach="fog" args={phase === 'menu' ? ['#1f6fe0', 30, 90] : ['#cfcdc4', 60, 220]} />
       <Lighting quality={quality} />
-      <Stars radius={150} depth={40} count={1500} factor={3} fade speed={.4} />
       <Suspense fallback={null}>
-        {phase === 'menu' ? <Showroom quality={quality} /> : <Physics paused={phase !== 'play' && !online} gravity={[0, -20, 0]}><World /><Engine key={round} /><RemotePlayers /></Physics>}
+        {phase === 'menu' ? <Showroom quality={quality} party={party} /> : <Physics paused={phase !== 'play' && !online} gravity={[0, -20, 0]}><World /><Engine key={round} /><RemotePlayers /></Physics>}
       </Suspense>
       <PostFX quality={quality} />
     </Canvas>
     <Loader ready={ready} />
-    <div className={styles.vignette} />
-    <div className={styles.scanlines} />
-    {/* Re-keyed on every phase change so each screen enters with a quick wipe. */}
+    <div className={styles.shade} />
     <div key={phase} className={styles.wipe} />
-    <header className={styles.header}>
-      <Link href="/">MONOVA<span>/ 3D</span></Link>
-      <span>DIGITAL DROP · {online ? `${matchMode === 'pvp' ? 'BATALLA' : 'CO-OP'} · SALA ${roomCode} · ${lobby.length}/${MAX_PLAYERS}` : 'SINGLE PLAYER'}</span>
-      <button onClick={() => { if (phase === 'play') { useDrop.setState({ phase: 'pause' }); document.exitPointerLock?.(); } else if (phase !== 'menu') toMenu(); }}>{phase === 'menu' ? 'v1.0' : 'PAUSA'}</button>
-    </header>
 
-    {phase === 'menu' && (online ? <Lobby ready={ready} onStart={deploy} /> : <MainMenu ready={ready} invited={invited} onDeploy={deploy} />)}
+    {phase !== 'menu' && <header className={styles.gameBar}>
+      <Link href="/">MONOVA</Link>
+      <span>{online ? `${matchMode === 'pvp' ? 'BATALLA' : 'CO-OP'} · SALA ${roomCode} · ${lobby.length}/${MAX_PLAYERS}` : 'CAMPAÑA'}</span>
+      <button onClick={() => { if (phase === 'play') { useDrop.setState({ phase: 'pause' }); document.exitPointerLock?.(); } else toMenu(); }}>{phase === 'play' ? 'PAUSA' : 'SALIR'}</button>
+    </header>}
+
+    {phase === 'menu' && <Lobby ready={ready} invited={invited} onPlay={deploy} />}
 
     {(phase === 'play' || phase === 'pause') && <Hud />}
 
-    {phase === 'pause' && <div className={styles.overlay}>
-      <div className={styles.pause}>
-        <p className={styles.eyebrow}>{online ? 'LA PARTIDA SIGUE EN CURSO' : 'SESIÓN SUSPENDIDA'}</p><h2>PAUSA</h2>
-        <div className={styles.pauseActions}>
-          <button className={styles.primary} onClick={resume}>CONTINUAR <b>↗</b></button>
-          <button onClick={() => useDrop.setState(s => ({ muted: !s.muted }))}>AUDIO · {muted ? 'OFF' : 'ON'}</button>
-          <button onClick={toMenu}>ABANDONAR PARTIDA</button>
-        </div>
+    {phase === 'pause' && <div className={styles.pause}>
+      <div className={styles.pauseMenu}>
+        <small>{online ? 'LA PARTIDA SIGUE EN CURSO' : 'JUEGO EN PAUSA'}</small>
+        <h2>TOMA UN<br /><span>RESPIRO.</span></h2><p className={styles.pauseCopy}>{online ? "Tu equipo sigue en la ciudad. Vuelve cuando estés listo." : "La ciudad puede esperar. Tu próxima jugada, no."}</p>
+        <button className={styles.yellow} onClick={resume}>CONTINUAR</button>
+        <button onClick={() => useDrop.setState(s => ({ muted: !s.muted }))}>AUDIO · {muted ? 'OFF' : 'ON'}</button>
+        <button onClick={toMenu}>VOLVER AL LOBBY</button>
       </div>
-      <div className={styles.keys}>{controls.map(([k, l]) => <div key={k}><kbd>{k}</kbd><span>{l}</span></div>)}</div>
+      <section className={styles.pauseControls}><small>MANUAL DE CAMPO / 01</small><h3>DOMINA LA CIUDAD</h3><div className={styles.keys}>{controls.map(([k, l]) => <div key={k}><kbd>{k}</kbd><span>{l}</span></div>)}</div><p>Muévete. Explora. Haz que las ideas funcionen.</p></section>
     </div>}
 
     {(phase === 'over' || phase === 'win') && <Results won={phase === 'win'} onRetry={deploy} onMenu={toMenu} waiting={online && !isHost} />}
@@ -114,45 +112,49 @@ export default function DigitalDrop() {
 function Results({ won, onRetry, onMenu, waiting }: { won: boolean; onRetry: () => void; onMenu: () => void; waiting: boolean }) {
   const kills = useDrop(s => s.kills), credits = useDrop(s => s.credits), time = useDrop(s => s.time), shots = useDrop(s => s.shots), hits = useDrop(s => s.hits), hp = useDrop(s => s.hp);
   const pvp = useDrop(s => s.matchMode) === 'pvp' && net.mode !== 'solo', winner = useDrop(s => s.winner), placement = useDrop(s => s.placement), pkills = useDrop(s => s.pkills);
+  const lobby = useDrop(s => s.lobby), eliminated = useDrop(s => s.eliminated), playerName = useDrop(s => s.playerName);
   const accuracy = shots ? hits / shots : 0, rank = grade(kills, accuracy, hp, won);
-  if (pvp) {
-    // Final standings: the winner, then everyone else from last eliminated to first.
-    const lobby = useDrop.getState().lobby, eliminated = useDrop.getState().eliminated;
-    const nameOf = (id: string) => id === net.id ? (useDrop.getState().playerName || 'TÚ') : lobby.find(p => p.id === id)?.name || 'AGENTE';
-    const out = [...new Map(eliminated.map(e => [e.id, e])).values()].reverse();
-    const winnerId = lobby.find(p => !out.some(e => e.id === p.id))?.id;
-    const order = [...(winnerId ? [winnerId] : []), ...out.map(e => e.id)];
-    const killsOf = (id: string) => eliminated.filter(e => e.by === id && e.id !== id).length;
-    return <div className={styles.overlay} data-result={won ? 'win' : 'over'}>
-      <p className={styles.eyebrow}>MONOVA / DIGITAL DROP · BATALLA</p>
-      <h2>{won ? 'ÚLTIMO EN PIE.' : 'ELIMINADO.'}</h2>
-      <p>{won ? '¡Ganaste la batalla! IDEAS THAT WORK.' : `Ganador: ${winner || 'AGENTE'}`}</p>
-      <div className={styles.board}>{order.map((id, i) => {
-        const slot = lobby.find(p => p.id === id)?.slot ?? 0;
-        return <div key={id} data-me={id === net.id} style={{ '--c': slotColors[slot], animationDelay: `${i * .08}s` } as React.CSSProperties}>
-          <b>#{i + 1}</b><i /><span>{nameOf(id)}</span><small>{killsOf(id)} ELIM.</small>{i === 0 && <em>GANADOR</em>}
-        </div>;
-      })}</div>
-      <div className={styles.results}>
-        <div className={styles.rank}><small>TU PUESTO</small><strong data-rank={won ? 'S' : 'A'}>#{won ? 1 : placement || 2}</strong></div>
-        <div><small>ELIMINACIONES</small><strong>{pkills}</strong></div>
-        <div><small>PRECISIÓN</small><strong>{Math.round(accuracy * 100)}<em>%</em></strong></div>
-        <div><small>TIEMPO</small><strong>{Math.floor(time)}<em>s</em></strong></div>
-      </div>
-      <div className={styles.overlayActions}><button className={styles.primary} disabled={waiting} onClick={onRetry}>{waiting ? 'ESPERANDO ANFITRIÓN' : 'REVANCHA'}</button><button onClick={onMenu}>MENÚ</button></div>
-    </div>;
-  }
-  return <div className={styles.overlay} data-result={won ? 'win' : 'over'}>
-    <p className={styles.eyebrow}>MONOVA / DIGITAL DROP · {won ? 'MISIÓN CUMPLIDA' : 'MISIÓN FALLIDA'}</p>
-    <h2>{won ? 'SYSTEM CLEAN.' : 'CONEXIÓN PERDIDA.'}</h2>
-    <p>{won ? 'IDEAS THAT WORK.' : 'Vuelve a desplegar. El sistema te necesita.'}</p>
-    <div className={styles.results}>
-      <div className={styles.rank}><small>RANGO</small><strong data-rank={rank}>{rank}</strong></div>
-      <div><small>BUGS</small><strong>{kills}<em>/{TOTAL_BUGS}</em></strong></div>
-      <div><small>PRECISIÓN</small><strong>{Math.round(accuracy * 100)}<em>%</em></strong></div>
-      <div><small>TIEMPO</small><strong>{Math.floor(time)}<em>s</em></strong></div>
-      <div><small>CRÉDITOS</small><strong>{credits}</strong></div>
+  const earned = credits + (won ? 500 : 100);
+  // Bank this match into the persistent career exactly once.
+  const saved = useRef(false);
+  useEffect(() => { if (!saved.current) { saved.current = true; saveMatch(earned, won, pvp ? pkills : kills); } }, [earned, won, pvp, pkills, kills]);
+
+  const nameOf = (id: string) => id === net.id ? (playerName || 'TÚ') : lobby.find(p => p.id === id)?.name || 'AGENTE';
+  const out = [...new Map(eliminated.map(e => [e.id, e])).values()].reverse();
+  const winnerId = lobby.find(p => !out.some(e => e.id === p.id))?.id;
+  const order = [...(winnerId ? [winnerId] : []), ...out.map(e => e.id)];
+  const killsOf = (id: string) => eliminated.filter(e => e.by === id && e.id !== id).length;
+  const place = won ? 1 : pvp ? placement || 2 : 0;
+
+  return <div className={styles.results} data-won={won}>
+    {won && <div className={styles.rays} />}
+    <div className={styles.resultHead}>
+      {pvp && <b className={styles.place}>#{place}</b>}
+      <h2>{won ? (pvp ? '¡VICTORIA MONOVA!' : '¡CIUDAD LIMPIA!') : pvp ? 'ELIMINADO' : 'MISIÓN FALLIDA'}</h2>
+      <p>{won ? 'IDEAS THAT WORK' : pvp ? `GANADOR: ${winner || 'AGENTE'}` : 'El sistema te necesita. Vuelve a desplegar.'}</p>
     </div>
-    <div className={styles.overlayActions}><button className={styles.primary} disabled={waiting} onClick={onRetry}>{waiting ? 'ESPERANDO ANFITRIÓN' : 'VOLVER A JUGAR'}</button><button onClick={onMenu}>MENÚ</button></div>
+    {pvp && <div className={styles.board}>{order.map((id, i) => {
+      const slot = lobby.find(p => p.id === id)?.slot ?? 0;
+      return <div key={id} data-me={id === net.id} style={{ '--c': slotColors[slot], animationDelay: `${.3 + i * .08}s` } as React.CSSProperties}>
+        <b>#{i + 1}</b><i /><span>{nameOf(id)}</span>{i === 0 && <CrownIcon className={styles.crown} />}<small><SkullIcon />{killsOf(id)}</small>
+      </div>;
+    })}</div>}
+    <div className={styles.cards}>
+      {pvp ? <>
+        <div><small>ELIMINACIONES</small><strong>{pkills}</strong></div>
+        <div><small>PRECISIÓN</small><strong>{Math.round(accuracy * 100)}%</strong></div>
+        <div><small>SUPERVIVENCIA</small><strong>{Math.floor(time)}s</strong></div>
+      </> : <>
+        <div data-rank={rank}><small>RANGO</small><strong>{rank}</strong></div>
+        <div><small>BUGS</small><strong>{kills}/{TOTAL_BUGS}</strong></div>
+        <div><small>PRECISIÓN</small><strong>{Math.round(accuracy * 100)}%</strong></div>
+        <div><small>TIEMPO</small><strong>{Math.floor(time)}s</strong></div>
+      </>}
+      <div data-gold><small>CRÉDITOS GANADOS</small><strong><CoinIcon />+{earned}</strong></div>
+    </div>
+    <div className={styles.resultActions}>
+      <button className={styles.yellow} disabled={waiting} onClick={onRetry}>{waiting ? 'ESPERANDO AL LÍDER' : pvp ? 'REVANCHA' : 'JUGAR DE NUEVO'}</button>
+      <button className={styles.blue} onClick={onMenu}>VOLVER AL LOBBY</button>
+    </div>
   </div>;
 }

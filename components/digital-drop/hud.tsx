@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { screen } from './effects';
-import { TOTAL_BUGS, abilities, districts, hudBus, radar, spawns, useDrop, weapons } from './state';
+import { TOTAL_BUGS, abilities, districts, hudBus, radar, rarities, spawns, useDrop, weapons } from './state';
 import { net, remotes, slotColors } from './net';
-import styles from './game.module.css';
+import { AbilityIcon, BugIcon, HealthIcon, PlayersIcon, ShieldIcon, SkullIcon, StormIcon, WeaponIcon } from './icons';
+import styles from './ui.module.css';
 
 const pad = (n: number) => String(Math.max(0, Math.floor(n))).padStart(2, '0');
 const clock = (seconds: number) => `${pad(seconds / 60)}:${pad(seconds % 60)}`;
@@ -17,31 +18,32 @@ function Minimap() {
       const c = canvas.current?.getContext('2d'); if (!c) return;
       const size = 300, k = size / 100, cx = (x: number) => size / 2 + x * k, s = useDrop.getState();
       c.clearRect(0, 0, size, size);
-      c.save(); c.beginPath(); c.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); c.clip();
-      c.fillStyle = '#07101bcc'; c.fillRect(0, 0, size, size);
-      c.strokeStyle = '#ffffff10'; c.lineWidth = 1;
-      for (let i = 0; i <= size; i += size / 8) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, size); c.moveTo(0, i); c.lineTo(size, i); c.stroke(); }
-      c.strokeStyle = '#ffffff14'; c.lineWidth = 8 * k;
+      c.save();
+      c.fillStyle = '#233c43'; c.fillRect(0, 0, size, size);
+      c.fillStyle = '#29464b'; for (let i = 0; i < 10; i++) for (let j = 0; j < 10; j++) if ((i + j) % 2) c.fillRect(i * 30, j * 30, 30, 30);
+      c.strokeStyle = '#647b84'; c.lineWidth = 8 * k;
       [-36, -12, 12, 36].forEach(n => { c.beginPath(); c.moveTo(cx(n), 0); c.lineTo(cx(n), size); c.moveTo(0, cx(n)); c.lineTo(size, cx(n)); c.stroke(); });
-      c.fillStyle = '#ff7a0018'; c.beginPath(); c.rect(0, 0, size, size); c.arc(size / 2, size / 2, s.radius * k, 0, Math.PI * 2, true); c.fill();
-      c.strokeStyle = '#ff8a3d'; c.lineWidth = 2.5; c.setLineDash([6, 4]); c.beginPath(); c.arc(size / 2, size / 2, s.radius * k, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+      c.strokeStyle = '#a9c8cc20'; c.lineWidth = 1;
+      for (let grid = 0; grid <= size; grid += 30) { c.beginPath(); c.moveTo(grid, 0); c.lineTo(grid, size); c.moveTo(0, grid); c.lineTo(size, grid); c.stroke(); }
+      c.fillStyle = '#8152b37a'; c.beginPath(); c.rect(0, 0, size, size); c.arc(size / 2, size / 2, s.radius * k, 0, Math.PI * 2, true); c.fill();
+      c.strokeStyle = '#ffffff'; c.lineWidth = 3; c.beginPath(); c.arc(size / 2, size / 2, s.radius * k, 0, Math.PI * 2); c.stroke();
       spawns.forEach(([x, z], i) => {
         if (s.opened.includes(i)) return;
-        c.fillStyle = '#ffb35c'; c.fillRect(cx(x + 3) - 5, cx(z) - 5, 10, 10);
-        c.strokeStyle = '#07101b'; c.lineWidth = 2; c.strokeRect(cx(x + 3) - 5, cx(z) - 5, 10, 10);
+        c.fillStyle = '#ffd23f'; c.strokeStyle = '#1b1b1b'; c.lineWidth = 3;
+        c.beginPath(); c.roundRect(cx(x + 3) - 7, cx(z) - 6, 14, 12, 3); c.fill(); c.stroke();
       });
       radar.bugs.forEach(b => { if (!b.alive || Math.hypot(b.x - radar.x, b.z - radar.z) > 30) return; c.fillStyle = '#ff3b4a'; c.beginPath(); c.arc(cx(b.x), cx(b.z), 5, 0, Math.PI * 2); c.fill(); });
       radar.mates.forEach(mate => { c.fillStyle = slotColors[mate.slot]; c.strokeStyle = '#07101b'; c.lineWidth = 3; c.beginPath(); c.arc(cx(mate.x), cx(mate.z), 7, 0, Math.PI * 2); c.fill(); c.stroke(); });
       c.translate(cx(radar.x), cx(radar.z)); c.rotate(-radar.yaw);
-      c.fillStyle = '#ffffff22'; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 55, -Math.PI / 2 - .5, -Math.PI / 2 + .5); c.fill();
-      c.fillStyle = '#fff'; c.beginPath(); c.moveTo(0, -12); c.lineTo(8, 9); c.lineTo(0, 4); c.lineTo(-8, 9); c.closePath(); c.fill();
+      c.fillStyle = '#ffffff40'; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 60, -Math.PI / 2 - .5, -Math.PI / 2 + .5); c.fill();
+      c.fillStyle = '#fff'; c.strokeStyle = '#1b1b1b'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, -14); c.lineTo(10, 10); c.lineTo(0, 5); c.lineTo(-10, 10); c.closePath(); c.stroke(); c.fill();
       c.restore();
     };
     draw(); return () => cancelAnimationFrame(frame);
   }, []);
   return <div className={styles.map}><canvas ref={canvas} width={300} height={300} />
-    {districts.map((d, i) => <b key={d} style={{ left: `${50 + (spawns[i][0] / 100) * 100}%`, top: `${50 + (spawns[i][1] / 100) * 100 - 9}%` }}>{i === 0 ? 'HQ' : `0${i}`}</b>)}
-    <span>N</span></div>;
+    {districts.map((d, i) => <b key={d} style={{ left: `${50 + spawns[i][0]}%`, top: `${50 + spawns[i][1] - 8}%` }}>{d.replace('MONOVA ', '')}</b>)}
+  </div>;
 }
 
 function Crosshair() {
@@ -84,9 +86,27 @@ function DamageLayer() {
 }
 
 function Bar({ value, tone }: { value: number; tone: 'hp' | 'shield' }) {
+  const Icon = tone === 'hp' ? HealthIcon : ShieldIcon;
   return <div className={styles.bar} data-tone={tone} data-low={tone === 'hp' && value < 30}>
-    {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ '--fill': Math.min(1, Math.max(0, value / 10 - i)) } as React.CSSProperties} />)}
+    <Icon className={styles.barIcon} />
+    <div className={styles.barTrack}><u style={{ width: `${Math.max(0, value)}%` }} /><i /><i /><i /></div>
+    <b>{Math.ceil(value)}</b><small>| 100</small>
   </div>;
+}
+
+/** Floating damage numbers at the projected hit point. */
+function DamageNumbers() {
+  const [items, setItems] = useState<{ id: number; x: number; y: number; amount: number; tone: string }[]>([]);
+  useEffect(() => {
+    let id = 0;
+    const add = (e: Event) => {
+      const d = (e as CustomEvent<{ x: number; y: number; amount: number; tone: string }>).detail, next = ++id;
+      setItems(list => [...list.slice(-10), { ...d, id: next, x: d.x + (Math.random() - .5) * .02 }]);
+      setTimeout(() => setItems(list => list.filter(i => i.id !== next)), 900);
+    };
+    hudBus.addEventListener('damage', add); return () => hudBus.removeEventListener('damage', add);
+  }, []);
+  return <>{items.map(i => <span key={i.id} className={styles.dmg} data-tone={i.tone} style={{ left: `${i.x * 100}%`, top: `${i.y * 100}%` }}>{Math.round(i.amount)}</span>)}</>;
 }
 
 /** Heading strip: cardinal points and district bearings slide as the camera turns. */
@@ -167,46 +187,56 @@ function Team() {
 export function Hud() {
   const hp = useDrop(s => s.hp), shield = useDrop(s => s.shield), kills = useDrop(s => s.kills), time = useDrop(s => s.time), radius = useDrop(s => s.radius);
   const weapon = useDrop(s => s.weapon), ammo = useDrop(s => s.ammo), unlocked = useDrop(s => s.unlocked), ability = useDrop(s => s.ability), cooldown = useDrop(s => s.cooldown);
-  const notice = useDrop(s => s.notice), noticeId = useDrop(s => s.noticeId), prompt = useDrop(s => s.prompt), outside = useDrop(s => s.outside), feed = useDrop(s => s.feed), credits = useDrop(s => s.credits);
-  const respawn = useDrop(s => s.respawn), alive = useDrop(s => s.alive), spectating = useDrop(s => s.spectating), lobbySize = useDrop(s => s.lobby.length);
+  const notice = useDrop(s => s.notice), noticeId = useDrop(s => s.noticeId), prompt = useDrop(s => s.prompt), outside = useDrop(s => s.outside), feed = useDrop(s => s.feed);
+  const respawn = useDrop(s => s.respawn), alive = useDrop(s => s.alive), spectating = useDrop(s => s.spectating), lobbySize = useDrop(s => s.lobby.length), pkills = useDrop(s => s.pkills);
   const pvp = useDrop(s => s.matchMode) === 'pvp' && net.mode !== 'solo';
   const w = weapons[weapon], closing = Math.max(0, (radius - 8) / .23 / (pvp ? 1.5 : 1));
   return <div className={styles.hud}>
     <DamageLayer />
-    <div className={styles.objective}>
-      {pvp ? <div><small>VIVOS</small><strong>{alive}</strong><span>/ {lobbySize}</span></div>
-        : <div><small>BUGS</small><strong>{TOTAL_BUGS - kills}</strong><span>/ {TOTAL_BUGS}</span></div>}
-      <div className={styles.divider} />
-      <div><small>FIREWALL</small><strong>{Math.round(radius)}<em>m</em></strong><span>{closing > 0 ? clock(closing) : 'CERRADO'}</span></div>
-      <div className={styles.divider} />
-      <div><small>TIEMPO</small><strong>{clock(time)}</strong><span>{credits} CR</span></div>
-    </div>
-    {outside && <div className={styles.warning}>⚠ FUERA DEL FIREWALL · REGRESA A LA ZONA SEGURA</div>}
-    <Minimap />
-    <Team />
-    {pvp && hp <= 0 && <div className={styles.spectate}><small>ELIMINADO · MODO ESPECTADOR</small><strong>{spectating ? `VIENDO A ${spectating.toUpperCase()}` : 'ESPERANDO RESULTADO'}</strong></div>}
-    {respawn > 0 && <div className={styles.respawn}><small>AGENTE CAÍDO</small><strong>{respawn}</strong><span>REDESPLIEGUE EN CURSO · TU EQUIPO SIGUE LUCHANDO</span></div>}
-    <div className={styles.feed}>{feed.map(f => <p key={f.id}>{f.text}</p>)}</div>
+    {outside && <div className={styles.storm} />}
     <Compass />
+    <div className={styles.mapStack}>
+      <Minimap />
+      <div className={styles.stats}>
+        <span data-tone="storm"><StormIcon />{closing > 0 ? clock(closing) : 'CERRADA'}</span>
+        {pvp ? <span><PlayersIcon />{alive}</span> : <span><BugIcon />{TOTAL_BUGS - kills}</span>}
+        <span><SkullIcon />{pvp ? pkills : kills}</span>
+      </div>
+      <p className={styles.stormText}>{closing > 0 ? `LA TORMENTA SE CIERRA · ${Math.round(radius)} M` : 'ZONA FINAL'}</p>
+    </div>
+    {outside && <div className={styles.warning}>ESTÁS EN LA TORMENTA · REGRESA A LA ZONA SEGURA</div>}
+    <Team />
+    <div className={styles.feed}>{feed.map(f => <p key={f.id}>{f.text}</p>)}</div>
+    {pvp && hp <= 0 && <div className={styles.spectate}><small>ELIMINADO · ESPECTANDO</small><strong>{spectating ? spectating.toUpperCase() : 'ESPERANDO RESULTADO'}</strong></div>}
+    {respawn > 0 && <div className={styles.respawn}><small>AGENTE CAÍDO</small><strong>{respawn}</strong><span>REDESPLIEGUE EN CURSO</span></div>}
     <Banner />
     {time < 4 && <MatchIntro pvp={pvp} players={Math.max(1, lobbySize)} />}
     <Crosshair />
+    <DamageNumbers />
     <Streak />
     {notice && <p key={noticeId} className={styles.notice}>{notice}</p>}
     {prompt && <p className={styles.prompt}><kbd>E</kbd>{prompt}</p>}
     <div className={styles.vitals}>
       <div className={styles.ability} style={{ '--cd': cooldown / 15 } as React.CSSProperties} data-ready={cooldown <= 0}>
-        <div className={styles.dial}><kbd>Q</kbd><span>{cooldown > 0 ? Math.ceil(cooldown) : ''}</span></div>
-        <div><strong>{abilities[ability].name}</strong><small>{cooldown > 0 ? 'RECARGANDO' : 'LISTO'}</small></div>
+        <div className={styles.abilityIcon}><AbilityIcon index={ability} /><kbd>Q</kbd>{cooldown > 0 && <span>{Math.ceil(cooldown)}</span>}</div>
+        <small>{abilities[ability].name}</small>
       </div>
-      <label><span>DIGITAL SHIELD</span><b>{Math.ceil(shield)}</b></label><Bar value={shield} tone="shield" />
-      <label><span>INTEGRIDAD</span><b>{Math.ceil(hp)}</b></label><Bar value={hp} tone="hp" />
+      <Bar value={shield} tone="shield" />
+      <Bar value={hp} tone="hp" />
     </div>
-    <div className={styles.weapon}>
-      <div className={styles.ammo}><strong data-low={ammo <= w.ammo * .25}>{ammo}</strong><span>/ {w.ammo}</span></div>
-      <p style={{ color: w.color }}>{w.name.toUpperCase()}</p>
-      {ammo <= w.ammo * .25 && <div className={styles.lowAmmo}>{ammo === 0 ? 'SIN ENERGÍA · R' : 'ENERGÍA BAJA'}</div>}
-      <div className={styles.slots}>{weapons.map((x, i) => <div key={x.name} data-active={weapon === i} data-locked={!unlocked.includes(i)}><kbd>{i + 1}</kbd><small>{unlocked.includes(i) ? x.short : '· · ·'}</small></div>)}</div>
+    <div className={styles.inventory}>
+      <div className={styles.weaponInfo}>
+        <small style={{ color: rarities[w.rarity].color }}>{rarities[w.rarity].label}</small>
+        <b>{w.name}</b>
+        <span data-low={ammo <= w.ammo * .25}><strong>{ammo}</strong> | {w.ammo}</span>
+        {ammo <= w.ammo * .25 && <em>{ammo === 0 ? 'RECARGA · R' : 'MUNICIÓN BAJA'}</em>}
+      </div>
+      <div className={styles.slots}>{weapons.map((x, i) => {
+        const has = unlocked.includes(i), r = rarities[x.rarity];
+        return <div key={x.name} data-active={weapon === i} data-locked={!has} style={{ '--r': r.color, '--rd': r.dark } as React.CSSProperties}>
+          {has && <WeaponIcon index={i} />}<kbd>{i + 1}</kbd>{has && weapon === i && <small>{ammo}</small>}
+        </div>;
+      })}</div>
     </div>
   </div>;
 }

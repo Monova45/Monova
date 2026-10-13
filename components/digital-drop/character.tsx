@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { badgeTexture, furTexture, onesieTexture } from './materials';
+import { badgeTexture, furTexture, irisTexture, onesieTexture } from './materials';
 
 /** Written by the engine when firing so the blaster kicks back. */
 export const catPose = { recoil: 0 };
@@ -22,36 +22,44 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
   const root = useRef<THREE.Group>(null), body = useRef<THREE.Group>(null), head = useRef<THREE.Group>(null);
   const leftLeg = useRef<THREE.Group>(null), rightLeg = useRef<THREE.Group>(null), leftArm = useRef<THREE.Group>(null), rightArm = useRef<THREE.Group>(null);
   const tail = useRef<THREE.Group>(null), gun = useRef<THREE.Group>(null);
+  const eyes = useRef<(THREE.Group | null)[]>([]);
+  const worldPosition = useMemo(() => new THREE.Vector3(), []);
+  const tailCurve = useMemo(() => new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, .18, .14), new THREE.Vector3(.04, .4, .22), new THREE.Vector3(.13, .61, .16), new THREE.Vector3(.16, .68, .07)]), []);
   const previous = useRef(new THREE.Vector3()), velocity = useRef(0);
   const m = useMemo(() => {
     const badge = badgeTexture();
     return {
-      fur: new THREE.MeshStandardMaterial({ map: furTexture(), roughness: .9 }),
-      onesie: new THREE.MeshStandardMaterial({ map: onesieTexture(), roughness: .85 }),
+      fur: new THREE.MeshPhysicalMaterial({ map: furTexture(), roughness: .86, sheen: .65, sheenColor: '#ffd5a0', sheenRoughness: .85 }),
+      onesie: new THREE.MeshPhysicalMaterial({ map: onesieTexture(), roughness: .72, sheen: .45, sheenColor: '#ffbc75' }),
       suit: new THREE.MeshStandardMaterial({ color: orange, roughness: .85 }),
       cream: new THREE.MeshStandardMaterial({ color: cream, roughness: .9 }),
       pink: new THREE.MeshStandardMaterial({ color: pink, roughness: .6 }),
       black: new THREE.MeshStandardMaterial({ color: black, roughness: .7 }),
       gloss: new THREE.MeshStandardMaterial({ color: '#050505', roughness: .08, metalness: .2 }),
-      iris: new THREE.MeshStandardMaterial({ color: '#a8561c', roughness: .12, emissive: '#6b2e08', emissiveIntensity: .6 }),
+      iris: new THREE.MeshPhysicalMaterial({ map: irisTexture(), roughness: .22, clearcoat: 1, clearcoatRoughness: .08 }),
       eyeWhite: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: .2 }),
       shine: new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffffff').multiplyScalar(1.6), toneMapped: false }),
-      shell: new THREE.MeshStandardMaterial({ color: white, roughness: .3, metalness: .1 }),
+      shell: new THREE.MeshPhysicalMaterial({ color: white, roughness: .24, metalness: .2, clearcoat: .8, clearcoatRoughness: .18 }),
       accent: new THREE.MeshStandardMaterial({ color: orange, roughness: .4, emissive: orange, emissiveIntensity: .35 }),
       glow: new THREE.MeshBasicMaterial({ color: new THREE.Color(orange).multiplyScalar(3), toneMapped: false }),
       badge: new THREE.MeshStandardMaterial({ map: badge, roughness: .4, emissiveMap: badge, emissive: '#ffffff', emissiveIntensity: .5 }),
       mouth: new THREE.MeshStandardMaterial({ color: '#4a1216', roughness: .8 }),
       leaf: new THREE.MeshStandardMaterial({ color: leaf, roughness: .7 }),
       stem: new THREE.MeshStandardMaterial({ color: '#2f6b22', roughness: .8 }),
+      stripe: new THREE.MeshStandardMaterial({ color: '#a24f20', roughness: .85 }),
+      trim: new THREE.MeshStandardMaterial({ color: '#53616a', roughness: .32, metalness: .65 }),
       pumpkin: new THREE.MeshStandardMaterial({ color: '#ff8a1e', roughness: .55 }),
     };
   }, []);
 
   useFrame(({ clock }, dt) => {
     if (!root.current) return;
-    const t = clock.elapsedTime, p = root.current.getWorldPosition(new THREE.Vector3());
+    const t = clock.elapsedTime, p = root.current.getWorldPosition(worldPosition);
     velocity.current = THREE.MathUtils.damp(velocity.current, Math.min(1, p.distanceTo(previous.current) / Math.max(.001, dt) / 4), 8, dt);
     previous.current.copy(p);
+    const blinkPhase = t % 4.7;
+    const blink = blinkPhase < .16 ? Math.max(.07, Math.abs(blinkPhase - .08) / .08) : 1;
+    eyes.current.forEach(eye => { if (eye) eye.scale.y = blink; });
     const v = velocity.current, phase = t * (9 + v * 5), gait = Math.sin(phase) * .85 * v;
     // Legs swing from the hip and lift the paw on the forward stroke.
     if (leftLeg.current) { leftLeg.current.rotation.x = gait; leftLeg.current.position.y = .34 + Math.max(0, Math.sin(phase)) * .09 * v; }
@@ -93,37 +101,47 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
     <mesh castShadow receiveShadow material={m.onesie} position={[0, .6, 0]} scale={[1, 1.06, .9]}><sphereGeometry args={[.38, 48, 32]} /></mesh>
     {[-1, 0, 1].map(k => <mesh key={k} material={m.leaf} position={[k * .12, .95, -.25 + Math.abs(k) * .04]} rotation={[-.9, k * .5, k * .6]} scale={[1, .3, .6]}><sphereGeometry args={[.1, 14, 10]} /></mesh>)}
     <mesh material={m.stem} position={[0, .93, -.3]}><sphereGeometry args={[.035, 10, 8]} /></mesh>
+    {/* Tailored suit: waist piping and polished shoulder plates. */}
+    <mesh material={m.stripe} position={[0, .43, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[1, .9, 1]}><torusGeometry args={[.34, .012, 8, 48]} /></mesh>
+    {[-1, 1].map(side => <mesh key={side} material={m.shell} position={[side * .34, .91, -.015]} scale={[1, .6, 1]}><sphereGeometry args={[.125, 24, 16]} /></mesh>)}
     {leg(-1, leftLeg)}{leg(1, rightLeg)}
     {arm(-1, leftArm, !armed)}{arm(1, rightArm, false)}
 
     {/* Fluffy striped tail. */}
     <group ref={tail} position={[0, .42, .3]}>
-      {Array.from({ length: 7 }, (_, i) => <mesh key={i} castShadow material={i === 6 ? m.cream : i % 2 ? m.cream : m.fur} position={[0, i * .085, .06 * i - .006 * i * i]} scale={1 + Math.sin(i / 6 * Math.PI) * .25}><sphereGeometry args={[.085, 14, 10]} /></mesh>)}
+      <mesh castShadow material={m.fur}><tubeGeometry args={[tailCurve, 28, .09, 10, false]} /></mesh>
+      <mesh material={m.cream} position={[.16, .68, .07]} scale={[1, 1.2, 1]}><sphereGeometry args={[.092, 16, 12]} /></mesh>
     </group>
 
     <group ref={head} position={[0, 1.32, 0]}>
       <mesh castShadow material={m.fur} scale={[1.1, .95, 1]}><sphereGeometry args={[.5, 48, 32]} /></mesh>
+      {/* Sculpted cheek tufts create a softer silhouette without hair particles. */}
+      {[-1, 1].flatMap(side => [0, 1, 2].map(i => <mesh key={`${side}-tuft-${i}`} castShadow material={i === 2 ? m.cream : m.fur} position={[side * (.43 + i * .014), -.07 - i * .085, -.12]} rotation={[0, 0, side * (1.05 + i * .25)]} scale={[1, 1, .65]}><coneGeometry args={[.09 - i * .01, .19, 12]} /></mesh>))}
       {/* Muzzle, nose and open smile. */}
       <mesh material={m.cream} position={[0, -.18, -.33]} scale={[1.25, .8, .8]}><sphereGeometry args={[.2, 24, 16]} /></mesh>
-      {[-1, 1].map(k => <mesh key={k} material={m.cream} position={[k * .25, -.1, -.33]} scale={[1, .8, .6]}><sphereGeometry args={[.14, 20, 14]} /></mesh>)}
+      {[-1, 1].map(k => <mesh key={k} material={m.cream} position={[k * .1, -.15, -.425]} scale={[1, .75, .65]}><sphereGeometry args={[.14, 20, 14]} /></mesh>)}
       <mesh material={m.pink} position={[0, -.1, -.49]} scale={[1.3, .8, .8]}><sphereGeometry args={[.045, 16, 10]} /></mesh>
       <mesh material={m.mouth} position={[0, -.24, -.45]} scale={[1.2, .9, .5]}><sphereGeometry args={[.08, 20, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} /></mesh>
       <mesh material={m.pink} position={[0, -.29, -.46]} scale={[1, .5, .6]}><sphereGeometry args={[.045, 12, 8]} /></mesh>
       {[-1, 1].map(k => <mesh key={k} material={m.shell} position={[k * .045, -.205, -.475]} rotation={[0, 0, Math.PI]}><coneGeometry args={[.013, .04, 6]} /></mesh>)}
-      {/* Big glossy eyes. */}
-      {[-1, 1].map(k => <group key={k} position={[k * .19, .02, -.38]} rotation={[0, k * -.3, 0]}>
-        <mesh material={m.eyeWhite} scale={[1, 1.08, .55]}><sphereGeometry args={[.125, 24, 16]} /></mesh>
-        <mesh material={m.iris} position={[0, -.005, -.05]} scale={[1, 1.08, .5]}><sphereGeometry args={[.112, 24, 16]} /></mesh>
-        <mesh material={m.gloss} position={[0, -.01, -.09]} scale={[1, 1.1, .4]}><sphereGeometry args={[.05, 20, 14]} /></mesh>
-        <mesh material={m.shine} position={[-.03, .04, -.11]}><sphereGeometry args={[.022, 10, 8]} /></mesh>
-        <mesh material={m.shine} position={[.03, -.035, -.105]}><sphereGeometry args={[.01, 8, 6]} /></mesh>
+      {/* Brow patches follow the eye sockets. */}
+      {[-1, 1].map(k => <mesh key={k} material={m.cream} position={[k * .205, .205, -.39]} rotation={[0, 0, k * .12]} scale={[1.4, .36, .38]}><sphereGeometry args={[.09, 20, 12]} /></mesh>)}
+      {/* Layered amber eyes with soft dark rims and animated blinks. */}
+      {[-1, 1].map((k, i) => <group key={k} ref={node => { eyes.current[i] = node; }} position={[k * .205, .035, -.405]} rotation={[0, k * -.22, 0]}>
+        <mesh material={m.stripe} scale={[1.05, 1.16, .45]}><sphereGeometry args={[.158, 32, 24]} /></mesh>
+        <mesh material={m.eyeWhite} position={[0, 0, -.017]} scale={[1, 1.12, .5]}><sphereGeometry args={[.148, 32, 24]} /></mesh>
+        <mesh material={m.iris} position={[0, -.006, -.091]} rotation={[0, Math.PI, 0]} scale={[1, 1.08, 1]}><circleGeometry args={[.127, 48]} /></mesh>
+        <mesh material={m.gloss} position={[0, -.006, -.104]} scale={[.82, 1.2, .36]}><sphereGeometry args={[.078, 24, 20]} /></mesh>
+        <mesh material={m.shine} position={[-.038, .05, -.132]} scale={[1, 1.15, .4]}><sphereGeometry args={[.027, 14, 10]} /></mesh>
+        <mesh material={m.shine} position={[.033, -.04, -.128]}><sphereGeometry args={[.011, 10, 8]} /></mesh>
       </group>)}
+      {[-1, 1].flatMap(k => [0, 1, 2].map(i => <mesh key={`freckle-${k}-${i}`} material={m.stripe} position={[k * (.11 + i * .026), -.135 - (i % 2) * .025, -.51 + i * .01]}><sphereGeometry args={[.006, 6, 6]} /></mesh>))}
       {/* Whiskers. */}
       {[-1, 1].flatMap(k => [0, 1, 2].map(i => <mesh key={`${k}${i}`} material={m.shell} position={[k * .36, -.15 + i * .035, -.34]} rotation={[0, k * .25, k * (.12 - i * .1)]}><boxGeometry args={[.26, .006, .006]} /></mesh>))}
       {/* Ears with pink inner fur. */}
       {[-1, 1].map(k => <group key={k} position={[k * .38, .38, .02]} rotation={[0, 0, k * -.5]}>
-        <mesh castShadow material={m.fur} scale={[1, 1, .55]}><coneGeometry args={[.18, .4, 4]} /></mesh>
-        <mesh material={m.pink} position={[0, -.03, -.06]} scale={[1, 1, .2]}><coneGeometry args={[.11, .28, 4]} /></mesh>
+        <mesh castShadow material={m.fur} scale={[1, 1, .55]}><coneGeometry args={[.18, .4, 12]} /></mesh>
+        <mesh material={m.pink} position={[0, -.03, -.06]} scale={[1, 1, .2]}><coneGeometry args={[.11, .28, 12]} /></mesh>
       </group>)}
       {/* Monova helmet band with the M plate. */}
       <mesh castShadow material={m.shell} rotation={[-.7, 0, 0]} scale={[1.08, 1, 1]}><torusGeometry args={[.52, .085, 14, 48, Math.PI]} /></mesh>
@@ -134,6 +152,8 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
       </group></group>
       {/* Headphones. */}
       {[-1, 1].map(k => <group key={k} position={[k * .54, -.02, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <mesh material={m.black} position={[0, k * .07, 0]}><cylinderGeometry args={[.215, .215, .055, 32]} /></mesh>
+        <mesh material={m.trim} position={[0, k * -.09, 0]}><cylinderGeometry args={[.185, .185, .018, 32]} /></mesh>
         <mesh castShadow material={m.shell}><cylinderGeometry args={[.2, .2, .14, 32]} /></mesh>
         <mesh material={m.black} position={[0, k * -.075, 0]}><cylinderGeometry args={[.16, .16, .02, 32]} /></mesh>
         <mesh material={m.badge} position={[0, k * -.087, 0]} rotation={[k * Math.PI / 2, 0, k * Math.PI / 2]}><circleGeometry args={[.12, 32]} /></mesh>
