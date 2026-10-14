@@ -6,7 +6,7 @@ import { MAX_PLAYERS, createRoom, joinRoom, leaveRoom, net, setMatchMode, slotCo
 import { AbilityIcon, CheckIcon, CoinIcon, CopyIcon, CrownIcon, LinkIcon, PlusIcon, WeaponIcon } from './icons';
 import styles from './ui.module.css';
 
-export const controls: [string, string][] = [['W A S D', 'Mover'], ['SHIFT', 'Correr'], ['ESPACIO', 'Saltar'], ['CLIC', 'Disparar'], ['CLIC DER.', 'Apuntar'], ['R', 'Recargar'], ['E', 'Abrir cofre'], ['1–5 / RUEDA', 'Armas'], ['Q', 'Habilidad'], ['ESC', 'Pausa']];
+export const controls: [string, string][] = [['W A S D', 'Mover'], ['SHIFT', 'Correr'], ['ESPACIO', 'Saltar'], ['CLIC', 'Disparar'], ['CLIC DER.', 'Apuntar'], ['R', 'Recargar'], ['E', 'Interactuar'], ['1–5 / RUEDA', 'Armas'], ['Q', 'Habilidad'], ['M', 'Mapa de campaña'], ['ESC', 'Pausa']];
 const tabs = [['play', 'JUGAR'], ['locker', 'CASILLERO'], ['arsenal', 'ARSENAL'], ['settings', 'AJUSTES']] as const;
 type Tab = typeof tabs[number][0];
 

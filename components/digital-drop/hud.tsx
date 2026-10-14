@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { screen } from './effects';
+import { BOSS_DEFS, PORTALS, WORLD_HALF, bossUnlocked } from './campaign';
 import { TOTAL_BUGS, abilities, districts, hudBus, radar, rarities, spawns, useDrop, weapons } from './state';
 import { net, remotes, slotColors } from './net';
 import { AbilityIcon, BugIcon, HealthIcon, PlayersIcon, ShieldIcon, SkullIcon, StormIcon, WeaponIcon } from './icons';
@@ -44,6 +45,55 @@ function Minimap() {
   return <div className={styles.map}><canvas ref={canvas} width={300} height={300} />
     {districts.map((d, i) => <b key={d} style={{ left: `${50 + spawns[i][0]}%`, top: `${50 + spawns[i][1] - 8}%` }}>{d.replace('MONOVA ', '')}</b>)}
   </div>;
+}
+
+/** Campaign navigation uses the same coordinates as the playable world. */
+function CampaignGuide() {
+  const bosses = useDrop(s => s.bosses), region = useDrop(s => s.region), mapOpen = useDrop(s => s.mapOpen);
+  const online = useDrop(s => s.lobby.length > 0);
+  const player = useRef<SVGCircleElement>(null);
+  useEffect(() => {
+    if (!mapOpen) return;
+    const update = () => { player.current?.setAttribute('cx', String(radar.x)); player.current?.setAttribute('cy', String(radar.z)); };
+    update(); const id = setInterval(update, 100);
+    return () => clearInterval(id);
+  }, [mapOpen]);
+  const defeated = bosses.filter(b => b.hp <= 0).length;
+  const active = bosses.find(b => b.hp > 0 && b.phase !== 'dormant');
+  return <>
+    <section className={styles.mission} aria-label="Objetivo de campaña">
+      <small>{region} · {defeated}/3 REGIONES LIBERADAS</small>
+      <strong>{defeated < 2 ? 'Libera la Forja y el Valle' : defeated < 3 ? 'Derrota a Nexus' : 'Misión completada'}</strong>
+      <p>Usa los portales de Monova HQ. Activa los puestos para recuperar vida.</p>
+      <span><kbd>M</kbd> MAPA Y OBJETIVOS</span>
+    </section>
+    {active && <section className={styles.bossStatus} aria-label="Estado del jefe">
+      <small>{BOSS_DEFS[active.id].region}</small><strong>{BOSS_DEFS[active.id].name}</strong>
+      <progress max={active.max} value={active.hp} aria-label="Vida del jefe" />
+      <span>{active.phase === 'windup' || active.phase === 'attack' ? BOSS_DEFS[active.id].hint : '¡ATACA AHORA!'}</span>
+    </section>}
+    {mapOpen && <section className={styles.campaignMap} aria-label="Mapa de campaña">
+      <header><small>MONOVA / EXPEDICIÓN</small><h2>ELIGE TU PRÓXIMO DESTINO</h2><p>{online ? 'La partida continúa mientras consultas el mapa.' : 'Partida en pausa.'} Pulsa M o Escape para volver.</p></header>
+      <div className={styles.mapLayout}>
+        <svg viewBox={`${-WORLD_HALF - 10} ${-WORLD_HALF - 10} ${WORLD_HALF * 2 + 20} ${WORLD_HALF * 2 + 20}`} role="img" aria-label="Regiones, portales y tu posición">
+          <rect x={-WORLD_HALF} y={-WORLD_HALF} width={WORLD_HALF * 2} height={WORLD_HALF * 2} rx="12" fill="#172f3c" />
+          {BOSS_DEFS.map((b, i) => <g key={b.id} opacity={bossUnlocked(i, bosses) ? 1 : .4}>
+            <path d={`M 0 0 L ${b.x} ${b.z}`} stroke={b.color} strokeDasharray="3 4" fill="none" />
+            <circle cx={b.x} cy={b.z} r="28" fill={b.color} fillOpacity=".16" stroke={b.color} />
+            <text x={b.x} y={b.z} textAnchor="middle" fill="white" fontSize="9">{bosses[i].hp <= 0 ? '✓ LIBERADA' : i === 2 && !bossUnlocked(i, bosses) ? 'BLOQUEADA' : `${i + 1}`}</text>
+            <text x={b.x} y={b.z + 40} textAnchor="middle" fill={b.color} fontSize="8">{b.region}</text>
+          </g>)}
+          {PORTALS.map((p, i) => <circle key={i} cx={p.x} cy={p.z} r="3" fill={p.color} />)}
+          <text x="0" y="17" textAnchor="middle" fill="white" fontSize="8">MONOVA HQ</text>
+          <circle ref={player} r="5" fill="white" stroke="#111" strokeWidth="2" />
+        </svg>
+        <div>{BOSS_DEFS.map((b, i) => <article key={b.id}>
+          <small>{bosses[i].hp <= 0 ? 'LIBERADA' : bossUnlocked(i, bosses) ? 'DISPONIBLE' : 'LIBERA LAS OTRAS DOS REGIONES'}</small>
+          <h3>{b.region}</h3><p>{b.name}</p><span>{b.hint}</span>
+        </article>)}<p>● Blanco: tú · Puntos de color: portales</p></div>
+      </div>
+    </section>}
+  </>;
 }
 
 function Crosshair() {
@@ -148,7 +198,7 @@ function MatchIntro({ pvp, players }: { pvp: boolean; players: number }) {
   const spawn = useDrop(s => s.spawn);
   return <div className={styles.intro}>
     <small>{pvp ? 'MODO BATALLA' : players > 1 ? 'CO-OP' : 'CAMPAÑA'}</small>
-    <strong>{pvp ? `${players} AGENTES · 1 GANADOR` : `ELIMINA ${TOTAL_BUGS} BUGS`}</strong>
+    <strong>{pvp ? `${players} AGENTES · 1 GANADOR` : 'LIBERA LAS TRES REGIONES'}</strong>
     <span>{pvp ? 'ÚLTIMO EN PIE GANA · EL FIREWALL SE CIERRA' : `ATERRIZAJE · ${districts[spawn]}`}</span>
   </div>;
 }
@@ -195,7 +245,8 @@ export function Hud() {
     <DamageLayer />
     {outside && <div className={styles.storm} />}
     <Compass />
-    <div className={styles.mapStack}>
+    {!pvp && <CampaignGuide />}
+    {pvp && <div className={styles.mapStack}>
       <Minimap />
       <div className={styles.stats}>
         <span data-tone="storm"><StormIcon />{closing > 0 ? clock(closing) : 'CERRADA'}</span>
@@ -203,7 +254,7 @@ export function Hud() {
         <span><SkullIcon />{pvp ? pkills : kills}</span>
       </div>
       <p className={styles.stormText}>{closing > 0 ? `LA TORMENTA SE CIERRA · ${Math.round(radius)} M` : 'ZONA FINAL'}</p>
-    </div>
+    </div>}
     {outside && <div className={styles.warning}>ESTÁS EN LA TORMENTA · REGRESA A LA ZONA SEGURA</div>}
     <Team />
     <div className={styles.feed}>{feed.map(f => <p key={f.id}>{f.text}</p>)}</div>

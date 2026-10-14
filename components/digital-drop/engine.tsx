@@ -1,14 +1,16 @@
 "use client";
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { RigidBody, CapsuleCollider, RapierRigidBody, useRapier } from '@react-three/rapier';
 import * as THREE from 'three';
 import { Cat, catPose } from './character';
 import { CombatEffects, burst, resetEffects, screen, shockwave, tracer } from './effects';
 import { firewallMaterial } from './materials';
-import { absorbDamage, firewallRadius, matchResult } from './systems';
+import { absorbDamage, firewallRadius } from './systems';
+import { Bosses } from './bosses';
+import { BOSS_DEFS, OUTPOSTS, PORTALS, SUPPLIES, WORLD_HALF, WORLD_RADIUS, bossDanger, bossUnlocked, campaignComplete, campaignEnemyPosition, createBosses, hurtBoss, stepBoss } from './campaign';
 import { sfx } from './audio';
-import { TOTAL_BUGS, emitBanner, emitDamage, emitHud, enemyKinds, radar, spawns, useDrop, weapons } from './state';
+import { TOTAL_BUGS, emitBanner, emitDamage, emitHud, enemyKinds, districts, radar, spawns, useDrop, weapons } from './state';
 import { net, onNet, remotes, send } from './net';
 
 const kinds = [
@@ -39,9 +41,16 @@ export function Engine() {
   // Battle royale is players only: Bugs start dead, so they never render, move, attack or show on the radar.
   const noBugs = net.mode !== 'solo' && useDrop.getState().matchMode === 'pvp';
   const bugs = useRef<Bug[]>(Array.from({ length: TOTAL_BUGS }, (_, i) => {
-    const x = Math.cos(i * 2.4) * (16 + i), z = Math.sin(i * 2.4) * (16 + i), hp = noBugs ? 0 : kinds[i % 4].hp * hpScale;
+    const [x, z] = campaignEnemyPosition(i), hp = noBugs ? 0 : kinds[i % 4].hp * hpScale;
     return { x, z, tx: x, tz: z, y: 0, hp, max: hp, kind: i % 4, attack: 1 + i * .1, melee: 0, flash: 0, dying: -1, phase: i * 1.7 };
   }));
+  const [bossRuntime] = useState(() => createBosses(Math.max(1, useDrop.getState().lobby.length)));
+  const bosses = useRef(bossRuntime);
+  const rewardBoss = useRef<(id: number) => void>(() => {});
+  const rewarded = useRef(new Set<number>());
+  const hazardHits = useRef(new Map<number, { serial: number; next: number }>());
+  const checkpoint = useRef<[number, number] | null>(null);
+  const portalCooldown = useRef(0);
   const orbs = useRef<Orb[]>([]);
   const tmp = useMemo(() => ({ o: new THREE.Object3D(), v: new THREE.Vector3(), w: new THREE.Vector3(), aim: new THREE.Vector3(), cam: new THREE.Vector3(), target: new THREE.Vector3(), color: new THREE.Color(), white: new THREE.Color(6, 6, 6) }), []);
   const kindColors = useMemo(() => kinds.map(k => new THREE.Color(k.color).multiplyScalar(4)), []);
@@ -50,7 +59,7 @@ export function Engine() {
   // Battle royale: online + PvP mode. Each player drops into a different district; co-op drops the squad together.
   const pvp = net.mode !== 'solo' && useDrop.getState().matchMode === 'pvp';
   const spawn = useMemo(() => {
-    if (pvp) { const [x, z] = spawns[slot % spawns.length]; return [x - 2, z + 2]; }
+    if (pvp) { const [x, z] = spawns[slot % 5]; return [x - 2, z + 2]; }
     const [x, z] = spawns[useDrop.getState().spawn]; return [x + (slot % 3 - 1) * 2.5, z + (slot > 2 ? 2.5 : 0)];
   }, [slot, pvp]);
   const incoming = useRef<{ dmg: number; by: string; x: number; z: number }[]>([]);
@@ -64,6 +73,19 @@ export function Engine() {
 
   useEffect(() => {
     resetEffects(); sfx.deploy(); sfx.drone(true);
+    rewardBoss.current = (id) => {
+      const def = BOSS_DEFS[id], b = bosses.current[id];
+      if (!def || !b || rewarded.current.has(id)) return;
+      rewarded.current.add(id); b.hp = 0; b.phase = 'defeated';
+      run.current.hp = 100; run.current.shield = 100;
+      burst(def.x, 6, def.z, 90, def.color, 18, .5); shockwave(def.x, .2, def.z, def.color, 35);
+      sfx.win(); screen.shake = 1.2;
+      useDrop.setState(st => ({ credits: st.credits + def.reward, unlocked: [...new Set([...st.unlocked, def.weapon])], ammo: weapons[def.weapon].ammo, weapon: def.weapon }));
+      timer.current.reload = 0;
+      emitBanner(`${def.name} DERROTADO`, 'info');
+      useDrop.getState().notify(`+${def.reward} CRÉDITOS · ${weapons[def.weapon].name.toUpperCase()} · VITALES RESTAURADOS`);
+      useDrop.getState().pushFeed(`${def.region} LIBERADA`);
+    };
     killBug.current = (i, by) => {
       const b = bugs.current[i]; if (!b || b.dying > 0) return;
       b.hp = 0; b.dying = .4; run.current.kills++;
@@ -82,6 +104,8 @@ export function Engine() {
       if (['Space', 'Tab', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5'].includes(e.code)) e.preventDefault();
       keys.current.add(e.code);
       const s = useDrop.getState();
+      if (e.code === 'KeyM' && !e.repeat && !pvp && s.phase === 'play') { useDrop.setState({ mapOpen: !s.mapOpen }); mouse.current.fire = false; }
+      if (e.code === 'Escape' && s.mapOpen) { useDrop.setState({ mapOpen: false }); return; }
       if (e.code === 'Escape' && s.phase === 'play') { useDrop.setState({ phase: 'pause' }); document.exitPointerLock?.(); }
       if (e.code.startsWith('Digit')) switchWeapon(Number(e.code.slice(5)) - 1);
     };
@@ -116,6 +140,16 @@ export function Engine() {
         if (b.hp > 0) b.hp = hp > 0 ? hp : b.hp;
       });
       if (msg.t === 'orb' && net.mode === 'client') orbs.current.push({ p: new THREE.Vector3().fromArray(msg.p), v: new THREE.Vector3().fromArray(msg.v), life: 3 });
+      if (msg.t === 'boss-hit' && net.mode === 'host' && !pvp) {
+        const b = bosses.current[msg.boss], def = BOSS_DEFS[msg.boss], peer = remotes.get(msg.by);
+        if (b && def && peer?.alive && Math.hypot(peer.x - def.x, peer.z - def.z) < 100 && hurtBoss(b, msg.dmg, bossUnlocked(msg.boss, bosses.current))) {
+          rewardBoss.current(msg.boss); send({ t: 'boss-down', boss: msg.boss });
+        }
+      }
+      if (msg.t === 'bosses' && net.mode === 'client' && !pvp) {
+        msg.bosses.forEach((snapshot, i) => { const b = bosses.current[i]; if (b && b.hp > 0) { Object.assign(b, snapshot); if (b.hp <= 0) rewardBoss.current(i); } });
+      }
+      if (msg.t === 'boss-down' && net.mode === 'client' && !pvp) rewardBoss.current(msg.boss);
       if (msg.t === 'end') finish(msg.result);
       if (msg.t === 'pvp' && msg.target === net.id) incoming.current.push(msg);
       if (msg.t === 'down') {
@@ -133,18 +167,18 @@ export function Engine() {
       gl.domElement.removeEventListener('mousedown', press); window.removeEventListener('mouseup', release); gl.domElement.removeEventListener('wheel', wheel);
       window.removeEventListener('blur', blur); document.removeEventListener('pointerlockchange', lock); sfx.drone(false);
     };
-  }, [gl]);
+  }, [gl, pvp]);
 
   useFrame(({ clock, camera }, delta) => {
     const s = useDrop.getState(), cam = camera as THREE.PerspectiveCamera;
     if (wall.current) (wall.current.material as THREE.ShaderMaterial).uniforms.time.value = clock.elapsedTime;
     const online = net.mode !== 'solo', authority = net.mode !== 'client';
-    if (!body.current || !(s.phase === 'play' || (online && s.phase === 'pause'))) return;
-    const input = s.phase === 'play' && !timer.current.dead;
+    if (!body.current || !(s.phase === 'play' || (online && s.phase === 'pause')) || (s.mapOpen && !online)) return;
+    const input = s.phase === 'play' && !s.mapOpen && !timer.current.dead;
     const dt = Math.min(delta, .04), t = timer.current, r = run.current, k = keys.current, m = mouse.current, { o } = tmp;
     t.fire -= dt; t.shield -= dt; t.boost -= dt; t.scan -= dt; t.flash -= dt; t.hurtSound -= dt; t.protect -= dt; r.cooldown = Math.max(0, r.cooldown - dt);
     if (!input) { k.clear(); m.fire = false; }
-    r.time += dt;
+    r.time += dt; portalCooldown.current -= dt;
     const p = body.current.translation(), v = body.current.linvel();
     const grounded = !!world.castRay(new rapier.Ray({ x: p.x, y: p.y - .7, z: p.z }, { x: 0, y: -1, z: 0 }), .2, true, undefined, undefined, undefined, body.current ?? undefined);
     const right = tmp.w.set(Math.cos(m.yaw), 0, -Math.sin(m.yaw));
@@ -155,7 +189,7 @@ export function Engine() {
       if (grounded) {
         t.landed = true; body.current.setGravityScale(1, true); sfx.land(); screen.shake = .9;
         shockwave(p.x, .1, p.z, '#ff7a00', 9); burst(p.x, .3, p.z, 40, '#ffb35c', 12);
-        s.notify('ATERRIZAJE COMPLETADO · ELIMINA LOS BUGS');
+        s.notify(pvp ? 'ATERRIZAJE COMPLETADO · ÚLTIMO EN PIE GANA' : 'EXPEDICIÓN INICIADA · M: MAPA · E: PORTALES');
       }
     }
     if (capsule.current) capsule.current.visible = !t.landed;
@@ -163,7 +197,7 @@ export function Engine() {
     // Movement.
     const sprint = k.has('ShiftLeft') && !m.aim, boost = t.boost > 0 ? 1.6 : 1;
     const direction = tmp.v.set(Number(k.has('KeyD')) - Number(k.has('KeyA')), 0, Number(k.has('KeyS')) - Number(k.has('KeyW'))).normalize().applyAxisAngle(UP, m.yaw);
-    const speed = (sprint ? 9 : m.aim ? 3.6 : 5.5) * boost, control = grounded ? 12 : 4;
+    const speed = (sprint ? (pvp ? 9 : 15) : m.aim ? 3.6 : pvp ? 5.5 : 7.5) * boost, control = grounded ? 12 : 4;
     body.current.setLinvel({ x: THREE.MathUtils.damp(v.x, direction.x * speed, control, dt), y: v.y, z: THREE.MathUtils.damp(v.z, direction.z * speed, control, dt) }, true);
     if (k.has('Space') && grounded && t.landed) { body.current.setLinvel({ x: v.x, y: t.boost > 0 ? 10 : 7.5, z: v.z }, true); sfx.jump(); }
     k.delete('Space');
@@ -199,13 +233,13 @@ export function Engine() {
     incoming.current.splice(0).forEach(h => damage(h.dmg, h.x, h.z, h.by));
 
     // Firewall (closes faster in battle royale to force encounters).
-    const radius = firewallRadius(r.time * (pvp ? 1.5 : 1)), outside = Math.hypot(p.x, p.z) > radius;
+    const radius = pvp ? firewallRadius(r.time * 1.5) : WORLD_RADIUS, outside = pvp ? Math.hypot(p.x, p.z) > radius : Math.max(Math.abs(p.x), Math.abs(p.z)) > WORLD_HALF - 2;
     if (outside) { damage(dt * 10); screen.hurt = Math.max(screen.hurt, .25); }
     if (outside !== r.outside) { r.outside = outside; useDrop.setState({ outside }); }
     if (p.y < -8) r.hp = 0;
 
     // Death: solo ends the run, co-op respawns after a countdown (the team loses only if everyone is down).
-    if (r.hp <= 0 && !t.dead && online) {
+    if (r.hp <= 0 && !t.dead) {
       t.dead = true; t.respawn = RESPAWN; useDrop.setState(st => ({ deaths: st.deaths + 1 }));
       burst(p.x, p.y, p.z, 50, '#ff8737', 10, .2); shockwave(p.x, .1, p.z, '#ff3b3b', 6); sfx.lose();
       if (pvp) {
@@ -220,7 +254,8 @@ export function Engine() {
       t.respawn -= dt;
       if (t.respawn <= 0) {
         t.dead = false; t.landed = false; t.protect = 4; r.hp = 70; r.shield = 50;
-        body.current.setTranslation({ x: spawn[0], y: DROP_HEIGHT, z: spawn[1] }, true); body.current.setLinvel({ x: 0, y: 0, z: 0 }, true); body.current.setGravityScale(.45, true);
+        const home = checkpoint.current ?? spawn;
+        body.current.setTranslation({ x: home[0], y: DROP_HEIGHT, z: home[1] }, true); body.current.setLinvel({ x: 0, y: 0, z: 0 }, true); body.current.setGravityScale(.45, true);
         sfx.deploy(); s.notify('REDESPLIEGUE · PROTECCIÓN ACTIVA');
       }
     }
@@ -248,7 +283,7 @@ export function Engine() {
     }
 
     // Firing: ray from the camera through the crosshair, tracer from the blaster to the impact.
-    if (m.fire && t.fire <= 0 && t.reload <= 0 && t.landed) {
+    if (input && m.fire && t.fire <= 0 && t.reload <= 0 && t.landed) {
       if (s.ammo <= 0) { sfx.empty(); t.fire = .3; }
       else {
         const w = weapons[s.weapon];
@@ -257,11 +292,17 @@ export function Engine() {
         const aim = cam.getWorldDirection(tmp.aim).add(tmp.v.set((Math.random() - .5) * spread, (Math.random() - .5) * spread, (Math.random() - .5) * spread)).normalize();
         const origin = cam.position;
         const wallHit = world.castRay(new rapier.Ray(origin, aim), 90, true, undefined, undefined, undefined, body.current ?? undefined);
-        let nearest = wallHit?.timeOfImpact ?? 90, index = -1;
+        let nearest = wallHit?.timeOfImpact ?? 90, index = -1, bossIndex = -1;
         bugs.current.forEach((b, i) => {
           if (b.hp <= 0) return;
           const rel = tmp.v.set(b.x - origin.x, b.y - origin.y, b.z - origin.z), along = rel.dot(aim);
           if (along > 0 && along < nearest && rel.addScaledVector(aim, -along).length() < kinds[b.kind].scale * 1.15) { nearest = along; index = i; }
+        });
+        if (!pvp) bosses.current.forEach((b, i) => {
+          if (b.hp <= 0 || !bossUnlocked(i, bosses.current)) return;
+          const def = BOSS_DEFS[i];
+          const rel = tmp.v.set(def.x - origin.x, 6 - origin.y, def.z - origin.z), along = rel.dot(aim);
+          if (along > 0 && along < nearest && rel.addScaledVector(aim, -along).length() < (i === 2 ? 4.5 : 3.8)) { nearest = along; index = -1; bossIndex = i; }
         });
         let victim: string | undefined;
         if (pvp) remotes.forEach(x => {
@@ -285,7 +326,15 @@ export function Engine() {
         };
         // Project the impact to screen space for the floating damage number.
         const screenAt = tmp.v.copy(impact).project(cam), sx = (screenAt.x + 1) / 2, sy = (1 - screenAt.y) / 2;
-        if (index >= 0) {
+        if (bossIndex >= 0) {
+          const boss = bosses.current[bossIndex], amount = w.damage * (s.weapon === 3 ? 1.5 : 1);
+          emitDamage(sx, sy, amount, 'crit'); hits++; sfx.hit(); emitHud('hit');
+          burst(impact.x, impact.y, impact.z, 12, BOSS_DEFS[bossIndex].color, 6);
+          if (!authority) send({ t: 'boss-hit', boss: bossIndex, dmg: amount, by: net.id });
+          else if (hurtBoss(boss, amount, bossUnlocked(bossIndex, bosses.current))) {
+            rewardBoss.current(bossIndex); if (online) send({ t: 'boss-down', boss: bossIndex });
+          }
+        } else if (index >= 0) {
           const enemy = bugs.current[index];
           emitDamage(sx, sy, w.damage * (s.weapon === 3 ? 1.5 : 1), s.weapon === 3 || s.weapon === 2 ? 'crit' : 'hit');
           hits++; burst(impact.x, impact.y, impact.z, 8, kinds[enemy.kind].color, 5);
@@ -311,6 +360,20 @@ export function Engine() {
     // Enemy AI: chase, keep inside the firewall, separate, and attack (Spitters fire orbs from range).
     const active = r.time > PROTECTION;
     const players = [{ x: p.x, y: p.y, z: p.z, alive: !t.dead }, ...[...remotes.values()].map(x => ({ x: x.x, y: x.y, z: x.z, alive: x.alive && x.y > -40 }))].filter(x => x.alive);
+    if (!pvp) bosses.current.forEach((b, i) => {
+      const unlocked = bossUnlocked(i, bosses.current);
+      if (authority) {
+        const changed = stepBoss(b, dt, players, unlocked);
+        if (changed && b.phase === 'attack') { sfx.land(); shockwave(BOSS_DEFS[i].x, .2, BOSS_DEFS[i].z, BOSS_DEFS[i].color, 12); }
+      } else if (b.phase !== 'dormant' && b.phase !== 'defeated') b.elapsed += dt;
+      if (bossDanger(b, p as THREE.Vector3) && !t.dead) {
+        const hit = hazardHits.current.get(i), beam = BOSS_DEFS[i].attack === 'beam';
+        if (!hit || hit.serial !== b.serial || (beam && r.time >= hit.next)) {
+          damage(beam ? 14 : i === 0 ? 28 : 32, BOSS_DEFS[i].x, BOSS_DEFS[i].z);
+          hazardHits.current.set(i, { serial: b.serial, next: r.time + .65 });
+        }
+      }
+    });
     bugs.current.forEach((b, i) => {
       const kind = kinds[b.kind];
       b.flash -= dt; b.melee -= dt;
@@ -326,14 +389,14 @@ export function Engine() {
         const dx = near.x - b.x, dz = near.z - b.z, dist = Math.hypot(dx, dz) || .001;
         let mx = 0, mz = 0;
         if (Math.hypot(b.x, b.z) > radius - 2) { mx = -b.x; mz = -b.z; }
-        else if (active && dist < 30) {
+        else if (active && dist < 17) {
           if (b.kind === 3) { const want = dist > 15 ? 1 : dist < 9 ? -1 : 0; mx = dx / dist * want + -dz / dist * .6; mz = dz / dist * want + dx / dist * .6; }
           else if (dist > 1.3 + kind.scale) { mx = dx; mz = dz; }
-        } else { mx = Math.sin(r.time * .3 + b.phase); mz = Math.cos(r.time * .25 + b.phase * 1.3); }
+        } else { const [homeX, homeZ] = campaignEnemyPosition(i); mx = homeX + Math.sin(r.time * .2 + b.phase) * 3 - b.x; mz = homeZ + Math.cos(r.time * .2 + b.phase) * 3 - b.z; }
         const len = Math.hypot(mx, mz);
         if (len > .01) {
           mx /= len; mz /= len;
-          const step = kind.speed * (active && dist < 30 ? 1 : .35) * dt;
+          const step = kind.speed * (active && dist < 17 ? 1 : .35) * dt;
           if (world.castRay(new rapier.Ray({ x: b.x, y: .8, z: b.z }, { x: mx, y: 0, z: mz }), 1.6, true, undefined, undefined, undefined, body.current ?? undefined)) { const sx = mz, sz = -mx; mx = sx; mz = sz; }
           b.x += mx * step; b.z += mz * step;
         }
@@ -385,7 +448,7 @@ export function Engine() {
         o.rotation.set(swing, facing, side * .6); o.scale.set(scale * .12, scale * (b.kind === 1 ? .7 : 1), scale * .12); o.updateMatrix();
         limbs.current?.setMatrixAt(i * 4 + part, o.matrix);
       }
-      const showBar = alive && !hidden && b.hp < kind.hp, ratio = Math.max(0, b.hp / kind.hp);
+      const showBar = alive && !hidden && b.hp < b.max, ratio = Math.max(0, b.hp / b.max);
       o.position.set(b.x, b.y + scale + .5, b.z); o.quaternion.copy(camQuat); o.scale.set(showBar ? 1.2 : 0, showBar ? .1 : 0, 1); o.updateMatrix(); barBack.current?.setMatrixAt(i, o.matrix);
       o.translateX(-(1 - ratio) * .6); o.scale.set(showBar ? 1.2 * ratio : 0, showBar ? .1 : 0, 1); o.updateMatrix(); barFill.current?.setMatrixAt(i, o.matrix);
       o.quaternion.identity();
@@ -401,25 +464,49 @@ export function Engine() {
 
     // Data crates.
     let prompt = '';
-    spawns.forEach(([x, z], i) => {
+    SUPPLIES.forEach(({ x: crateX, z, weapon: loot }, i) => {
+      if (pvp && i >= 5) return;
+      const x = crateX - 3;
       const lid = lids.current[i], beacon = beacons.current[i], isOpen = opened.current.has(i);
       if (lid) lid.rotation.x = THREE.MathUtils.damp(lid.rotation.x, isOpen ? -1.9 : 0, 8, dt);
       if (beacon) { beacon.visible = !isOpen; beacon.scale.x = beacon.scale.z = 1 + Math.sin(r.time * 4 + i) * .15; }
       if (isOpen || !t.landed || Math.hypot(p.x - x - 3, p.z - z) > 3.5) return;
-      prompt = `ABRIR DATA CRATE · ${weapons[i].name.toUpperCase()}`;
+      prompt = `ABRIR DATA CRATE · ${weapons[loot].name.toUpperCase()}`;
       if (!k.has('KeyE')) return;
       opened.current.add(i);
-      const unlocked = [...new Set([...s.unlocked, i])];
-      useDrop.setState({ unlocked, opened: [...opened.current], weapon: i, ammo: weapons[i].ammo, credits: useDrop.getState().credits + 100 });
-      s.notify(`DATA CRATE · ${weapons[i].name.toUpperCase()} DESBLOQUEADO`); s.pushFeed(`+100 · ${weapons[i].short} EN SLOT ${i + 1}`);
+      const unlocked = [...new Set([...s.unlocked, loot])];
+      useDrop.setState({ unlocked, opened: [...opened.current], weapon: loot, ammo: weapons[loot].ammo, credits: useDrop.getState().credits + 100 });
+      s.notify(`DATA CRATE · ${weapons[loot].name.toUpperCase()} DESBLOQUEADO`); s.pushFeed(`+100 · ${weapons[loot].short} EN SLOT ${loot + 1}`);
       r.hp = Math.min(100, r.hp + 25); r.shield = Math.min(100, r.shield + 40); t.reload = 0;
       burst(x + 3, 1, z, 40, '#ffb35c', 8); shockwave(x + 3, .1, z, '#ffb35c', 5); sfx.pickup();
     });
+    if (!pvp && t.landed && !t.dead) {
+      OUTPOSTS.forEach((outpost, i) => {
+        if (Math.hypot(p.x - outpost.x, p.z - outpost.z) < 8 && !s.discovered.includes(outpost.name)) {
+          checkpoint.current = [outpost.x, outpost.z]; r.hp = 100; r.shield = 100;
+          useDrop.setState(st => ({ discovered: [...new Set([...st.discovered, outpost.name])] }));
+          s.notify(`PUESTO DESCUBIERTO · ${outpost.name} · PUNTO DE REDESPLIEGUE`); sfx.pickup();
+          const loot = i === 0 ? 1 : i === 1 ? 3 : 2;
+          useDrop.setState(st => ({ unlocked: [...new Set([...st.unlocked, loot])] }));
+        }
+      });
+      PORTALS.forEach(portal => {
+        if (Math.hypot(p.x - portal.x, p.z - portal.z) > 3.5) return;
+        const locked = portal.boss === 2 && !bossUnlocked(2, bosses.current);
+        prompt = locked ? 'NEXUS SELLADO · DERROTA A LOS DOS GUARDIANES' : `VIAJAR A ${portal.label}`;
+        if (!input || !k.has('KeyE') || locked || portalCooldown.current > 0) return;
+        portalCooldown.current = 2; t.protect = 4;
+        body.current!.setTranslation({ x: portal.toX, y: 1.5, z: portal.toZ }, true);
+        body.current!.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        burst(p.x, 1, p.z, 40, portal.color, 8); sfx.ability();
+        s.notify(`SALTO COMPLETADO · ${portal.label}`);
+      });
+    }
     k.delete('KeyE');
     if (prompt !== r.prompt) { r.prompt = prompt; useDrop.setState({ prompt }); }
 
     // Ability and firewall visuals.
-    if (wall.current) wall.current.scale.set(radius, 1, radius);
+    if (wall.current) { wall.current.visible = pvp; wall.current.scale.set(radius, 1, radius); }
     if (shieldMesh.current) { shieldMesh.current.position.set(p.x, p.y, p.z); shieldMesh.current.visible = t.shield > 0; shieldMesh.current.rotation.y += dt; }
     if (scanMesh.current) { scanMesh.current.position.set(p.x, .15, p.z); scanMesh.current.visible = scan; scanMesh.current.scale.setScalar(((4 - t.scan) % 1) * 30 + 1); }
 
@@ -429,12 +516,10 @@ export function Engine() {
     if (online) {
       t.sync -= dt; t.bugSync -= dt;
       if (t.sync <= 0) { t.sync = 1 / 15; send({ t: 'state', s: { id: net.id, x: round1(p.x), y: round1(p.y), z: round1(p.z), yaw: Math.round(m.yaw * 100) / 100, hp: Math.round(r.hp), alive: !t.dead, w: s.weapon } }); }
-      if (authority && t.bugSync <= 0) { t.bugSync = 1 / 12; send({ t: 'bugs', b: bugs.current.flatMap(b => [round1(b.x), round1(b.z), Math.round(b.hp)]) }); }
+      if (authority && t.bugSync <= 0) { t.bugSync = 1 / 12; send({ t: 'bugs', b: bugs.current.flatMap(b => [round1(b.x), round1(b.z), Math.round(b.hp)]) }); if (!pvp) send({ t: 'bosses', bosses: bosses.current.map(b => ({ ...b, targets: b.targets.map(t => ({ ...t })) })) }); }
     }
     t.flush -= dt;
-    const solo = matchResult(r.hp, r.kills, radius);
-    const wiped = online && authority && t.dead && [...remotes.values()].every(x => !x.alive);
-    const result = pvp ? null : online ? (r.kills >= TOTAL_BUGS && radius <= 8 ? 'win' : wiped ? 'over' : null) : solo;
+    const result = !pvp && campaignComplete(bosses.current) ? 'win' as const : null;
     // Battle royale: the host declares the last agent standing.
     const standing = [...(t.dead ? [] : [net.id]), ...[...remotes.values()].filter(x => x.alive).map(x => x.id)];
     if (pvp && authority && r.time > 4 && standing.length <= 1 && !t.ended) {
@@ -443,13 +528,15 @@ export function Engine() {
     }
     if (t.flush <= 0 || r.kills !== s.kills || result) {
       t.flush = .1;
-      useDrop.setState({ hp: Math.max(0, r.hp), shield: r.shield, time: r.time, radius, kills: r.kills, cooldown: r.cooldown, reload: t.reload > 0 ? 1 - t.reload / 1.3 : 0, respawn: t.dead && !pvp ? Math.ceil(t.respawn) : 0, alive: standing.length });
+      const region = pvp ? districts[0] : BOSS_DEFS.find(d => Math.hypot(p.x - d.x, p.z - d.z) < 60)?.region ?? (Math.max(Math.abs(p.x), Math.abs(p.z)) < 52 ? 'MONOVA CITY' : 'FRONTERA EXTERIOR');
+      useDrop.setState({ region, bosses: bosses.current.map(b => ({ ...b, targets: b.targets.map(t => ({ ...t })) })), hp: Math.max(0, r.hp), shield: r.shield, time: r.time, radius, kills: r.kills, cooldown: r.cooldown, reload: t.reload > 0 ? 1 - t.reload / 1.3 : 0, respawn: t.dead && !pvp ? Math.ceil(t.respawn) : 0, alive: standing.length });
     }
     if (result) { if (online && authority) send({ t: 'end', result }); finish(result); }
   });
 
   return <>
     <CombatEffects />
+    {!pvp && <Bosses bosses={bossRuntime} />}
     <RigidBody ref={body} colliders={false} position={[spawn[0], DROP_HEIGHT, spawn[1]]} enabledRotations={[false, false, false]} gravityScale={.45} ccd>
       <CapsuleCollider args={[.4, .35]} />
       <group ref={cat} position={[0, -.75, 0]}><Cat /></group>
@@ -471,7 +558,7 @@ export function Engine() {
     <mesh ref={wall} position={[0, 6, 0]} material={firewall}><cylinderGeometry args={[1, 1, 12, 128, 1, true]} /></mesh>
     <mesh ref={shieldMesh} visible={false}><icosahedronGeometry args={[1.6, 2]} /><meshBasicMaterial color={new THREE.Color('#ffad42').multiplyScalar(2)} wireframe transparent opacity={.35} toneMapped={false} /></mesh>
     <mesh ref={scanMesh} rotation={[-Math.PI / 2, 0, 0]} visible={false}><ringGeometry args={[.96, 1, 96]} /><meshBasicMaterial color={new THREE.Color('#ff7a00').multiplyScalar(3)} transparent opacity={.7} toneMapped={false} /></mesh>
-    {spawns.map(([x, z], i) => <group key={i} position={[x + 3, .45, z]}>
+    {SUPPLIES.filter((_, i) => !pvp || i < 5).map(({ x, z }, i) => <group key={i} position={[x, .45, z]}>
       <mesh castShadow receiveShadow><boxGeometry args={[1.4, .8, 1]} /><meshStandardMaterial color="#d99a2b" metalness={.7} roughness={.3} emissive="#7a4a00" emissiveIntensity={.25} /></mesh>
       {[-.6, .6].map(x => <mesh key={x} position={[x, 0, 0]}><boxGeometry args={[.1, .84, 1.04]} /><meshStandardMaterial color="#6b3d12" roughness={.6} /></mesh>)}
       <mesh position={[0, 0, -.51]}><boxGeometry args={[1.1, .06, .02]} /><meshBasicMaterial color={new THREE.Color('#ff7a00').multiplyScalar(4)} toneMapped={false} /></mesh>

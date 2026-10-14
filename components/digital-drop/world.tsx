@@ -4,6 +4,8 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Float, Text, Sparkles, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import { canopyTexture, glassTexture } from './materials';
+import { Frontier } from './frontier';
+import { BOSS_DEFS, WORLD_HALF } from './campaign';
 import { metricBox, usePbr } from './pbr';
 export { Cat } from './character';
 
@@ -110,7 +112,7 @@ function Streets() {
   const grass = usePbr('grass', 260);
   const roadV = usePbr('asphalt', 2, 25), roadH = usePbr('asphalt', 25, 2);
   return <>
-    <RigidBody type="fixed" colliders={false}><CuboidCollider args={[50, 1, 50]} position={[0, -1, 0]} /></RigidBody>
+    <RigidBody type="fixed" colliders={false}><CuboidCollider args={[WORLD_HALF + 5, 1, WORLD_HALF + 5]} position={[0, -1, 0]} /></RigidBody>
     <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[520, 520]} /><meshStandardMaterial {...grass} normalScale={[.75, .75]} roughness={1} /></mesh>
     {roads.map(n => <group key={n}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[n, .02, 0]} receiveShadow><planeGeometry args={[8, 100]} /><meshStandardMaterial {...roadV} normalScale={[.65, .65]} roughness={.9} /></mesh>
@@ -178,7 +180,8 @@ function Foliage() {
     // Rolling scenery outside the arena.
     for (let i = 0; i < 140; i++) {
       const a = rand() * Math.PI * 2, r = 56 + rand() * 60;
-      trees.push([Math.cos(a) * r, Math.sin(a) * r, 1 + rand() * 1.2]);
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (BOSS_DEFS.every(b => Math.hypot(x - b.x, z - b.z) > 54)) trees.push([x, z, 1 + rand() * 1.2]);
     }
     return { trees, bushes };
   }, []);
@@ -202,17 +205,18 @@ function Foliage() {
 function Horizon() {
   const hills = useMemo(() => {
     const rand = seeded(99);
-    return Array.from({ length: 28 }, (_, i) => { const a = i / 28 * Math.PI * 2, r = 150 + rand() * 40; return { x: Math.cos(a) * r, z: Math.sin(a) * r, s: 30 + rand() * 30, h: 12 + rand() * 18, far: i % 2 === 0 }; });
+    return Array.from({ length: 28 }, (_, i) => { const a = i / 28 * Math.PI * 2, r = 260 + rand() * 65; return { x: Math.cos(a) * r, z: Math.sin(a) * r, s: 30 + rand() * 30, h: 12 + rand() * 18, far: i % 2 === 0 }; });
   }, []);
   return <>{hills.map((h, i) => <mesh key={i} position={[h.x * (h.far ? 1.25 : 1), -2, h.z * (h.far ? 1.25 : 1)]} scale={[h.s, h.far ? h.h * 2 : h.h, h.s]}>
     <sphereGeometry args={[1, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={h.far ? '#8298ad' : '#809272'} roughness={1} />
   </mesh>)}</>;
 }
 
-export const World = memo(function World() {
+export const World = memo(function World({ expedition = true }: { expedition?: boolean }) {
   const concrete = usePbr('concrete');
   return <group>
     <Horizon />
+    {expedition && <Frontier />}
     <Streets />
     <Foliage />
     <CityDetails />

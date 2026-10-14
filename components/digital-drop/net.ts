@@ -3,6 +3,7 @@
 import type Peer from 'peerjs';
 import type { DataConnection } from 'peerjs';
 import { useDrop } from './state';
+import type { BossRuntime } from './campaign';
 
 export const MAX_PLAYERS = 5;
 export const DEFAULT_CODE = '4321';
@@ -22,6 +23,9 @@ export type Msg =
   | { t: 'bugs'; b: number[] }
   | { t: 'kill'; bug: number; by: string }
   | { t: 'orb'; p: number[]; v: number[] }
+  | { t: 'bosses'; bosses: BossRuntime[] }
+  | { t: 'boss-hit'; boss: number; dmg: number; by: string }
+  | { t: 'boss-down'; boss: number }
   | { t: 'end'; result: 'win' | 'over' }
   | { t: 'bye'; id: string }
   | { t: 'pvp'; target: string; dmg: number; by: string; x: number; z: number }
@@ -37,7 +41,7 @@ const clients = new Map<string, DataConnection>();
 const listeners = new Set<(msg: Msg) => void>();
 export const net = { mode: 'solo' as 'solo' | 'host' | 'client', id: '' };
 
-const roomId = (code: string) => `monova-digital-drop-v1-${code.replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
+const roomId = (code: string) => `monova-digital-drop-v2-${code.replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
 const status = (netStatus: string) => useDrop.setState({ netStatus });
 export const onNet = (fn: (msg: Msg) => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 

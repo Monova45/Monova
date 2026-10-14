@@ -45,6 +45,7 @@ function Lighting({ quality, showroom }: { quality: boolean; showroom: boolean }
 
 export default function DigitalDrop() {
   const phase = useDrop(s => s.phase), round = useDrop(s => s.round), quality = useDrop(s => s.quality), muted = useDrop(s => s.muted);
+  const mapOpen = useDrop(s => s.mapOpen);
   const lobby = useDrop(s => s.lobby), matchMode = useDrop(s => s.matchMode), roomCode = useDrop(s => s.roomCode);
   // Invite links (/3d?sala=1234) open the join box with the code filled in.
   const [invited] = useState(() => new URLSearchParams(location.search).get('sala')?.slice(0, 8) ?? '');
@@ -67,17 +68,17 @@ export default function DigitalDrop() {
       useDrop.getState().notify('¡PARTIDA INICIADA! HAZ CLIC PARA ACTIVAR LA CÁMARA');
     });
   }, []);
-  const toMenu = () => { useDrop.setState({ phase: 'menu' }); sfx.drone(false); };
+  const toMenu = () => { useDrop.setState({ phase: 'menu', mapOpen: false }); sfx.drone(false); };
   const resume = () => { useDrop.setState({ phase: 'play' }); lock(); };
   const party = lobby.filter(p => p.id !== net.id);
 
   return <main id="drop-game" className={styles.game} data-phase={phase} onContextMenu={e => e.preventDefault()} onClick={e => { if (phase === 'play' && !document.pointerLockElement && (e.target as HTMLElement).tagName === 'CANVAS') lock(); }}>
-    <Canvas shadows={quality ? { type: PCFShadowMap } : false} flat dpr={quality ? [1, 1.75] : [.75, 1]} camera={{ position: [7.5, 4.3, 15], fov: 50, near: .1, far: 500 }} gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }} onCreated={() => setReady(true)} fallback={<p className={styles.fallback}>Necesitas un navegador compatible con WebGL para jugar.</p>}>
+    <Canvas shadows={quality ? { type: PCFShadowMap } : false} flat dpr={quality ? [1, 1.75] : [.75, 1]} camera={{ position: [7.5, 4.3, 15], fov: 50, near: .1, far: 900 }} gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }} onCreated={() => setReady(true)} fallback={<p className={styles.fallback}>Necesitas un navegador compatible con WebGL para jugar.</p>}>
       <color attach="background" args={[phase === 'menu' ? '#1f6fe0' : '#9fd2ff']} />
-      <fog attach="fog" args={phase === 'menu' ? ['#1f6fe0', 30, 90] : ['#c8cdd0', 65, 235]} />
+      <fog attach="fog" args={phase === 'menu' ? ['#1f6fe0', 30, 90] : ['#c8cdd0', 145, 550]} />
       <Lighting quality={quality} showroom={phase === 'menu'} />
       <Suspense fallback={null}>
-        {phase === 'menu' ? <Showroom quality={quality} party={party} /> : <Physics paused={phase !== 'play' && !online} gravity={[0, -20, 0]}><World /><Engine key={round} /><RemotePlayers /></Physics>}
+        {phase === 'menu' ? <Showroom quality={quality} party={party} /> : <Physics paused={(phase !== 'play' || mapOpen) && !online} gravity={[0, -20, 0]}><World expedition={!(online && matchMode === 'pvp')} /><Engine key={round} /><RemotePlayers /></Physics>}
       </Suspense>
       <PostFX quality={quality} />
     </Canvas>
@@ -131,7 +132,7 @@ function Results({ won, onRetry, onMenu, waiting }: { won: boolean; onRetry: () 
     {won && <div className={styles.rays} />}
     <div className={styles.resultHead}>
       {pvp && <b className={styles.place}>#{place}</b>}
-      <h2>{won ? (pvp ? '¡VICTORIA MONOVA!' : '¡CIUDAD LIMPIA!') : pvp ? 'ELIMINADO' : 'MISIÓN FALLIDA'}</h2>
+      <h2>{won ? (pvp ? '¡VICTORIA MONOVA!' : '¡NEXUS DERROTADO!') : pvp ? 'ELIMINADO' : 'MISIÓN FALLIDA'}</h2>
       <p>{won ? 'IDEAS THAT WORK' : pvp ? `GANADOR: ${winner || 'AGENTE'}` : 'El sistema te necesita. Vuelve a desplegar.'}</p>
     </div>
     {pvp && <div className={styles.board}>{order.map((id, i) => {

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { sfx } from './audio';
+import { createBosses, type BossRuntime } from './campaign';
 
 /** Fortnite-style rarity tiers used to color weapon cards and inventory slots. */
 export const rarities = {
@@ -24,9 +25,9 @@ export const abilities = [
   { name: 'DEPLOY', detail: 'Teletransporte táctico de 7 m' },
 ];
 export const enemyKinds = ['GLITCH', 'CRAWLER', 'BRUTE', 'SPITTER'];
-export const districts = ['MONOVA HQ', 'CODE DISTRICT', 'DESIGN LAB', 'AI CORE', 'BUG ZONE'];
-export const spawns = [[0, 0], [-23, -22], [23, -22], [23, 22], [-23, 22]];
-export const TOTAL_BUGS = 16;
+export const districts = ['MONOVA HQ', 'CODE DISTRICT', 'DESIGN LAB', 'AI CORE', 'BUG ZONE', 'FORJA SOLAR', 'VALLE DE CRISTAL', 'CIUDADELA NEXUS'];
+export const spawns = [[0, 0], [-23, -22], [23, -22], [23, 22], [-23, 22], [-112, -72], [112, -72], [0, 96]];
+export const TOTAL_BUGS = 32;
 
 type Phase = 'menu' | 'play' | 'pause' | 'win' | 'over';
 type State = {
@@ -35,6 +36,7 @@ type State = {
   feed: { id: number; text: string }[]; shots: number; hits: number; round: number; spawn: number; muted: boolean; quality: boolean; sensitivity: number;
   respawn: number; deaths: number; playerName: string; netStatus: string; lobby: { id: string; name: string; slot: number }[];
   matchMode: 'pvp' | 'coop'; winner: string; placement: number; pkills: number; alive: number; spectating: string;
+  bosses: BossRuntime[]; mapOpen: boolean; region: string; discovered: string[];
   eliminated: { id: string; name: string; by: string }[]; roomCode: string;
   start: () => void; notify: (text: string) => void; pushFeed: (text: string) => void;
 };
@@ -44,7 +46,8 @@ export const useDrop = create<State>((set) => ({
   phase: 'menu', hp: 100, shield: 100, ammo: 20, weapon: 0, kills: 0, time: 0, radius: 48, credits: 0, unlocked: [0], opened: [], ability: 0, cooldown: 0, reload: 0,
   notice: '', noticeId: 0, prompt: '', outside: false, feed: [], shots: 0, hits: 0, round: 0, spawn: 0, muted: false, quality: true, sensitivity: 1,
   respawn: 0, deaths: 0, playerName: '', netStatus: '', lobby: [], matchMode: 'pvp', winner: '', placement: 0, pkills: 0, alive: 0, spectating: '', eliminated: [], roomCode: '',
-  start: () => set(s => ({ phase: 'play', hp: 100, shield: 100, ammo: 20, weapon: 0, kills: 0, time: 0, radius: 48, credits: 0, unlocked: [0], opened: [], cooldown: 0, reload: 0,
+  bosses: createBosses(), mapOpen: false, region: 'MONOVA HQ', discovered: ['MONOVA HQ'],
+  start: () => set(s => ({ bosses: createBosses(Math.max(1, s.lobby.length)), mapOpen: false, region: districts[s.spawn], discovered: [districts[s.spawn]], phase: 'play', hp: 100, shield: 100, ammo: s.lobby.length && s.matchMode === 'pvp' ? 20 : 40, weapon: s.lobby.length && s.matchMode === 'pvp' ? 0 : 1, kills: 0, time: 0, radius: 48, credits: 0, unlocked: s.lobby.length && s.matchMode === 'pvp' ? [0] : [0, 1], opened: [], cooldown: 0, reload: 0,
     notice: 'CÁPSULA EN CAÍDA · PROTECCIÓN ACTIVA', noticeId: s.noticeId + 1, prompt: '', outside: false, feed: [], shots: 0, hits: 0, respawn: 0, deaths: 0, winner: '', placement: 0, pkills: 0, alive: 0, spectating: '', eliminated: [], round: s.round + 1 })),
   notify: text => set(s => ({ notice: text, noticeId: s.noticeId + 1 })),
   pushFeed: text => set(s => ({ feed: [...s.feed.slice(-3), { id: ++feedId, text }] })),

@@ -369,3 +369,11 @@
 
 .modeCard .zone b{display:inline;font:inherit;color:#fff;letter-spacing:inherit}
 .gameBar>span{position:absolute;left:110px;top:10px;font-size:12px;color:#cedde5}
+
+.mission{position:absolute;right:20px;top:65px;width:260px;padding:18px;background:#101e2ee8;border:1px solid #b8d5e533;border-radius:12px;font-style:normal;text-shadow:none}
+.mission small,.bossStatus small,.campaignMap small{font-size:10px;letter-spacing:1.5px;color:#ffbd70}
+.mission strong{display:block;font-size:24px;margin:8px 0}.mission p{font:13px/1.5 var(--font-body);color:#b4c6cf}.mission span{font-size:12px}.mission kbd{color:#ffbd70;margin-right:8px}
+.bossStatus{position:absolute;top:95px;left:50%;transform:translateX(-50%);width:min(400px,38vw);display:grid;gap:6px;text-align:center;padding:14px;background:#101e2edd;border-radius:10px}.bossStatus strong{font-size:24px}.bossStatus progress{width:100%;height:12px;accent-color:#ff915f}.bossStatus span{font-size:14px;color:#ffe2a6}
+.campaignMap{position:absolute;inset:48px 0 0;z-index:20;background:#091521f5;padding:24px max(24px,6vw);overflow:auto;font-style:normal;text-shadow:none;pointer-events:auto;backdrop-filter:blur(12px)}
+.campaignMap h2{margin:6px 0;font-size:32px}.campaignMap p{font:14px/1.5 var(--font-body);color:#b4c6cf}.mapLayout{display:grid;grid-template-columns:minmax(260px,1.2fr) minmax(220px,1fr);gap:32px;max-width:1000px;margin:auto}.mapLayout svg{width:100%;max-height:60vh}.mapLayout article{padding:14px 18px;border:1px solid #b8d5e533;border-radius:10px;margin-bottom:10px;background:#182e3b}.mapLayout h3{margin:6px 0;font-size:22px}.mapLayout article p{margin:4px 0}.mapLayout article span{font-size:12px;color:#ffdcab}
+@media(max-width:800px){.mission{width:210px;padding:12px}.bossStatus{left:20px;transform:none;width:38vw}.mapLayout{gap:14px}.campaignMap{padding:16px}.campaignMap h2{font-size:24px}}
