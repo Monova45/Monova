@@ -9,13 +9,55 @@ import { usePbr } from './pbr';
 const font = '/fonts/jersey-10.ttf';
 const glow = (color: string, intensity = 2) => new THREE.Color(color).multiplyScalar(intensity);
 
+const gateVertex = /* glsl */`
+  varying vec2 vUv;
+  #include <fog_pars_vertex>
+  void main() {
+    vUv = uv;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+    #include <fog_vertex>
+  }
+`;
+
+const gateFragment = /* glsl */`
+  uniform float time;
+  uniform vec3 color;
+  varying vec2 vUv;
+  #include <fog_pars_fragment>
+  void main() {
+    vec2 p = vUv * 2.0 - 1.0;
+    float radius = length(p);
+    float angle = atan(p.y, p.x);
+    float edge = 1.0 - smoothstep(0.94, 1.0, radius);
+    float rim = smoothstep(0.74, 0.96, radius);
+    float ripple = pow(0.5 + 0.5 * sin(radius * 32.0 - angle * 3.0 - time * 0.8), 12.0);
+    float mist = 0.5 + 0.5 * sin(p.x * 5.0 + sin(p.y * 7.0 - time * 0.35));
+    vec3 tint = mix(color * 0.65, vec3(0.65, 0.82, 0.95), rim * 0.35);
+    gl_FragColor = vec4(tint * (0.65 + rim * 1.5 + ripple * 0.55), edge * (0.1 + rim * 0.38 + ripple * 0.09 + mist * 0.04));
+    #include <colorspace_fragment>
+    #include <fog_fragment>
+  }
+`;
+
 function TransitGate({ gate }: { gate: typeof PORTALS[number] }) {
   const ring = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => { if (ring.current) ring.current.rotation.z = clock.elapsedTime * .25; });
+  const energy = useRef<THREE.ShaderMaterial>(null);
+  const uniforms = useMemo(() => THREE.UniformsUtils.merge([
+    THREE.UniformsLib.fog,
+    { time: { value: 0 }, color: { value: new THREE.Color(gate.color) } },
+  ]), [gate.color]);
+  useFrame(({ clock }) => {
+    if (ring.current) ring.current.rotation.z = clock.elapsedTime * .18;
+    if (energy.current) energy.current.uniforms.time.value = clock.elapsedTime;
+  });
   return <group position={[gate.x, 0, gate.z]}>
-    <mesh position={[0, .15, 0]} receiveShadow><cylinderGeometry args={[2.7, 3.1, .3, 32]} /><meshStandardMaterial color="#263340" metalness={.8} roughness={.35} /></mesh>
-    <mesh ref={ring} position={[0, 2.8, 0]}><torusGeometry args={[2.4, .12, 10, 64, Math.PI * 1.85]} /><meshBasicMaterial color={glow(gate.color)} toneMapped={false} /></mesh>
-    <mesh position={[0, 2.8, 0]}><circleGeometry args={[2.3, 48]} /><meshBasicMaterial color={gate.color} transparent opacity={.1} side={THREE.DoubleSide} depthWrite={false} /></mesh>
+    <mesh position={[0, .06, 0]} receiveShadow><cylinderGeometry args={[3.15, 3.25, .12, 48]} /><meshStandardMaterial color="#555e64" metalness={.55} roughness={.6} /></mesh>
+    <mesh position={[0, .24, 0]} receiveShadow><cylinderGeometry args={[2.7, 2.95, .24, 48]} /><meshStandardMaterial color="#263340" metalness={.8} roughness={.35} /></mesh>
+    <mesh position={[0, 2.8, 0]} castShadow receiveShadow><torusGeometry args={[2.47, .16, 10, 64]} /><meshStandardMaterial color="#394852" metalness={.75} roughness={.32} /></mesh>
+    <mesh ref={ring} position={[0, 2.8, .13]}><torusGeometry args={[2.4, .065, 8, 64, Math.PI * 1.85]} /><meshBasicMaterial color={glow(gate.color, 1.8)} toneMapped={false} /></mesh>
+    {/* One translucent surface provides depth without a reflection pass or extra lights. */}
+    <mesh position={[0, 2.8, 0]}><circleGeometry args={[2.3, 48]} /><shaderMaterial ref={energy} uniforms={uniforms} vertexShader={gateVertex} fragmentShader={gateFragment} transparent side={THREE.DoubleSide} depthWrite={false} toneMapped={false} fog /></mesh>
     <Sparkles count={14} position={[0, 2.8, 0]} scale={[4, 4, .5]} size={3} color={gate.color} speed={.4} />
     <Text font={font} position={[0, 5.7, 0]} fontSize={.55} color={gate.color} outlineWidth={.03} outlineColor="#07101b">{gate.label}</Text>
     <Text font={font} position={[0, .5, 2]} fontSize={.4} color="#ffffff">E / VIAJAR</Text>

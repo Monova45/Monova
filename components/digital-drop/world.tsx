@@ -5,7 +5,7 @@ import { Float, Text, Sparkles, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
 import { canopyTexture, glassTexture } from './materials';
 import { Frontier } from './frontier';
-import { BOSS_DEFS, WORLD_HALF } from './campaign';
+import { BOSS_DEFS, PORTALS, WORLD_HALF } from './campaign';
 import { metricBox, usePbr } from './pbr';
 export { Cat } from './character';
 
@@ -168,7 +168,7 @@ function Foliage() {
   const { trees, bushes } = useMemo(() => {
     const rand = seeded(42), trees: [number, number, number][] = [], bushes: [number, number, number][] = [];
     const blocked: [number, number, number][] = [[0, 7, 11], [-23, -23, 11], [23, -24, 12], [23, 23, 11], [-24, 25, 11]];
-    const free = (x: number, z: number, margin: number) => roads.every(r => Math.abs(x - r) > 5.6 + margin && Math.abs(z - r) > 5.6 + margin) && blocked.every(([bx, bz, br]) => Math.hypot(x - bx, z - bz) > br);
+    const free = (x: number, z: number, margin: number) => roads.every(r => Math.abs(x - r) > 5.6 + margin && Math.abs(z - r) > 5.6 + margin) && blocked.every(([bx, bz, br]) => Math.hypot(x - bx, z - bz) > br) && PORTALS.every(p => Math.hypot(x - p.x, z - p.z) > 5 + margin);
     for (let i = 0; i < 900 && trees.length < 70; i++) {
       const x = rand() * 96 - 48, z = rand() * 96 - 48;
       if (free(x, z, .6)) trees.push([x, z, .8 + rand() * .7]);
