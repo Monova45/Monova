@@ -64,7 +64,7 @@ function CampaignGuide() {
     <section className={styles.mission} aria-label="Objetivo de campaña">
       <small>{region} · {defeated}/3 REGIONES LIBERADAS</small>
       <strong>{defeated < 2 ? 'Libera la Forja y el Valle' : defeated < 3 ? 'Derrota a Nexus' : 'Misión completada'}</strong>
-      <p>Usa los portales de Monova HQ. Activa los puestos para recuperar vida.</p>
+      <p>Usa los portales de Monova HQ. Pulsa E en los puestos para recuperar vida y fijar tu reaparición.</p>
       <span><kbd>M</kbd> MAPA Y OBJETIVOS</span>
     </section>
     {active && <section className={styles.bossStatus} aria-label="Estado del jefe">

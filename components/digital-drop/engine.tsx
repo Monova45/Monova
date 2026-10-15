@@ -97,33 +97,40 @@ export function Engine() {
     };
     radar.bugs = bugs.current.map(b => ({ x: b.x, z: b.z, alive: b.hp > 0 }));
     const switchWeapon = (n: number) => {
-      const s = useDrop.getState(); if (!s.unlocked.includes(n) || n === s.weapon) return;
+      const s = useDrop.getState(); if (s.phase !== 'play' || s.mapOpen || !s.unlocked.includes(n) || n === s.weapon) return;
       useDrop.setState({ weapon: n, ammo: 0 }); s.notify(`${weapons[n].name.toUpperCase()} · RECARGANDO`); timer.current.reload = 0; sfx.ui();
     };
     const down = (e: KeyboardEvent) => {
       if (['Space', 'Tab', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5'].includes(e.code)) e.preventDefault();
-      keys.current.add(e.code);
       const s = useDrop.getState();
-      if (e.code === 'KeyM' && !e.repeat && !pvp && s.phase === 'play') { useDrop.setState({ mapOpen: !s.mapOpen }); mouse.current.fire = false; }
+      if (e.code === 'KeyM' && !e.repeat && !pvp && s.phase === 'play') { useDrop.setState({ mapOpen: !s.mapOpen }); keys.current.clear(); mouse.current.fire = false; mouse.current.aim = false; return; }
       if (e.code === 'Escape' && s.mapOpen) { useDrop.setState({ mapOpen: false }); return; }
-      if (e.code === 'Escape' && s.phase === 'play') { useDrop.setState({ phase: 'pause' }); document.exitPointerLock?.(); }
+      if (e.code === 'Escape' && s.phase === 'play') { useDrop.setState({ phase: 'pause' }); document.exitPointerLock?.(); keys.current.clear(); mouse.current.fire = false; mouse.current.aim = false; return; }
+      if (s.phase !== 'play' || s.mapOpen) return;
+      keys.current.add(e.code);
       if (e.code.startsWith('Digit')) switchWeapon(Number(e.code.slice(5)) - 1);
     };
     const up = (e: KeyboardEvent) => keys.current.delete(e.code);
     const move = (e: MouseEvent) => {
+      const s = useDrop.getState(); if (s.phase !== 'play' || s.mapOpen) return;
       if (document.pointerLockElement !== gl.domElement && !mouse.current.aim) return;
       const k = .0021 * useDrop.getState().sensitivity * (mouse.current.aim ? .6 : 1);
       mouse.current.yaw -= e.movementX * k;
       mouse.current.pitch = THREE.MathUtils.clamp(mouse.current.pitch + e.movementY * k, -.45, .95);
     };
-    const press = (e: MouseEvent) => { if (e.button === 0) mouse.current.fire = true; if (e.button === 2) mouse.current.aim = true; };
+    const press = (e: MouseEvent) => { const s = useDrop.getState(); if (s.phase !== 'play' || s.mapOpen) return; if (e.button === 0) mouse.current.fire = true; if (e.button === 2) mouse.current.aim = true; };
     const release = (e: MouseEvent) => { if (e.button === 0) mouse.current.fire = false; if (e.button === 2) mouse.current.aim = false; };
     const wheel = (e: WheelEvent) => { const s = useDrop.getState(); const list = [...s.unlocked].sort((a, b) => a - b); const i = list.indexOf(s.weapon); switchWeapon(list[(i + (e.deltaY > 0 ? 1 : -1) + list.length) % list.length]); };
-    const blur = () => { keys.current.clear(); mouse.current.fire = false; if (useDrop.getState().phase === 'play') useDrop.setState({ phase: 'pause' }); };
+    const blur = () => { keys.current.clear(); mouse.current.fire = false; mouse.current.aim = false; if (useDrop.getState().phase === 'play') useDrop.setState({ phase: 'pause' }); };
     const lock = () => { if (!document.pointerLockElement && useDrop.getState().phase === 'play') blur(); };
     window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('mousemove', move);
     gl.domElement.addEventListener('mousedown', press); window.addEventListener('mouseup', release); gl.domElement.addEventListener('wheel', wheel, { passive: true });
     window.addEventListener('blur', blur); document.addEventListener('pointerlockchange', lock);
+    const offInput = useDrop.subscribe((state, previous) => {
+      if (state.phase !== previous.phase || state.mapOpen !== previous.mapOpen) {
+        keys.current.clear(); mouse.current.fire = false; mouse.current.aim = false;
+      }
+    });
     const offNet = onNet(msg => {
       const list = bugs.current;
       if (msg.t === 'shot') {
@@ -162,7 +169,7 @@ export function Engine() {
       if (msg.t === 'winner') { useDrop.setState({ winner: msg.id === net.id ? useDrop.getState().playerName || 'TÚ' : remotes.get(msg.id)?.name ?? 'AGENTE' }); finish(msg.id === net.id ? 'win' : 'over'); }
     });
     return () => {
-      offNet();
+      offNet(); offInput();
       window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('mousemove', move);
       gl.domElement.removeEventListener('mousedown', press); window.removeEventListener('mouseup', release); gl.domElement.removeEventListener('wheel', wheel);
       window.removeEventListener('blur', blur); document.removeEventListener('pointerlockchange', lock); sfx.drone(false);
@@ -472,7 +479,7 @@ export function Engine() {
       if (beacon) { beacon.visible = !isOpen; beacon.scale.x = beacon.scale.z = 1 + Math.sin(r.time * 4 + i) * .15; }
       if (isOpen || !t.landed || Math.hypot(p.x - x - 3, p.z - z) > 3.5) return;
       prompt = `ABRIR DATA CRATE · ${weapons[loot].name.toUpperCase()}`;
-      if (!k.has('KeyE')) return;
+      if (!input || !k.has('KeyE')) return;
       opened.current.add(i);
       const unlocked = [...new Set([...s.unlocked, loot])];
       useDrop.setState({ unlocked, opened: [...opened.current], weapon: loot, ammo: weapons[loot].ammo, credits: useDrop.getState().credits + 100 });
@@ -482,6 +489,14 @@ export function Engine() {
     });
     if (!pvp && t.landed && !t.dead) {
       OUTPOSTS.forEach((outpost, i) => {
+        if (Math.hypot(p.x - outpost.x, p.z - outpost.z) < 4 && s.discovered.includes(outpost.name)) {
+          prompt = 'REPOSAR · RECUPERAR VIDA Y GUARDAR PUNTO DE REDESPLIEGUE';
+          if (input && k.has('KeyE')) {
+            checkpoint.current = [outpost.x, outpost.z]; r.hp = 100; r.shield = 100;
+            s.notify(`PUESTO ACTIVADO · ${outpost.name} · VIDA Y ESCUDO RESTAURADOS`);
+            sfx.pickup(); k.delete('KeyE');
+          }
+        }
         if (Math.hypot(p.x - outpost.x, p.z - outpost.z) < 8 && !s.discovered.includes(outpost.name)) {
           checkpoint.current = [outpost.x, outpost.z]; r.hp = 100; r.shield = 100;
           useDrop.setState(st => ({ discovered: [...new Set([...st.discovered, outpost.name])] }));
