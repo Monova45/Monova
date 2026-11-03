@@ -373,3 +373,12 @@
 /* The 3D game is desktop-only, so its nav link is hidden on touch and small screens. */
 .desktopOnly{}
 @media (max-width:1023px),(pointer:coarse){.desktopOnly{display:none!important}}
+
+@media(min-width:701px){
+  .heroCopy,.heroBottom{color:#161616}
+  .heroCopy .eyebrow,.heroCopy .intro,.heroBottom>a span,.heroBottom>p{color:#404040}
+  .heroCopy .secondary{color:#171717;background:#fff}
+  .promoCard{justify-content:flex-start;aspect-ratio:5/1}
+  .promoCard::after{background:linear-gradient(90deg,#092319cc,transparent 70%)}
+}
+.promoBg{object-position:80% 43%}

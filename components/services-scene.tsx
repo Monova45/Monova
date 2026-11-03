@@ -34,7 +34,7 @@ export function ServicesScene({ contact }: { contact: string }) {
   }, [expanded, hovering]);
   const close = () => { setExpanded(false); explore.current?.focus({ preventScroll: true }); };
   return <div className={styles.scene} onKeyDown={event => { if (event.key === "Escape" && expanded) close(); }}>
-    <div className={styles.mascot}><Image src="/assets/monova-services-skeleton.png" alt="Gato Monova con traje de esqueleto guiñando un ojo" fill sizes="(max-width: 700px) 80vw, 40vw" /></div>
+    <div className={styles.mascot}><Image src="/assets/santa-servicios.webp" alt="Monova cuelga un adorno naranja en el árbol de Navidad" fill sizes="(max-width: 700px) 80vw, 40vw" /></div>
     <div className={styles.shade} />
     <div className={styles.copy}>
       <p className={styles.eyebrow}>IDEAS QUE CREAN UN MUNDO MEJOR</p>

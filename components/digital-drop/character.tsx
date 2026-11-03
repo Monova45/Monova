@@ -104,7 +104,7 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
 
   return <group ref={root}><group ref={body}>
     {/* Onesie body with jack-o'-lantern face and leaf collar. */}
-    <mesh castShadow receiveShadow material={m.onesie} position={[0, .6, 0]} scale={[1, 1.06, .9]}><sphereGeometry args={[.38, 48, 32]} /></mesh>
+    <mesh castShadow receiveShadow material={m.black} position={[0, .6, 0]} scale={[1, 1.06, .9]}><sphereGeometry args={[.38, 48, 32]} /></mesh>
     {[-1, 0, 1].map(k => <mesh key={k} material={m.leaf} position={[k * .12, .95, -.25 + Math.abs(k) * .04]} rotation={[-.9, k * .5, k * .6]} scale={[1, .3, .6]}><sphereGeometry args={[.1, 14, 10]} /></mesh>)}
     <mesh material={m.stem} position={[0, .93, -.3]}><sphereGeometry args={[.035, 10, 8]} /></mesh>
     {/* Tailored suit: waist piping and polished shoulder plates. */}
@@ -166,11 +166,9 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
         <mesh material={m.badge} position={[0, k * -.087, 0]} rotation={[k * Math.PI / 2, 0, k * Math.PI / 2]}><circleGeometry args={[.12, 32]} /></mesh>
         <mesh material={m.glow} position={[0, k * -.073, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[.17, .008, 6, 40]} /></mesh>
       </group>)}
-      {/* Pumpkin cap with stem and leaves. */}
-      <group position={[0, .41, .06]}>
-        {Array.from({ length: 8 }, (_, i) => <mesh key={i} castShadow material={m.pumpkin} rotation={[0, i * Math.PI / 4, 0]} position={[Math.sin(i * Math.PI / 4) * .1, 0, Math.cos(i * Math.PI / 4) * .1]} scale={[.55, .5, 1]}><sphereGeometry args={[.3, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2]} /></mesh>)}
-        <mesh material={m.stem} position={[.02, .2, 0]} rotation={[0, 0, -.35]}><cylinderGeometry args={[.035, .055, .2, 10]} /></mesh>
-        {[-1, 1].map(k => <mesh key={k} material={m.leaf} position={[k * .13, .14, -.04]} rotation={[0, k * .5, k * -.45]} scale={[1.5, .18, .8]}><sphereGeometry args={[.1, 14, 10]} /></mesh>)}
+      <group position={[0, .48, .06]}>
+        <mesh><coneGeometry args={[.31, .48, 32]} /><meshStandardMaterial color="#c62635" /></mesh>
+        <mesh material={m.shell} position={[0, .24, 0]}><sphereGeometry args={[.075, 16, 12]} /></mesh>
       </group>
     </group>
 
@@ -181,11 +179,8 @@ function ProceduralCat({ armed = true, local = true }: CatProps) {
       <mesh material={m.black} position={[0, .1, -.02]}><boxGeometry args={[.08, .04, .2]} /></mesh>
       <mesh material={m.glow} position={[0, 0, -.27]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.055, .07, .06, 16]} /></mesh>
     </group> : <group position={[.36, .38, -.08]}>
-      {/* Jack-o'-lantern treat bucket. */}
-      <mesh castShadow material={m.pumpkin} position={[0, -.1, 0]} scale={[1, .85, 1]}><sphereGeometry args={[.17, 24, 16]} /></mesh>
-      <mesh material={m.black} position={[0, .12, 0]} rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[.13, .012, 6, 24, Math.PI]} /></mesh>
-      {[-1, 1].map(k => <mesh key={k} material={m.black} position={[k * .055, -.06, -.145]} rotation={[0, 0, 0]}><coneGeometry args={[.03, .04, 3]} /></mesh>)}
-      <mesh material={m.black} position={[0, -.14, -.14]} scale={[1, .4, .3]}><sphereGeometry args={[.07, 12, 8]} /></mesh>
+      <mesh material={m.leaf}><boxGeometry args={[.29, .26, .26]} /></mesh>
+      <mesh material={m.shell}><boxGeometry args={[.05, .265, .265]} /></mesh>
     </group>}
   </group></group>;
 }

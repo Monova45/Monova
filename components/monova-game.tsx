@@ -7,7 +7,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, X } from "lucide-rea
 import styles from "./monova-game.module.css";
 
 // Ninja-Kun style arcade: climb a stepped mountain, jump between ledges and
-// clear every Halloween monster with shurikens (or by stomping on them).
+// clear every Navidad monster with shurikens (or by stomping on them).
 
 const W = 320;
 // View height in game pixels. 240 gives the classic 4:3 screen; in phone portrait
@@ -73,59 +73,12 @@ const CAT = [
 const CAT_WALK = [...CAT.slice(0, 14), ".....kk..kk...o.", "....ooo..ooo...."];
 const CAT_JUMP = [...CAT.slice(0, 13), "...kkwkkwkkk..o.", "...ookk..kkoo.o.", "................"];
 
-const ZOMBIE = [
-  "....ZZZZZ.......",
-  "...ZzzzzzZ......",
-  "...ZzkzzkZ......",
-  "...ZzzzzzZ......",
-  "...ZzrrrzZ......",
-  "....ZzzzZ.......",
-  "..bbbbbbbbzz....",
-  ".bbbbbbbbbzzz...",
-  ".bbbbbbbb.......",
-  "..bbbbbbb.......",
-  "..nnnnnnn.......",
-  "..nnn.nnn.......",
-  "..nnn.nnn.......",
-  "..nn...nn.......",
-  ".ZZZ...ZZZ......",
-  "................",
-];
+const ZOMBIE = [".....kkkk", ".....kkkk", "....kkkkkk", ".....wwww", "....wkwkw", "....wwoww", ".....www", "....rrrrr", "...wwwwwww", "..wwwkwwwww", "..wwwwwwwww", "..wwwkwwwww", "...wwwwwww", "....wwwww"];
 const ZOMBIE_WALK = [...ZOMBIE.slice(0, 11), "..nnn..nnn......", "...nn..nnn......", "...nn...nn......", "..ZZZ...ZZZ.....", "................"];
 
-const PUMPKIN = [
-  "......GGG.......",
-  ".......G........",
-  "...ddoooooodd...",
-  "..dooooooooood..",
-  ".dooykooooykood.",
-  ".dookkkooookkkod",
-  ".doooooykooooood",
-  ".dooooooooooood.",
-  ".doykooooooykod.",
-  ".dookkkkkkkkood.",
-  "..dooookkoooood.",
-  "...dddoooooddd..",
-  "......dddd......",
-  "................",
-];
+const PUMPKIN = ["....rr..rr", ".....rrrr", "..rrrryyrrrr", "..yyyyyyyyyy", "...rrryyrrr", "...rrryyrrr", "...rrryyrrr", "...rrryyrrr"];
 
-const GHOST = [
-  ".....wwwwww.....",
-  "...wwwwwwwwww...",
-  "..wwwwwwwwwwww..",
-  ".wwwkkwwwwkkwww.",
-  ".wwwkkwwwwkkwww.",
-  ".wwwwwwwwwwwwww.",
-  ".wwwwwkkkkwwwww.",
-  ".wwwwwkkkkwwwww.",
-  ".wwwwwwwwwwwwww.",
-  ".wwwwwwwwwwwwww.",
-  ".wwwwwwwwwwwwww.",
-  ".ww.www..www.ww.",
-  ".w...w....w...w.",
-  "................",
-];
+const GHOST = [".......w", "....w..w..w", ".....w.w.w", "......www", "...wwwwwwwww", "......www", ".....w.w.w", "....w..w..w", ".......w"];
 
 function makeSprite(rows: string[]) {
   const canvas = document.createElement("canvas");
@@ -447,9 +400,9 @@ function makeBackground() {
   canvas.height = H;
   const ctx = canvas.getContext("2d")!;
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, "#140a24");
-  sky.addColorStop(0.55, "#3a1440");
-  sky.addColorStop(1, "#a8401a");
+  sky.addColorStop(0, "#102b3b");
+  sky.addColorStop(0.55, "#195056");
+  sky.addColorStop(1, "#608e90");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
   let s = 7;
@@ -559,17 +512,10 @@ function drawPumpkinShot(ctx: CanvasRenderingContext2D, shot: Shot) {
   ctx.save();
   ctx.translate(Math.round(shot.x), Math.round(shot.y));
   ctx.rotate(Math.sin(shot.spin) * 0.5);
-  ctx.fillStyle = "#c4520c";
-  ctx.fillRect(-4, -3, 8, 6);
-  ctx.fillStyle = "#ff8a2a";
-  ctx.fillRect(-3, -3, 6, 6);
-  ctx.fillRect(-4, -2, 8, 4);
-  ctx.fillStyle = "#2f8a3a";
-  ctx.fillRect(0, -5, 2, 2);
-  ctx.fillStyle = "#17110d";
-  ctx.fillRect(-2, -1, 1, 1);
-  ctx.fillRect(1, -1, 1, 1);
-  ctx.fillRect(-2, 1, 4, 1);
+  ctx.fillStyle = "#deffff";
+  ctx.beginPath();
+  ctx.arc(0, 0, 4, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -586,15 +532,9 @@ function draw(ctx: CanvasRenderingContext2D, game: Game, sprites: Sprites, backg
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(background, 0, 0);
-  // Bats drifting across the moon
-  ctx.fillStyle = "#0d0612";
-  for (let i = 0; i < 4; i++) {
-    const x = ((game.tick * (0.3 + i * 0.1) + i * 90) % (W + 40)) - 20;
-    const y = 30 + i * 14 + Math.sin(game.tick / 12 + i) * 4;
-    const wing = Math.sin(game.tick / 4 + i) > 0 ? 2 : -1;
-    ctx.fillRect(x - 1, y, 3, 2);
-    ctx.fillRect(x - 4, y - wing, 3, 1);
-    ctx.fillRect(x + 2, y - wing, 3, 1);
+  ctx.fillStyle = "#ffffffbd";
+  for (let i = 0; i < 35; i++) {
+    ctx.fillRect((i * 59 + game.tick * .2) % W, (i * 37 + game.tick * .5) % H, 1, 2);
   }
   ctx.translate(0, -Math.round(game.camY));
   drawMountain(ctx, game);
@@ -628,8 +568,8 @@ function draw(ctx: CanvasRenderingContext2D, game: Game, sprites: Sprites, backg
       const y = Math.round(player.y + player.h - MONOVA_H + 1);
       ctx.save();
       ctx.imageSmoothingEnabled = true;
-      if (player.dir < 0 && frame > 0) { ctx.translate(x + MONOVA_W, y); ctx.scale(-1, 1); ctx.drawImage(sheet, frame * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H, 0, 0, MONOVA_W, MONOVA_H); }
-      else ctx.drawImage(sheet, frame * SHEET_FRAME_W, 0, SHEET_FRAME_W, SHEET_FRAME_H, x, y, MONOVA_W, MONOVA_H);
+      if (player.dir < 0 && frame > 0) { ctx.translate(x + MONOVA_W, y); ctx.scale(-1, 1); ctx.drawImage(sheet, 0, 0, MONOVA_W, MONOVA_H); }
+      else ctx.drawImage(sheet, x, y, MONOVA_W, MONOVA_H);
       ctx.restore();
     } else {
       const sprite = !player.onGround ? sprites.catJump : player.vx && Math.floor(player.anim / 8) % 2 ? sprites.catWalk : sprites.cat;
@@ -751,7 +691,7 @@ export function MonovaGame({ contact }: { contact: string }) {
       zombie: makeSprite(ZOMBIE), zombieWalk: makeSprite(ZOMBIE_WALK), pumpkin: makeSprite(PUMPKIN), ghost: makeSprite(GHOST),
     };
     sprites.monova = new Image();
-    sprites.monova.src = "/assets/game/monova-sprites.png";
+    sprites.monova.src = "/assets/santa-juego.webp";
     let background = makeBackground();
     let hi = 0;
     try { hi = Number(localStorage.getItem("monova-game-hi")) || 0; } catch {}
@@ -817,11 +757,11 @@ export function MonovaGame({ contact }: { contact: string }) {
 
   return <div className={styles.wrap} data-immersive={immersive}>
     <div className={styles.screen}>
-      <canvas ref={canvasRef} className={styles.canvas} width={W * SCALE} height={viewH * SCALE} tabIndex={0} aria-label="Juego Juega con Monova. Usa las flechas para moverte, flecha arriba para saltar y espacio para lanzar calabazas." />
+      <canvas ref={canvasRef} className={styles.canvas} width={W * SCALE} height={viewH * SCALE} tabIndex={0} aria-label="Juego Juega con Monova. Usa las flechas para moverte, flecha arriba para saltar y espacio para lanzar bolas de nieve." />
       {mode === "title" && <div className={styles.titleCard}>
-        <NextImage className={styles.titleMascot} src="/assets/game/monova-promo.png" width={361} height={520} alt="Monova disfrazado de calabaza saludando" priority />
+        <NextImage className={styles.titleMascot} src="/assets/santa-juego.webp" width={361} height={520} alt="Monova salta para lanzar una bola de nieve" priority />
         <div className={styles.titleCopy}>
-          <p>EDICIÓN HALLOWEEN 🎃</p>
+          <p>EDICIÓN NAVIDAD 🎁</p>
           <h2>Haz el mejor <span>puntaje</span></h2>
           <small>Supera las 3 montañas y compite por una web para tu marca.</small>
           <strong className={styles.titlePromo}><span>y gana una web</span><b>100% GRATIS</b></strong>
@@ -830,13 +770,13 @@ export function MonovaGame({ contact }: { contact: string }) {
         </div>
       </div>}
       {(mode === "win" || mode === "over") && <div className={styles.titleCard}>
-        <NextImage className={styles.titleMascot} src="/assets/game/monova-promo.png" width={361} height={520} alt="Monova disfrazado de calabaza saludando" />
+        <NextImage className={styles.titleMascot} src="/assets/santa-juego.webp" width={361} height={520} alt="Monova salta para lanzar una bola de nieve" />
         <div className={styles.titleCopy}>
-          <p>{mode === "win" ? "¡LAS 3 MONTAÑAS LIMPIAS! 🎃" : "FIN DEL JUEGO"}</p>
+          <p>{mode === "win" ? "¡LAS 3 MONTAÑAS LIMPIAS! 🎁" : "FIN DEL JUEGO"}</p>
           <h2>{mode === "win" ? <>¡Reto <span>completado!</span></> : <>¡Casi lo <span>logras!</span></>}</h2>
           <small>{finalScore.toLocaleString("es-CO")} puntos</small>
           <strong className={styles.endPitch}>¡Cada punto cuenta! Mejora tu puntaje y compite por una web 100% gratis.</strong>
-          <a className={styles.titleStart} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, participé en el juego de Halloween y conseguí ${finalScore} puntos. Quiero saber más sobre el concurso por una web 100% gratis.`)}`} target="_blank" rel="noreferrer">Subir puntaje</a>
+          <a className={styles.titleStart} href={`${contact.split("?")[0]}?text=${encodeURIComponent(`Hola Monova, participé en el juego de Navidad y conseguí ${finalScore} puntos. Quiero saber más sobre el concurso por una web 100% gratis.`)}`} target="_blank" rel="noreferrer">Subir puntaje</a>
           <GameScoreShare score={finalScore} />
           <button type="button" className={styles.endReplay} onClick={startOrResume}>{mode === "win" ? "Jugar otra vez" : "Reintentar"}</button>
         </div>
@@ -852,7 +792,7 @@ export function MonovaGame({ contact }: { contact: string }) {
         <button type="button" className={styles.dRight} aria-label="Mover a la derecha" data-control="right" data-pressed={!!pressed.right} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><ChevronRight size={34} strokeWidth={2.6}/></button>
       </div>
       <div className={styles.actions}>
-        <button type="button" className={styles.throw} aria-label="Lanzar calabaza" data-control="throw" data-pressed={!!pressed.throw} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><span>🎃</span><small>LANZAR</small></button>
+        <button type="button" className={styles.throw} aria-label="Lanzar bola de nieve" data-control="throw" data-pressed={!!pressed.throw} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><span>🎁</span><small>LANZAR</small></button>
         <button type="button" className={styles.jumpButton} aria-label="Saltar" data-control="jump" data-pressed={!!pressed.jump} onPointerDown={onTouchDown} onPointerMove={onTouchMove} onPointerUp={releaseTouch} onPointerCancel={releaseTouch} onLostPointerCapture={releaseTouch} onContextMenu={event => event.preventDefault()}><ChevronUp size={34} strokeWidth={2.8}/><small>SALTAR</small></button>
       </div>
     </div>}
@@ -860,7 +800,7 @@ export function MonovaGame({ contact }: { contact: string }) {
       <li><kbd>←</kbd><kbd>→</kbd> Moverse</li>
       <li><kbd>↑</kbd> Saltar</li>
       <li><kbd>↓</kbd> Bajar de plataforma</li>
-      <li><kbd>Espacio</kbd> Lanzar calabazas</li>
+      <li><kbd>Espacio</kbd> Lanzar bolas de nieve</li>
       <li><kbd>P</kbd> Pausa</li>
     </ul>
   </div>;

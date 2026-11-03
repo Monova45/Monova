@@ -5,9 +5,9 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { MonovaGame } from "@/components/monova-game";
 import styles from "@/components/monova-game.module.css";
 
-export const metadata: Metadata = { title: "Concurso Halloween | Gana una web con Monova", description: "Haz el mejor puntaje en el juego de Halloween de Monova y compite por una web 100% gratis. Supera las 3 montañas y demuestra lo que puedes lograr." };
+export const metadata: Metadata = { title: "Concurso Navidad | Gana una web con Monova", description: "Haz el mejor puntaje en el juego de Navidad de Monova y compite por una web 100% gratis. Supera las 3 montañas y demuestra lo que puedes lograr." };
 
-const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent("Hola Monova, quiero conocer los detalles del concurso de Halloween para ganar una web 100% gratis.")}`;
+const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent("Hola Monova, quiero conocer los detalles del concurso de Navidad para ganar una web 100% gratis.")}`;
 
 export default function GamePage() {
   return <main className={styles.page}>
@@ -16,9 +16,9 @@ export default function GamePage() {
       <Link className={styles.back} href="/"><ArrowLeft size={16}/> Volver al inicio</Link>
     </header>
     <section className={styles.intro}>
-      <p className={styles.kicker}>EDICIÓN HALLOWEEN 🎃</p>
+      <p className={styles.kicker}>EDICIÓN NAVIDAD 🎁</p>
       <h1>Haz el mejor puntaje y <span>gana una web</span></h1>
-      <p>Este Halloween, juega con Monova y compite por una web 100% gratis. Supera las 3 montañas, derrota zombies y fantasmas y consigue tu mejor puntaje.</p>
+      <p>Esta Navidad, juega con Monova y compite por una web 100% gratis. Supera las 3 montañas, esquiva regalos y copos de nieve y consigue tu mejor puntaje.</p>
     </section>
     <MonovaGame contact={contact} />
     <section className={styles.contestRanking} aria-labelledby="ranking-title">

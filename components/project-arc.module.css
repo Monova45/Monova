@@ -18,7 +18,7 @@
 .caption svg{position:absolute;right:10px;bottom:16px}
 .mascot{position:absolute;z-index:3;left:38%;top:36%;width:24%;height:37%;pointer-events:none}
 .mascot{mix-blend-mode:multiply}
-.mascot video{display:block;width:100%;height:100%;object-fit:contain;filter:brightness(1.04) contrast(1.04)}
+.mascot img{display:block;width:100%;height:100%;object-fit:contain;filter:brightness(1.04) contrast(1.04)}
 .signature{position:absolute;z-index:3;top:74%;left:32%;width:36%;text-align:center}
 .signature img{display:block;width:100%;height:auto;max-height:115px;object-fit:contain}
 .signature p{font-size:25px;letter-spacing:0;line-height:1.4}

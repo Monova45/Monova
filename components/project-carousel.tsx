@@ -31,7 +31,7 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
         </a></div>; })}
       </div>
       <button className={styles.motionControl} type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Activar movimiento del arco" : "Pausar movimiento del arco"} title={paused ? "Activar movimiento" : "Pausar movimiento"}>{paused ? <Play size={17}/> : <Pause size={17}/>}</button>
-      <div className={styles.mascot}><video src="/assets/monova-mummy-walk.mp4" poster="/assets/monova-mummy-cat.png" autoPlay muted loop playsInline preload="auto" aria-label="El gato de Monova vestido de momia caminando hacia el frente, con sus audífonos blancos y naranjas" /></div>
+      <div className={styles.mascot}><Image src="/assets/santa-portafolio.webp" alt="Monova construye una aldea navideña en miniatura" fill sizes="36vw" /></div>
       <div className={styles.signature}><Image src="/assets/monova-logo.png" alt="MONOVA" width={2172} height={724} sizes="(max-width: 700px) 75vw, 38vw" /><p>Ideas que funcionan<span>.</span></p></div>
     </div>
     <div className={styles.values}>

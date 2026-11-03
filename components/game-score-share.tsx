@@ -7,7 +7,7 @@ import styles from "./monova-game.module.css";
 export function GameScoreShare({ score }: { score: number }) {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
-  const shareText = `¡Hice ${score.toLocaleString("es-CO")} puntos en el Halloween de Monova! ¿Me superas?`;
+  const shareText = `¡Hice ${score.toLocaleString("es-CO")} puntos en la Navidad de Monova! ¿Me superas?`;
 
   async function downloadCard() {
     setBusy(true);
@@ -36,7 +36,7 @@ export function GameScoreShare({ score }: { score: number }) {
       ctx.fillText("MONOVA", 540, 170);
       ctx.fillStyle = "#ffb64f";
       ctx.font = "bold 26px Arial";
-      ctx.fillText("CONCURSO HALLOWEEN", 540, 235);
+      ctx.fillText("CONCURSO NAVIDAD", 540, 235);
       ctx.fillStyle = "#fff";
       ctx.font = "bold 42px Arial";
       ctx.fillText("MI PUNTAJE", 540, 375);
@@ -61,7 +61,7 @@ export function GameScoreShare({ score }: { score: number }) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `monova-halloween-${score}.png`;
+      link.download = `monova-navidad-${score}.png`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setStatus("Tarjeta descargada. Envía tu puntaje por WhatsApp para participar.");
