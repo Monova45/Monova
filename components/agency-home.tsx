@@ -36,10 +36,10 @@ export function AgencyHome() {
       <div className={styles.portfolioFooter}><span>EL PRÓXIMO GRAN PROYECTO PUEDE SER EL TUYO.</span><a href={contact} target="_blank" rel="noreferrer">Vamos a crearlo <ArrowRight size={22}/></a></div>
     </section>
     <section className={styles.promo} aria-labelledby="promo-title">
-      <a className={styles.promoCard} href={`${contact.split("?")[0]}?text=${encodeURIComponent("Hola Monova, quiero aprovechar el 15% de descuento de Navidad en la implementación de mi web.")}`} target="_blank" rel="noreferrer" aria-label="15% de descuento en tu nueva web, especial de Navidad. Escríbenos por WhatsApp (abre en otra pestaña)">
+      <a className={styles.promoCard} href={`${contact.split("?")[0]}?text=${encodeURIComponent("Hola Monova, quiero aprovechar el 30% de descuento de Navidad en la implementación de mi web.")}`} target="_blank" rel="noreferrer" aria-label="30% de descuento en tu nueva web, especial de Navidad. Escríbenos por WhatsApp (abre en otra pestaña)">
         <Image className={styles.promoBg} src="/assets/santa-portada.webp" alt="Monova envuelve un regalo de Navidad" fill sizes="100vw" />
         <div className={styles.promoCopy}>
-          <p className={styles.promoPercent}>15%</p>
+          <p className={styles.promoPercent}>30%</p>
           <div>
             <h2 id="promo-title">en tu nueva web.<br/>Lánzala esta Navidad<span>.</span></h2>
             <p className={styles.promoPill}>Especial de Navidad · Escríbenos hoy 🎁</p>
