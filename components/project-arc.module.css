@@ -88,3 +88,16 @@
 .project:not([data-brand="peluvi"]) .caption>strong{display:none}
 .project:not([data-brand="peluvi"]) .caption>span{font-size:4.6cqw;letter-spacing:.08em;margin:0}
 .project:not([data-brand="peluvi"]) .caption>svg{position:static;width:10cqw;height:10cqw;padding:2cqw;border:1px solid currentColor;border-radius:50%}
+
+.mascot{display:grid;place-items:center;container-type:size;mix-blend-mode:normal}
+.crystalOrb{position:relative;width:min(100cqw,84.75cqh);aspect-ratio:678/800}
+.crystalSnow{position:absolute;inset:5% 6% 23%;border-radius:50%;overflow:hidden}
+@media(prefers-reduced-motion:no-preference){
+  .crystalSnow::after{
+    content:"";position:absolute;inset:-40px;
+    background-image:radial-gradient(circle at 9px 7px,#fff 1px,transparent 2px),radial-gradient(circle at 28px 23px,#ffffffca .8px,transparent 1.7px);
+    background-size:43px 40px,61px 40px;
+    animation:globeSnowfall 3s linear infinite;
+  }
+}
+@keyframes globeSnowfall{to{transform:translateY(40px)}}

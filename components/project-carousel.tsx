@@ -31,7 +31,10 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
         </a></div>; })}
       </div>
       <button className={styles.motionControl} type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Activar movimiento del arco" : "Pausar movimiento del arco"} title={paused ? "Activar movimiento" : "Pausar movimiento"}>{paused ? <Play size={17}/> : <Pause size={17}/>}</button>
-      <div className={styles.mascot}><Image src="/assets/santa-portafolio.webp" alt="Monova construye una aldea navideña en miniatura" fill sizes="36vw" /></div>
+      <div className={styles.mascot}><div className={styles.crystalOrb}>
+        <Image src="/assets/monova-esfera-cristal.webp" alt="Esfera de cristal con Monova abriendo su regalo, nieve y una base de cerámica" fill sizes="(max-width: 700px) 70vw, 24vw" />
+        <span className={styles.crystalSnow} aria-hidden="true" />
+      </div></div>
       <div className={styles.signature}><Image src="/assets/monova-logo.png" alt="MONOVA" width={2172} height={724} sizes="(max-width: 700px) 75vw, 38vw" /><p>Ideas que funcionan<span>.</span></p></div>
     </div>
     <div className={styles.values}>
