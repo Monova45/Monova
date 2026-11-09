@@ -52,6 +52,11 @@ export function Showroom({ quality, party = [] }: { quality: boolean; party?: { 
     // Pull back when the party grows so every member fits in frame.
     look.camera.set(pointer.x * .8, 4 + pointer.y * .4, crowd ? 17 : 13.5);
     camera.position.lerp(look.camera, 1 - Math.exp(-2.5 * dt));
+    // Gameplay widens the lens; restore the portrait framing on returning to the lobby.
+    if (camera instanceof THREE.PerspectiveCamera && Math.abs(camera.fov - 50) > .05) {
+      camera.fov = THREE.MathUtils.damp(camera.fov, 50, 5, dt);
+      camera.updateProjectionMatrix();
+    }
     look.target.set(pointer.x * .3, 3.1, 0); camera.lookAt(look.target);
     if (cat.current) cat.current.rotation.y = Math.PI + Math.sin(t * .4) * .12 + pointer.x * .25;
     if (ring.current) ring.current.rotation.z = t * .3;

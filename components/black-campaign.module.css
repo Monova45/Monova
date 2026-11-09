@@ -1,0 +1,68 @@
+.campaign{background:#0b0b0c;color:#fff;padding:55px var(--gutter) 45px}.banner{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:45px;border:1px solid #ff771e85;border-radius:24px;background:radial-gradient(ellipse at 75% 120%,#b23b0b75,transparent 65%),#151313;box-shadow:inset 0 1px #ffffff18}.kicker{font-size:10px;letter-spacing:2.4px;color:#ff8a37;font-weight:700;margin-bottom:18px!important}.banner h2{font-size:clamp(30px,3.8vw,58px);line-height:1.02;letter-spacing:-2px}.banner h2 span,.heading h2 span{color:#ff771e}.banner p:not(.kicker){color:#bdb5af;font-size:13px;line-height:1.6;margin-top:16px}.discount{display:flex;flex-direction:column;flex-shrink:0}.discount small{font-size:13px;letter-spacing:3px}.discount strong{font-size:100px;line-height:1;font-weight:900;letter-spacing:-8px}.discount strong span{font-size:50px;letter-spacing:-3px}.discount>span{font-size:10px;letter-spacing:2px;color:#ff963e}.bannerCta{display:flex;align-items:center;gap:12px;padding:18px 22px;border-radius:40px;background:#ff7109;color:#100800;font-size:13px;font-weight:800;white-space:nowrap}.heading{display:flex;justify-content:space-between;align-items:end;gap:30px;margin:75px 0 30px}.heading h2{font-size:clamp(35px,5vw,66px)!important}.heading>p{max-width:320px;color:#b9b6b3;font-size:14px;line-height:1.7}.offers{display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:1050px;margin:auto}.offer{border-radius:20px;overflow:hidden;border:1px solid #ffffff24;background:#161414;transition:transform .2s}.offer:hover{transform:translateY(-5px)}.offer img{display:block;width:100%;height:auto}.offer>span{display:flex;justify-content:space-between;align-items:center;padding:22px 25px;color:#ff9b4b;font-size:14px;font-weight:700}.note{margin-top:35px!important;color:#aaa;font-size:11px;line-height:1.6}.banner:focus-visible,.offer:focus-visible{outline:3px solid #fff!important;outline-offset:5px}@media(max-width:1000px){.banner{flex-wrap:wrap}.bannerCta{width:100%;justify-content:center}}@media(max-width:700px){.campaign{padding-top:30px}.banner{padding:25px;gap:24px}.banner h2{font-size:34px!important}.discount strong{font-size:85px}.heading{display:block;margin-top:50px}.heading>p{margin-top:20px!important}.offers{grid-template-columns:1fr;gap:24px}.offer>span{padding:18px}.bannerCta{white-space:normal}.discount{margin:auto}.heading h2{letter-spacing:-1.8px!important}}@media(prefers-reduced-motion:reduce){.offer{transition:none}}
+.creativeBanner{display:flex;align-items:center;justify-content:flex-end;position:relative;isolation:isolate;overflow:hidden;min-height:360px;aspect-ratio:3/1;border:1px solid #ff7a243d;border-radius:24px;background:#111}
+.creativeBanner>img{z-index:-1;object-fit:cover;object-position:center}
+.creativeBanner>div{width:59%;padding:35px 5% 35px 0}
+.creativeBanner h2{font-size:clamp(30px,3.4vw,56px)!important;line-height:1.06!important;letter-spacing:-2px!important}
+.creativeBanner h2 span{color:#ff791a}
+.creativeBanner>div>p:not(.kicker){color:#c7bbb2;font-size:14px;line-height:1.7;margin-top:20px}
+.creativeCta{display:inline-flex;align-items:center;gap:20px;color:#ffab64;border-bottom:1px solid #ff791a70;padding-bottom:8px;margin-top:25px;font-size:14px;font-weight:700}
+@media(max-width:700px){.creativeBanner{aspect-ratio:auto;display:block;padding-top:300px;min-height:0}.creativeBanner>img{height:300px!important;object-fit:cover;object-position:left center;width:900px!important;max-width:none!important}.creativeBanner>div{width:100%;padding:28px;position:relative;background:linear-gradient(#111111eb,#111)}.creativeBanner h2{font-size:35px!important}}
+.campaign>.heading:first-child{margin-top:0}
+.creativeBanner .offerTitle{font-size:clamp(22px,2.3vw,36px)!important;letter-spacing:-1px!important;max-width:600px}
+.heroDiscount{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 15px;margin-top:22px;color:#ff8a22}
+.heroDiscount small{align-self:flex-start;margin-top:14px;font-size:12px;letter-spacing:2px;color:#fff}
+.heroDiscount strong{font-size:clamp(90px,10vw,155px);line-height:.85;letter-spacing:-.08em;font-weight:900;text-shadow:0 0 45px #ff6b2025}
+.heroDiscount strong span{font-size:.6em;letter-spacing:-.06em}
+.heroDiscount>span{font-size:12px;letter-spacing:2px;font-weight:700;color:#fff}
+.creativeBanner .creativeCta{padding:14px 22px;border:1px solid #ffad6c;border-radius:30px;background:#ff791a;color:#140a03;margin-top:20px}
+@media(max-width:700px){.heroDiscount{gap:10px}.heroDiscount strong{font-size:108px}.heroDiscount>span{width:100%;margin-top:8px}.creativeBanner .offerTitle{font-size:29px!important}}
+/* Neon line-art phone that cycles through the Black Mode films. */
+.reel{display:grid;grid-template-columns:auto minmax(0,430px);justify-content:center;align-items:center;gap:clamp(40px,7vw,110px)}
+.phone{position:relative;isolation:isolate;width:clamp(230px,min(84vw,40svh),340px);aspect-ratio:360/740}
+.phone:before{content:"";position:absolute;inset:-14%;z-index:-1;background:radial-gradient(closest-side,#ff6a0038,transparent);pointer-events:none}
+.phoneScreen{position:absolute;inset:2.97% 6.11%;overflow:hidden;border-radius:13.9%/6.3%;background:#050505}
+.phoneScreen video{display:block;width:100%;height:100%;object-fit:contain;cursor:pointer}
+.phoneImage{object-fit:contain;background:#050505;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .35s}
+.phoneImage[data-active=true]{opacity:1;pointer-events:auto}
+.phoneFlash{position:absolute;inset:0;background:radial-gradient(circle,#ff8a2c,#ff6a00 70%);opacity:0;pointer-events:none;animation:phoneFlash .55s ease-out}
+.phoneTop{position:absolute;top:7.6%;left:6%;right:6%;pointer-events:none}
+.phoneTop p{margin-top:10px!important;color:#fff;font-size:13px;font-weight:800}
+.phoneTop p span{color:#ff9b4b;font-weight:600}
+.phoneBars{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.phoneBars i{display:block;height:3px;overflow:hidden;border-radius:3px;background:#ffffff38}
+.phoneBars b{display:block;height:100%;background:#ff8a2c;box-shadow:0 0 8px #ff7a1a;transform:scaleX(0);transform-origin:left}
+.phoneBars i[data-state=active] b{transition:transform .25s linear}
+.phoneBars i[data-state=done] b{transform:scaleX(1)!important}
+.phoneBars i[data-state=next] b{transform:scaleX(0)!important}
+.phoneControls{position:absolute;left:6%;right:6%;bottom:4.5%;display:flex;justify-content:space-between}
+.phoneControls button{display:grid;place-items:center;width:44px;height:44px;border:1.5px solid #ff8a2c;border-radius:50%;background:#0b0b0ccc;color:#ffb27a;cursor:pointer;box-shadow:0 0 12px #ff6a0066}
+.phoneFrame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke-linecap:round;pointer-events:none}
+.phoneTube{stroke:#ff7a1a;stroke-width:4;filter:drop-shadow(0 0 4px #ff7a1a) drop-shadow(0 0 14px #ff6a00b3)}
+.phoneCore{stroke:#ffe2c4;stroke-width:1.2}
+.reelList{display:grid;gap:9px;margin:0;padding:0;list-style:none}
+.reelList button{display:flex;align-items:flex-start;gap:18px;width:100%;padding:14px 20px;border:1px solid #ffffff1f;border-radius:16px;background:#141212;color:#fff;font:inherit;text-align:left;cursor:pointer;transition:border-color .25s,box-shadow .25s}
+.reelList button:hover{border-color:#ff8a2c80}
+.reelList button[aria-current]{border-color:#ff8a2c;box-shadow:0 0 18px #ff6a0040,inset 0 0 14px #ff6a001f}
+.reelList small{color:#ff8a37;font-size:12px;font-weight:700;letter-spacing:1.5px;line-height:1.7}
+.reelList strong{display:block;font-size:19px;line-height:1.25}
+.reelList em{display:block;margin-top:6px;color:#aaa;font-size:13px;font-style:normal;line-height:1.5}
+.phoneControls button:focus-visible,.reelList button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@keyframes phoneFlash{from{opacity:.6}to{opacity:0}}
+@media(max-width:800px){.reel{grid-template-columns:minmax(0,1fr);justify-items:center;gap:38px}.reelList{width:100%;grid-template-columns:1fr 1fr}.reelList button{height:100%;gap:10px;padding:14px}.reelList strong{font-size:15px}.reelList em{display:none}}
+@media(prefers-reduced-motion:reduce){.phoneFlash{animation:none}.phoneBars i[data-state=active] b,.reelList button,.phoneImage{transition:none}}
+/* A campaign coupon inspired by Monova's supplied Black Mode artwork. */
+.blackTicket{position:relative;display:grid;grid-template-columns:1.15fr 1fr;max-width:580px;min-height:170px;margin:24px 0 22px;isolation:isolate;filter:drop-shadow(0 0 5px #ff9b37) drop-shadow(0 0 18px #ff650940);transform:rotate(-2deg)}
+.blackTicket:before{content:"";position:absolute;inset:0;z-index:-1;border-radius:23px;background:linear-gradient(120deg,#fffdf7 0%,#fff0db 51%,#ff9d2a 51.2%,#ff6a00 52%,#1c1009 52.3%,#090909 100%);border:2px solid #ffb45f;mask:radial-gradient(circle at 0 50%,transparent 13px,#000 14px) left / 51% 100% no-repeat,radial-gradient(circle at 100% 50%,transparent 13px,#000 14px) right / 51% 100% no-repeat}
+.ticketValue{position:relative;align-self:center;padding:18px 25px 20px;color:#090909;transform:skew(-7deg)}
+.ticketValue small{display:block;font-size:17px;font-weight:800;line-height:1}
+.ticketValue strong{display:block;font-size:106px;font-weight:950;line-height:.95;letter-spacing:-9px}
+.ticketValue strong>span{font-size:53px;vertical-align:top;line-height:1.25;letter-spacing:-4px}
+.ticketValue b{position:absolute;right:25px;bottom:18px;padding:3px 13px;border-radius:30px;background:linear-gradient(#ffb025,#ff7200);color:#111;font-size:27px;font-style:italic;line-height:1;box-shadow:0 3px 5px #79370c35}
+.ticketLabel{display:flex;flex-direction:column;justify-content:center;padding:20px 18px 20px 24px;color:#fff}
+.ticketLabel>span{font-size:10px;letter-spacing:4px;color:#ffd3a3;font-weight:800}
+.ticketLabel>strong{font-size:clamp(27px,3vw,43px);font-style:italic;font-weight:900;letter-spacing:-2px;line-height:1.2;white-space:nowrap}
+.ticketLabel>strong>span{color:#ff8b19;font-style:normal;font-size:.75em}
+.ticketLabel>small{font-size:11px;line-height:1.5;color:#dac6b3;margin-top:10px}
+.creativeBanner .creativeCta{background:linear-gradient(120deg,#ff9c18,#ff6b00);box-shadow:inset 0 1px 1px #ffe9b3,0 0 20px #ff690035;border-color:#ffc477;font-size:14px;font-style:italic;font-weight:850}
+@media(max-width:1000px) and (min-width:701px){.ticketValue{padding-left:18px}.ticketValue strong{font-size:85px}.ticketValue strong>span{font-size:42px}.ticketValue b{right:10px;font-size:22px}.ticketLabel{padding-left:15px}.ticketLabel>strong{font-size:28px}}
+@media(max-width:700px){.blackTicket{min-height:145px;grid-template-columns:1.1fr 1fr;margin-top:25px}.ticketValue{padding:18px 16px}.ticketValue strong{font-size:83px;letter-spacing:-7px}.ticketValue strong>span{font-size:37px;letter-spacing:-3px}.ticketValue small{font-size:14px}.ticketValue b{font-size:21px;right:10px;bottom:13px;padding:3px 10px}.ticketLabel{padding:15px 8px 15px 18px}.ticketLabel>strong{font-size:25px;letter-spacing:-1.5px}.ticketLabel>span{font-size:8px;letter-spacing:3px}.ticketLabel>small{font-size:10px}.creativeBanner>div{padding-inline:22px}}

@@ -1,4 +1,5 @@
 "use client";
+import { isChristmas } from "@/config/campaign";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, ArrowLeft, ArrowRight, X, Globe, ShoppingBag, PanelsTopLeft, Smartphone, Users, Rocket, Bot, FileSearch, ChartColumn, Workflow, BellRing, CalendarClock, Palette, MousePointer2, Route, TabletSmartphone, Search, Plug, Waypoints, Braces, CircleCheck, Lightbulb, ShieldCheck, Network, Activity, BookOpen, Layers, PenTool, AppWindow, Brain, Settings, Brush } from "lucide-react";
@@ -33,8 +34,8 @@ export function ServicesScene({ contact }: { contact: string }) {
     return () => window.clearInterval(timer);
   }, [expanded, hovering]);
   const close = () => { setExpanded(false); explore.current?.focus({ preventScroll: true }); };
-  return <div className={styles.scene} onKeyDown={event => { if (event.key === "Escape" && expanded) close(); }}>
-    <div className={styles.mascot}><Image src="/assets/monova-services-skeleton.png" alt="Gato Monova con traje de esqueleto guiñando un ojo" fill sizes="(max-width: 700px) 80vw, 40vw" /></div>
+  return <div className={styles.scene} data-theme={isChristmas ? "light" : "black"} onKeyDown={event => { if (event.key === "Escape" && expanded) close(); }}>
+    <div className={styles.mascot}><Image src={isChristmas ? "/assets/santa-servicios.webp" : "/assets/black-mode/mascot-v1.webp"} alt={isChristmas ? "Monova cuelga un adorno naranja en el árbol de Navidad" : "Monova presenta sus soluciones digitales"} fill sizes="(max-width: 700px) 80vw, 40vw" /></div>
     <div className={styles.shade} />
     <div className={styles.copy}>
       <p className={styles.eyebrow}>IDEAS QUE CREAN UN MUNDO MEJOR</p>

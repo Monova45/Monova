@@ -1,4 +1,5 @@
 "use client";
+import { isChristmas } from "@/config/campaign";
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -20,7 +21,7 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
   }, []);
   const cards = projects;
   const slots = Array.from({ length: Math.max(16, cards.length) }, (_, index) => ({ project: cards[index % cards.length], duplicate: index >= cards.length }));
-  return <div className={styles.portfolio}>
+  return <div className={styles.portfolio} data-theme={isChristmas ? "light" : "black"}>
     <div ref={scene} className={styles.scene}>
       <div className={styles.projects} data-paused={paused} data-out={out}>
         {slots.map(({ project, duplicate }, index) => {
@@ -31,7 +32,10 @@ export function ProjectCarousel({ projects }: { projects: Project[] }) {
         </a></div>; })}
       </div>
       <button className={styles.motionControl} type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Activar movimiento del arco" : "Pausar movimiento del arco"} title={paused ? "Activar movimiento" : "Pausar movimiento"}>{paused ? <Play size={17}/> : <Pause size={17}/>}</button>
-      <div className={styles.mascot}><video src="/assets/monova-mummy-walk.mp4" poster="/assets/monova-mummy-cat.png" autoPlay muted loop playsInline preload="auto" aria-label="El gato de Monova vestido de momia caminando hacia el frente, con sus audífonos blancos y naranjas" /></div>
+      <div className={styles.mascot}><div className={styles.crystalOrb}>
+        <Image src={isChristmas ? "/assets/monova-esfera-cristal.webp" : "/assets/black-mode/mascot-v1.webp"} alt={isChristmas ? "Esfera de cristal con Monova abriendo su regalo, nieve y una base de cerámica" : "Monova presenta nuestros proyectos"} fill sizes="(max-width: 700px) 70vw, 24vw" />
+        {isChristmas && <span className={styles.crystalSnow} aria-hidden="true" />}
+      </div></div>
       <div className={styles.signature}><Image src="/assets/monova-logo.png" alt="MONOVA" width={2172} height={724} sizes="(max-width: 700px) 75vw, 38vw" /><p>Ideas que funcionan<span>.</span></p></div>
     </div>
     <div className={styles.values}>

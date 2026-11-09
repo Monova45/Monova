@@ -18,7 +18,7 @@
 .caption svg{position:absolute;right:10px;bottom:16px}
 .mascot{position:absolute;z-index:3;left:38%;top:36%;width:24%;height:37%;pointer-events:none}
 .mascot{mix-blend-mode:multiply}
-.mascot video{display:block;width:100%;height:100%;object-fit:contain;filter:brightness(1.04) contrast(1.04)}
+.mascot img{display:block;width:100%;height:100%;object-fit:contain;filter:brightness(1.04) contrast(1.04)}
 .signature{position:absolute;z-index:3;top:74%;left:32%;width:36%;text-align:center}
 .signature img{display:block;width:100%;height:auto;max-height:115px;object-fit:contain}
 .signature p{font-size:25px;letter-spacing:0;line-height:1.4}
@@ -88,3 +88,21 @@
 .project:not([data-brand="peluvi"]) .caption>strong{display:none}
 .project:not([data-brand="peluvi"]) .caption>span{font-size:4.6cqw;letter-spacing:.08em;margin:0}
 .project:not([data-brand="peluvi"]) .caption>svg{position:static;width:10cqw;height:10cqw;padding:2cqw;border:1px solid currentColor;border-radius:50%}
+
+.mascot{display:grid;place-items:center;container-type:size;mix-blend-mode:normal}
+.crystalOrb{position:relative;width:min(100cqw,84.75cqh);aspect-ratio:678/800}
+.crystalSnow{position:absolute;inset:5% 6% 23%;border-radius:50%;overflow:hidden}
+@media(prefers-reduced-motion:no-preference){
+  .crystalSnow::after{
+    content:"";position:absolute;inset:-40px;
+    background-image:radial-gradient(circle at 9px 7px,#fff 1px,transparent 2px),radial-gradient(circle at 28px 23px,#ffffffca .8px,transparent 1.7px);
+    background-size:43px 40px,61px 40px;
+    animation:globeSnowfall 3s linear infinite;
+  }
+}
+@keyframes globeSnowfall{to{transform:translateY(40px)}}
+.portfolio[data-theme="black"]{color:#fff;background:radial-gradient(ellipse at 50% 50%,#4c250e40,transparent 60%),#0b0b0c}
+.portfolio[data-theme="black"] .motionControl{background:#201b17;border-color:#ffffff30;color:#ff9b58}
+.portfolio[data-theme="black"] .signature img{filter:grayscale(1) brightness(0) invert(1)}
+.portfolio[data-theme="black"] .values p{color:#b8afa7}
+.portfolio[data-theme="black"] .values>div+div{border-color:#ffffff25}

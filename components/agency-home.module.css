@@ -265,6 +265,10 @@
 /* On phones the hero is a vertical story: video, message, then supporting details. */
 .heroMedia{position:absolute;inset:0}
 .heroPoster{object-fit:cover;object-position:center}
+.heroLoop{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .6s}
+.heroLoop[data-ready=true]{opacity:1}
+/* Keeps the headline legible while the hero film's action crosses behind it. */
+@media(min-width:701px){.page[data-campaign="black"] .heroMedia:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0b0b0cd9 0%,#0b0b0cbf 34%,#0b0b0c00 56%);pointer-events:none}}
 .heroImage{position:absolute;inset:0;width:100%;height:100%;opacity:0}
 .heroImagePlaying{opacity:1}
 @media(max-width:700px){
@@ -373,3 +377,92 @@
 /* The 3D game is desktop-only, so its nav link is hidden on touch and small screens. */
 .desktopOnly{}
 @media (max-width:1023px),(pointer:coarse){.desktopOnly{display:none!important}}
+
+@media(min-width:701px){
+  .heroCopy,.heroBottom{color:#161616}
+  .heroCopy .eyebrow,.heroCopy .intro,.heroBottom>a span,.heroBottom>p{color:#404040}
+  .heroCopy .secondary{color:#171717;background:#fff}
+  .promoCard{justify-content:flex-start;aspect-ratio:5/1}
+  .promoCard::after{background:linear-gradient(90deg,#092319cc,transparent 70%)}
+}
+.promoBg{object-position:80% 43%}
+
+/* Black Mode is scoped so the saved Christmas presentation remains intact. */
+.page[data-campaign="black"] .heroWrap{background:#0b0b0c;color:#fff}
+.page[data-campaign="black"] .hero{min-height:690px;height: min(830px,65vw);background:radial-gradient(ellipse at 70% 65%,#9a390a35,transparent 60%)}
+.page[data-campaign="black"] .heroMedia{left:51%;right:3%;top:20px;bottom:20px}
+.page[data-campaign="black"] .heroPoster{object-fit:contain;object-position:center}
+.page[data-campaign="black"] .heroCopy{width:53%;padding-top:140px;color:#fff}
+.page[data-campaign="black"] .heroCopy h1{font-size:clamp(45px,5.5vw,86px);letter-spacing:-.055em}
+.page[data-campaign="black"] .heroCopy .eyebrow{color:#ff9a56}
+.page[data-campaign="black"] .heroCopy .intro{color:#c4bbb4;max-width:470px;padding-right:25px;line-height:1.7}
+.page[data-campaign="black"] .heroCopy .secondary{background:transparent;color:#fff;border:1px solid #ffffff55;text-shadow:none;min-height:52px;padding:16px 20px}
+.page[data-campaign="black"] .heroCopy .primary{background:#ff7109;color:#100800;text-shadow:none;min-height:52px;padding:16px 24px}
+.page[data-campaign="black"] .heroCopy .actions{flex-wrap:wrap}
+.page[data-campaign="black"] .heroBottom{color:#fff;right:52%}
+.page[data-campaign="black"] .heroBottom>a span,.page[data-campaign="black"] .heroBottom>p{color:#aaa}
+.page[data-campaign="black"] .heroBottom .bigWord{display:none}
+.page[data-campaign="black"] .header{border-bottom-color:#ffffff20}
+.page[data-campaign="black"] .tagline{color:#b8b8b8}
+@media(max-width:700px){
+.page[data-campaign="black"] .hero{height:auto;min-height:0;padding-top:0}
+.page[data-campaign="black"] .heroCopy{order:-1;width:100%;padding-top:40px;padding-bottom:25px}
+.page[data-campaign="black"] .heroCopy h1{font-size:clamp(42px,10vw,68px)}
+.page[data-campaign="black"] .heroCopy .intro{padding-right:0}
+.page[data-campaign="black"] .heroMedia{inset:auto;width:100%;height:auto;aspect-ratio:3/4}
+.page[data-campaign="black"] .heroBottom{right:auto;height:65px}
+.page[data-campaign="black"] .heroBottom>p{display:none}
+}
+.page[data-campaign="black"] .header .brand{background:#fff;border-radius:14px;padding:0 12px}
+.page[data-campaign="black"] .header .brandLogo{width:190px;height:64px}
+@media(max-width:700px){.page[data-campaign="black"] .header .brandLogo{width:145px;height:48px}}
+
+/* Full Black Mode environment. All overrides are reversible with the campaign. */
+.page[data-campaign="black"]{--orange:#ff791a;background:#0b0b0c;color:#f7f4f1;color-scheme:dark}
+.page[data-campaign="black"] .hero{height:clamp(580px,56.25vw,850px);min-height:0}
+.page[data-campaign="black"] .heroMedia{inset:0}
+.page[data-campaign="black"] .heroPoster{object-fit:cover;object-position:center}
+.page[data-campaign="black"] .heroCopy{padding-top:clamp(80px,11vw,170px);width:51%}
+.page[data-campaign="black"] .heroCopy h1{font-size:clamp(45px,5.2vw,83px)}
+.page[data-campaign="black"] .heroCopy .intro{max-width:450px}
+.page[data-campaign="black"] .partners,.page[data-campaign="black"] .portfolio,.page[data-campaign="black"] .services,.page[data-campaign="black"] .method,.page[data-campaign="black"] .about,.page[data-campaign="black"] .contact,.page[data-campaign="black"] .footer{background:#0b0b0c;color:#f7f4f1}
+.page[data-campaign="black"] .partners{border-block:1px solid #ffffff16;border-radius:0;background:#111112}
+.page[data-campaign="black"] .partners>div>span{color:#eee5dc}
+.page[data-campaign="black"] .partners .eyebrow,.page[data-campaign="black"] .eyebrow{color:#ff9955}
+.page[data-campaign="black"] .partners>div>p,.page[data-campaign="black"] .sideNote{color:#b7aaa1}
+.page[data-campaign="black"] .portfolioHeading h2 span{color:#ff791a}
+.page[data-campaign="black"] .portfolioHeading>div>p,.page[data-campaign="black"] .portfolioFooter>span{color:#b9b3ae}
+.page[data-campaign="black"] .portfolioFooter{border-color:#ffffff24}
+.page[data-campaign="black"] .services{background:linear-gradient(#0b0b0c,#111112)}
+.page[data-campaign="black"] .method{padding-top:60px;padding-bottom:60px;gap:15px;background:#111112}
+.page[data-campaign="black"] .method article{clip-path:none;border-radius:18px;border:1px solid #ffffff16;background:linear-gradient(145deg,#22201d,#171717);padding:25px 20px}
+.page[data-campaign="black"] .method article>div>span{color:#ff9955}
+.page[data-campaign="black"] .method article>div>svg{color:#ff791a}
+.page[data-campaign="black"] .method article p,.page[data-campaign="black"] .aboutCopy>p:not(.eyebrow){color:#b9b3ae}
+.page[data-campaign="black"] .about{border:1px solid #ffffff20;background:#151515}
+.page[data-campaign="black"] .aboutPillars{color:#ded5cd}
+.page[data-campaign="black"] .aboutPillars>span{border-color:#ffffff20}
+.page[data-campaign="black"] .office img{filter:brightness(.78)}
+.page[data-campaign="black"] .contact{background:radial-gradient(ellipse at 85% 100%,#71310960,transparent 65%),#0b0b0c;padding-block:65px}
+.page[data-campaign="black"] .footer{border-color:#ffffff20;flex-wrap:wrap}
+.page[data-campaign="black"] .footer>span{color:#b9b3ae}
+.page[data-campaign="black"] .brandLogo{filter:grayscale(1) brightness(0) invert(1)}
+.page[data-campaign="black"] .header .brand{background:none;border-radius:0;padding:0}
+.page[data-campaign="black"] .primary{background:#ff791a;color:#160b03;border:1px solid #ffad6c;text-shadow:none;min-height:52px;box-shadow:0 5px 25px #ff6b101a}
+.page[data-campaign="black"] .primary:hover{background:#ff923d;filter:none}
+.page[data-campaign="black"] .header>.primary{margin-left:10px}
+@media(max-width:700px){
+.page[data-campaign="black"] .hero{height:auto;min-height:0;display:flex;flex-direction:column}
+.page[data-campaign="black"] .heroMedia{position:relative;inset:auto;height:340px;width:100%;order:0}
+.page[data-campaign="black"] .heroPoster{object-fit:cover;object-position:85% center}
+.page[data-campaign="black"] .heroCopy{order:1;width:100%;padding-top:20px;padding-bottom:25px;background:#0b0b0c}
+.page[data-campaign="black"] .heroCopy h1{font-size:clamp(40px,10vw,68px);margin-top:15px}
+.page[data-campaign="black"] .heroBottom{order:2}
+.page[data-campaign="black"] .method{grid-template-columns:1fr 1fr}
+.page[data-campaign="black"] .method>div{grid-column:1/-1;margin-bottom:20px}
+.page[data-campaign="black"] .footer .footerEnd{margin-left:0}
+}
+@media(max-width:700px){.page[data-campaign="black"] .header nav{background:#151515;border-bottom:1px solid #ffffff1a;color:#eee}}
+.page[data-campaign="black"] .aboutPillars>span{color:#c9beb6}
+.page[data-campaign="black"] .office>span{background:#171310d9;color:#ffb47c;border:1px solid #ffffff20}
+.page[data-campaign="black"] .office img{filter:none}

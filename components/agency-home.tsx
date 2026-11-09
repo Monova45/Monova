@@ -1,3 +1,5 @@
+import { isChristmas } from "@/config/campaign";
+import { BlackCampaign } from "./black-campaign";
 import Image from "next/image";
 import { HeroVideo } from "./hero-video";
 import { ServicesScene } from "./services-scene";
@@ -7,7 +9,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Code2, PenTool, Search, ChartNoAxesColumnIncreasing, Globe, Mouse } from "lucide-react";
 import styles from "./agency-home.module.css";
 
-const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent("Hola Monova, quiero conversar sobre un proyecto.")}`;
+const contact = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573107598999"}?text=${encodeURIComponent(isChristmas ? "Hola Monova, quiero conversar sobre un proyecto." : "Hola Monova, quiero cotizar mi proyecto con la oferta Black Mode de hasta 30% de descuento.")}`;
 const projects = [
   { name: "Kliniu", category: "Plataforma · Web / App", description: "Servicios de limpieza, una experiencia más simple.", image: "kliniu", url: "https://kliniu.vercel.app" },
   { name: "Drokex", category: "Marketplace · B2B", description: "Conectando negocios más allá de las fronteras.", image: "drokex", url: "https://drokex.com" },
@@ -20,12 +22,12 @@ const projects = [
 ];
 function Brand() { return <a href="#inicio" className={styles.brand} aria-label="Monova, inicio"><Image className={styles.brandLogo} src="/assets/monova-logo.png" width={2172} height={724} alt="MONOVA" priority /></a>; }
 export function AgencyHome() {
-  return <main className={styles.page} id="inicio">
+  return <main className={styles.page} data-campaign={isChristmas ? "christmas" : "black"} id="inicio">
     <div className={styles.heroWrap}>
-      <header className={styles.header}><Brand /><span className={styles.tagline}>Ideas que funcionan.</span><nav aria-label="Navegación principal"><a href="#servicios">Servicios</a><a href="#proyectos">Proyectos</a><a href="#nosotros">Nosotros</a><Link href="/juego">Juega con Monova</Link><Link href="/3d" className={styles.desktopOnly}>3D</Link></nav><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={17}/></a></header>
+      <header className={styles.header}><Brand /><span className={styles.tagline}>Ideas que funcionan.</span><nav aria-label="Navegación principal"><a href="#servicios">Servicios</a><a href="#proyectos">Proyectos</a><a href="#nosotros">Nosotros</a><Link href="/3d" className={styles.desktopOnly}>3D</Link></nav><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={17}/></a></header>
       <section className={styles.hero} aria-labelledby="hero-title">
         <HeroVideo />
-        <div className={styles.heroCopy}><p className={styles.eyebrow}>TECNOLOGÍA × CREATIVIDAD × RESULTADOS</p><h1 id="hero-title">Monova está listo<br/>para <span>Halloween.</span><br/>¿Y tu web?</h1><p className={styles.intro}>Dale a tu web un cambio que sorprenda.<br className={styles.desktopBreak}/> Diseño, tecnología y creatividad para destacar esta temporada.</p><div className={styles.actions}><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Comenzar un proyecto</span><ArrowRight size={17}/></a><a className={styles.secondary} href="#servicios">Conocer nuestros servicios</a></div></div>
+        <div className={styles.heroCopy}><p className={styles.eyebrow}>TECNOLOGÍA × CREATIVIDAD × RESULTADOS</p><h1 id="hero-title">{isChristmas ? <>Monova está listo<br/>para <span>Navidad.</span><br/>¿Y tu web?</> : <>BLACK MODE:<br/><span>ACTIVADO.</span></>}</h1><p className={styles.intro}>{isChristmas ? <>Dale a tu web un cambio que sorprenda.<br className={styles.desktopBreak}/> Diseño, tecnología y creatividad para destacar esta temporada.</> : <>Es el momento de darle vida a tu próximo proyecto.<br/> Web, diseño, video e inteligencia artificial con hasta un 30% de descuento.</>}</p><div className={styles.actions}><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>{isChristmas ? "Comenzar un proyecto" : "Quiero mi precio Black"}</span><ArrowRight size={17}/></a><a className={styles.secondary} href="#servicios">Conocer nuestros servicios</a></div></div>
         <div className={styles.heroBottom}><a href="#proyectos"><Mouse size={25}/><span>SCROLL<br/>PARA EXPLORAR</span></a><span className={styles.bigWord} aria-hidden="true">MONOV<span>Λ</span></span><p>TECNOLOGÍA<br/>PARA UN<br/>MAÑANA REAL.</p></div>
       </section>
     </div>
@@ -35,22 +37,23 @@ export function AgencyHome() {
       <ProjectCarousel projects={projects} />
       <div className={styles.portfolioFooter}><span>EL PRÓXIMO GRAN PROYECTO PUEDE SER EL TUYO.</span><a href={contact} target="_blank" rel="noreferrer">Vamos a crearlo <ArrowRight size={22}/></a></div>
     </section>
-    <section className={styles.promo} aria-labelledby="promo-title">
-      <a className={styles.promoCard} href={`${contact.split("?")[0]}?text=${encodeURIComponent("Hola Monova, quiero aprovechar el 15% de descuento de Halloween en la implementación de mi web.")}`} target="_blank" rel="noreferrer" aria-label="15% de descuento en tu nueva web, solo en octubre por Halloween. Escríbenos por WhatsApp (abre en otra pestaña)">
-        <Image className={styles.promoBg} src="/assets/monova-halloween-banner.jpg" alt="El gato de Monova disfrazado de vampiro entre calabazas bajo la luna llena" fill sizes="100vw" />
+    {isChristmas ? <section className={styles.promo} aria-labelledby="promo-title">
+      <a className={styles.promoCard} href={`${contact.split("?")[0]}?text=${encodeURIComponent("Hola Monova, quiero aprovechar el 30% de descuento de Navidad en la implementación de mi web.")}`} target="_blank" rel="noreferrer" aria-label="30% de descuento en tu nueva web, especial de Navidad. Escríbenos por WhatsApp (abre en otra pestaña)">
+        <Image className={styles.promoBg} src="/assets/santa-portada.webp" alt="Monova envuelve un regalo de Navidad" fill sizes="100vw" />
         <div className={styles.promoCopy}>
-          <p className={styles.promoPercent}>15%</p>
+          <p className={styles.promoPercent}>30%</p>
           <div>
-            <h2 id="promo-title">en tu nueva web.<br/>Lánzala este Halloween<span>.</span></h2>
-            <p className={styles.promoPill}>Solo en octubre · Escríbenos hoy 🎃</p>
+            <h2 id="promo-title">en tu nueva web.<br/>Lánzala esta Navidad<span>.</span></h2>
+            <p className={styles.promoPill}>Especial de Navidad · Escríbenos hoy 🎁</p>
           </div>
         </div>
       </a>
     </section>
+    : <BlackCampaign contact={contact} />}
     <section className={`${styles.section} ${styles.services}`} id="servicios"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>CAPACIDADES</p><h2>Tecnología, diseño y<br/>automatización para crecer mejor<span>.</span></h2></div><p className={styles.sideNote}>SOLUCIONES REALES<br/>PARA DESAFÍOS REALES.</p></div><ServicesScene contact={contact}/></section>
     <section className={styles.method}><div><p className={styles.eyebrow}>NUESTRO MÉTODO</p><h2>Del concepto<br/>a la conversión<span>.</span></h2></div>{[{title:"Descubrimos",text:"Entendemos tu negocio, usuarios y oportunidades.",icon:Search},{title:"Diseñamos",text:"Convertimos ideas en estrategias y experiencias.",icon:PenTool},{title:"Construimos",text:"Desarrollamos soluciones escalables y robustas.",icon:Code2},{title:"Optimizamos",text:"Medimos, iteramos y hacemos crecer.",icon:ChartNoAxesColumnIncreasing}].map((s,i)=><article key={s.title}><div><span>0{i+1}</span><s.icon size={26}/></div><h3>{s.title}</h3><p>{s.text}</p></article>)}</section>
     <section className={styles.about} id="nosotros">
-      <div className={styles.office}><Image src="/assets/monova-about-team-real.png" alt="Una persona con buzo de Monova trabaja en su portátil mientras el gato Monova, con disfraz de dinosaurio, le ayuda a conectar mensajes en paneles flotantes" fill sizes="(max-width: 700px) 100vw, 55vw"/><span>IDEAS QUE COBRAN VIDA</span></div>
+      <div className={styles.office}><Image src={isChristmas ? "/assets/santa-equipo.webp" : "/assets/black-mode/team-v1.webp"} alt={isChristmas ? "El equipo de Monova con su mascota en Navidad" : "El equipo creativo de Monova trabajando en nuevas ideas"} fill sizes="(max-width: 700px) 100vw, 55vw"/><span>IDEAS QUE COBRAN VIDA</span></div>
       <div className={styles.aboutCopy}><p className={styles.eyebrow}>MUCHO GUSTO, SOMOS MONOVA</p><h2>Buenas ideas.<br/>Personas curiosas.<br/><span>Grandes posibilidades.</span></h2><p>Nos gusta hacer las preguntas correctas, imaginar lo que sigue y construirlo contigo. Unimos estrategia, diseño y tecnología para darle forma a eso que tienes en mente.</p><div className={styles.aboutPillars}><span>01 / Pensamos contigo</span><span>02 / Diseñamos con intención</span><span>03 / Hacemos que funcione</span></div><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Conozcámonos</span><ArrowUpRight size={18}/></a></div>
     </section>
     <section className={styles.contact} id="contacto"><div><p className={styles.eyebrow}>HABLEMOS</p><h2>¿Tienes una idea?<br/>Hagámosla funcionar<span>.</span></h2></div><a className={styles.primary} href={contact} target="_blank" rel="noreferrer"><span>Hablemos</span><ArrowRight size={18}/></a></section>
